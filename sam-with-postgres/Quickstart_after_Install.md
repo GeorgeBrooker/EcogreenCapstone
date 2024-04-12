@@ -1,6 +1,7 @@
 ﻿# After first time setup you can use the following commands to start
 **All commands should be executed in order** and **within the sam-with-postgres folder**
 
+Docker-Desktop must be running somewhere to compose the project
 ```bash
 docker-compose up -d
 sam build
