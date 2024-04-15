@@ -55,9 +55,8 @@ CREATE TABLE orders (
 );
 
 create table pictures_of (
-    id serial not null primary key,
-    stock_id int,
-    photo_id varchar(128),
+    stock_id int not null,
+    photo_id varchar(128) not null primary key,
     
     CONSTRAINT fk_stock FOREIGN KEY(stock_id) REFERENCES stock(id),
     CONSTRAINT fk_photo FOREIGN KEY(photo_id) REFERENCES product_photo(image_uri)
