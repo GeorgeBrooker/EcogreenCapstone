@@ -1,7 +1,7 @@
 version: '2'
 services:
   sam-postgres-db:
-    image: postgres:10.5-alpine
+    image: postgres:15
     container_name: sam-postgres-db
     environment:
       - POSTGRES_PASSWORD=cs399p41testdb
