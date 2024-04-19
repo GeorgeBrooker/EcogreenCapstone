@@ -3,6 +3,8 @@ using Amazon.Lambda.Core;
 using Npgsql;
 using System.Collections.Generic;
 using ShopRepository.Models;
+using Dapper;
+
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -37,43 +39,75 @@ public class ShopRepo
     }
     
     //todo
-    public List<Product> GetAllProducts()
+    public async Task<List<Product>> GetAllProducts()
     {
+        var sql = "SELECT * FROM stock;"; // Make sure the table name and columns match your schema.
         try
         {
-            _conn.OpenAsync();
-
+            await _conn.OpenAsync();
+            var products = await _conn.QueryAsync<Product>(sql);
+            return products.AsList();
         }
         finally
         {
-            _conn.Close();
+            await _conn.CloseAsync();
         }
-
-        return new List<Product>();
     }
-    
-    //todo
-    public Product GetProductById(int id)
-    {
 
-        return new Product();
+    public async Task<Product> GetProductById(int id)
+    {
+        var sql = "SELECT * FROM stock WHERE id = @Id;"; // Use parameterized queries to prevent SQL injection.
+        try
+        {
+            await _conn.OpenAsync();
+            var product = await _conn.QuerySingleOrDefaultAsync<Product>(sql, new { Id = id });
+            return product;
+        }
+        finally
+        {
+            await _conn.CloseAsync();
+        }
     }
-    
-    //todo
-    public void AddProduct(Product product)
-    {
 
+    public async Task AddProduct(Product product)
+    {
+        var sql = "INSERT INTO stock (name, quantity, manufacturer, price, base_cost) VALUES (@Name, @Quantity, @Manufacturer, @Price, @BaseCost);";
+        try
+        {
+            await _conn.OpenAsync();
+            await _conn.ExecuteAsync(sql, product);
+        }
+        finally
+        {
+            await _conn.CloseAsync();
+        }
     }
-    
-    //todo
-    public void UpdateProduct(Product product)
-    {
 
+    public async Task UpdateProduct(Product product)
+    {
+        var sql = "UPDATE stock SET name = @Name, quantity = @Quantity, manufacturer = @Manufacturer, price = @Price, base_cost = @BaseCost WHERE id = @Id;";
+        try
+        {
+            await _conn.OpenAsync();
+            await _conn.ExecuteAsync(sql, product);
+        }
+        finally
+        {
+            await _conn.CloseAsync();
+        }
     }
-    
-    //todo
-    public void DeleteProduct(int id)
-    {
 
+    public async Task DeleteProduct(int id)
+    {
+        var sql = "DELETE FROM stock WHERE id = @Id;";
+        try
+        {
+            await _conn.OpenAsync();
+            await _conn.ExecuteAsync(sql, new { Id = id });
+        }
+        finally
+        {
+            await _conn.CloseAsync();
+        }
     }
 }
