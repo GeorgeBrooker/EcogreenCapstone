@@ -1,17 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Amazon.DynamoDBv2.DataModel;
 
 namespace ShopRepository.Models;
 
+[DynamoDBTable("Stock")]
 public class Stock
 {
-    [Key] public int Id { get; set; }
-
+    [DynamoDBHashKey] public string Id { get; set; }
+    
+    [DynamoDBProperty]
     public string Name { get; set; }
-    public int Quantity { get; set; }
-    public string Manufacturer { get; set; }
-    public float Price { get; set; }
-    public float BaseCost { get; set; }
-    public float Profit => Price - BaseCost;
-
-    public IEnumerable<Photo> Photos { get; set; }
+    [DynamoDBProperty]
+    public int TotalStock { get; set; }
+    [DynamoDBProperty]
+    public IEnumerable<string> PhotoUri { get; set; }
 }

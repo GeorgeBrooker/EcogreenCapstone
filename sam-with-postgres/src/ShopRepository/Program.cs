@@ -6,6 +6,11 @@ using ShopRepository.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Logger
+builder.Logging
+    .ClearProviders()
+    .AddJsonConsole();
+
 // Add services to the container.
 builder.Services
     .AddControllers()

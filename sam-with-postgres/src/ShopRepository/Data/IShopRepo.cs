@@ -5,30 +5,25 @@ namespace ShopRepository.Data;
 public interface IShopRepo
 {
     // Orders
-    Task<Order> GetOrderAsync(int orderId);
-    Task<IEnumerable<Order>> GetAllOrdersAsync();
-    Task AddOrderAsync(Order order);
-    Task UpdateOrderAsync(Order order);
-    Task DeleteOrderAsync(int orderId);
+    Task<Order?> GetOrder(int orderId);
+    Task<Order?> GetOrderFromPaymentId(string paymentIntentId);
+    Task<IEnumerable<Order>?> GetAllOrders(int limit);
+    Task<bool> AddOrder(Order order);
+    Task<bool> UpdateOrder(Order? order);
+    Task<bool> DeleteOrder(int orderId);
 
     // Customers
-    Task<Customer> GetCustomerAsync(int customerId);
-    Task<IEnumerable<Customer>> GetAllCustomersAsync();
-    Task AddCustomerAsync(Customer customer);
-    Task UpdateCustomerAsync(Customer customer);
-    Task DeleteCustomerAsync(int customerId);
-
-    // Photos
-    Task<Photo> GetPhotoAsync(int photoId);
-    Task<IEnumerable<Photo>> GetAllPhotosAsync();
-    Task AddPhotoAsync(Photo photo);
-    Task UpdatePhotoAsync(Photo photo);
-    Task DeletePhotoAsync(int photoId);
+    Task<Customer?> GetCustomer(string customerId);
+    Task<IEnumerable<Order>?> GetCustomerOrders(string customerId);
+    Task<IEnumerable<Customer>?> GetAllCustomers(int limit);
+    Task<bool> AddCustomer(Customer customer);
+    Task<bool> UpdateCustomer(Customer customer);
+    Task<bool> DeleteCustomer(int customerId);
 
     // Stock
-    Task<Stock> GetStockAsync(int stockId);
-    Task<IEnumerable<Stock>> GetAllStockAsync();
-    Task AddStockAsync(Stock stock);
-    Task UpdateStockAsync(Stock stock);
-    Task DeleteStockAsync(int stockId);
+    Task<Stock?> GetStock(string stockId);
+    Task<IEnumerable<Stock>?> GetAllStock(int limit);
+    Task<bool> AddStock(Stock stock);
+    Task<bool> UpdateStock(Stock stock);
+    Task<bool> DeleteStock(int stockId);
 }
