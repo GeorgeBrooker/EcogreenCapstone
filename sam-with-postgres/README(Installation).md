@@ -14,6 +14,8 @@ Whenever I refer to the *root* or *project* directory I am referring to the sam-
 - .NET core 
 - Docker *(Docker-Desktop is the recommended installer)*
 - AWS SAM CLI.
+
+NOTE: If developing / using strip applications you will also need to install the stripe API
 ## HIGHLY RECOMENDED
 - Postman https://www.postman.com/downloads/ (this will let you send custom Http requests to the server very easily. I will probably set up a custom environment on this for the team soon)
 

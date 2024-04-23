@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ShopRepository.Models;
 using ShopRepository.Data;
+using ShopRepository.Models;
+using Stripe;
 
 namespace ShopRepository.Controllers;
-
 
 [Route("api/shopapi")]
 [Produces("application/json")]
@@ -13,9 +13,9 @@ public class ShopController : ControllerBase
 
     public ShopController(IShopRepo shopRepo)
     {
-        this._repo = shopRepo;
+        _repo = shopRepo;
     }
-    
+
     // TestUp
     [HttpGet]
     public ActionResult GetAlive()
@@ -23,11 +23,20 @@ public class ShopController : ControllerBase
         return Ok("You are now listening to the shop controller");
     }
 
+    [HttpGet("AllCustomers")]
+    public ActionResult<StripeList<Stripe.Customer>> GetCustomers()
+    {
+        StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
+        var options = new CustomerListOptions { Limit = 10 };
+        var service = new CustomerService();
+        
+        return Ok(service.List(options));
+    }
+
     // GET api/shopapi/getorders
     [HttpGet("GetOrders")]
     public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
     {
-
         return Ok(await _repo.GetAllOrdersAsync());
     }
 
@@ -37,10 +46,7 @@ public class ShopController : ControllerBase
     {
         var result = await _repo.GetOrderAsync(id);
 
-        if (result == null)
-        {
-            return NotFound();
-        }
+        if (result == null) return NotFound();
 
         return Ok(result);
     }

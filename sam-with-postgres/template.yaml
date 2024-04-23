@@ -21,6 +21,7 @@ Resources:
       Environment: 
         Variables: 
           VAR_1: Hello!
+          STRIPE_API_KEY: sk_test_51P8grSEvcprk3hy6Npdx7cFlHVlY0fcPofWOTBBJVCj1ZUgmIU4p3paiOaUGyKUwqNoXOb95lJf6yJ8i0v86WQC700pFzxXcsZ
       Events:
         ProxyResource:
           Type: HttpApi

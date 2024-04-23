@@ -4,8 +4,8 @@ namespace ShopRepository.Models;
 
 public class Order
 {
-    [Key]
-    public int Id { get; set; }
+    [Key] public int Id { get; set; }
+
     public string PaymentStatus { get; set; }
     public string TrackingNumber { get; set; }
     public DateTime Date { get; set; }

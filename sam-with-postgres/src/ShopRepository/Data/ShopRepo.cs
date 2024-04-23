@@ -1,23 +1,23 @@
-﻿using System;
-using Amazon.DynamoDBv2.DataModel;
+﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
-using Microsoft.EntityFrameworkCore;
+using Amazon.Lambda.Serialization.SystemTextJson;
 using ShopRepository.Models;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
 namespace ShopRepository.Data;
 
 public class ShopRepo : IShopRepo
 {
     private readonly IDynamoDBContext _dbContext;
+
     public ShopRepo(IDynamoDBContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    
+
     // ORDER METHODS
     public async Task<Order> GetOrderAsync(int orderId)
     {
@@ -43,7 +43,7 @@ public class ShopRepo : IShopRepo
     {
         throw new NotImplementedException();
     }
-    
+
     // CUSTOEMR METHODS
     public Task<Customer> GetCustomerAsync(int customerId)
     {
@@ -96,7 +96,7 @@ public class ShopRepo : IShopRepo
         throw new NotImplementedException();
     }
 
-    
+
     // STOCK METHODS
     public Task<Stock> GetStockAsync(int stockId)
     {

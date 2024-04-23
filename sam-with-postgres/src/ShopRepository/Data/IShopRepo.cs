@@ -31,5 +31,4 @@ public interface IShopRepo
     Task AddStockAsync(Stock stock);
     Task UpdateStockAsync(Stock stock);
     Task DeleteStockAsync(int stockId);
-
 }
