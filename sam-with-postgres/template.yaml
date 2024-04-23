@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Sample SAM Template for sam-with-postgres
+  Serverless API for Kashish Ecommerce platform
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -21,16 +21,38 @@ Resources:
       MemorySize: 512
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          USER_NAME: postgres
-          PASSWORD: cs399p41testdb
-          RDS_PROXY_HOST: host.docker.internal
-          DB_NAME: postgres
+          VAR1: hello!
       Events:
         HelloWorld:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /hello
             Method: get
+            
+  ShopApi:
+    Type: AWS::Serverless::Function
+    Properties: 
+      Description: API To manage Kashish Shop actions
+      CodeUri: ./src/ShopRepository/
+      Handler: ShopRepository
+      Runtime: dotnet8
+      MemorySize: 1024
+      Environment: 
+        Variables: 
+          VAR_1: Hello!
+      Events:
+        ProxyResource:
+          Type: HttpApi
+          Properties:
+            PayloadFormatVersion: "2.0"
+            Path: /{proxy+}
+            Method: ANY
+        RootResource:
+          PayloadFormatVersion: "2.0"
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -45,3 +67,7 @@ Outputs:
   HelloWorldFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
     Value: !GetAtt HelloWorldFunctionRole.Arn
+    
+  WebEndpoint:
+    Description: "API Gateway Endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"

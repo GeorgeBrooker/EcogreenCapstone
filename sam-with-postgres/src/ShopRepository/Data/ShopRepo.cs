@@ -1,7 +1,6 @@
 ﻿using System;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
-using Npgsql;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using ShopRepository.Models;
 
@@ -12,29 +11,27 @@ namespace ShopRepository.Data;
 
 public class ShopRepo : IShopRepo
 {
-    private readonly AWSDbContext _dbContext;
-    public ShopRepo(AWSDbContext awsDbContext)
+    private readonly IDynamoDBContext _dbContext;
+    public ShopRepo(IDynamoDBContext dbContext)
     {
-        _dbContext = awsDbContext;
+        _dbContext = dbContext;
     }
 
     
     // ORDER METHODS
     public async Task<Order> GetOrderAsync(int orderId)
     {
-        IQueryable<Order> orders = _dbContext.Orders.AsQueryable();
-        return await orders.Where(e => e.Id == orderId).SingleAsync();
+        throw new NotImplementedException();
     }
 
     public async Task<IEnumerable<Order>> GetAllOrdersAsync()
     {
-        return await _dbContext.Orders.ToListAsync();
+        throw new NotImplementedException();
     }
 
     public async Task AddOrderAsync(Order order)
     {
-        await _dbContext.Orders.AddAsync(order);
-        await _dbContext.SaveChangesAsync();
+        throw new NotImplementedException();
     }
 
     public Task UpdateOrderAsync(Order order)

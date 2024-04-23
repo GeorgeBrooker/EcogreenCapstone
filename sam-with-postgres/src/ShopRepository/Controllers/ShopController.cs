@@ -7,13 +7,20 @@ namespace ShopRepository.Controllers;
 
 [Route("api/shopapi")]
 [Produces("application/json")]
-public class BooksController : ControllerBase
+public class ShopController : ControllerBase
 {
     private readonly IShopRepo _repo;
 
-    public BooksController(IShopRepo shopRepo)
+    public ShopController(IShopRepo shopRepo)
     {
         this._repo = shopRepo;
+    }
+    
+    // TestUp
+    [HttpGet]
+    public ActionResult GetAlive()
+    {
+        return Ok("You are now listening to the shop controller");
     }
 
     // GET api/shopapi/getorders

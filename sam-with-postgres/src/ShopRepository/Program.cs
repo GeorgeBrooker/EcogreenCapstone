@@ -1,15 +1,14 @@
-﻿using System;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using Amazon;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql;// Add Npgsql package for PostgreSQL
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using ShopRepository.Data; 
 
 var builder = WebApplication.CreateBuilder(args);
- 
+
 // Add services to the container.
 builder.Services
     .AddControllers()
@@ -18,15 +17,23 @@ builder.Services
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
-string userName = Environment.GetEnvironmentVariable("USER_NAME");
-string password = Environment.GetEnvironmentVariable("PASSWORD");
-string rdsProxyHost = Environment.GetEnvironmentVariable("RDS_PROXY_HOST");
-string dbName = Environment.GetEnvironmentVariable("DB_NAME");
-string connectionString = $"Server={rdsProxyHost};Username={userName};Password={password}";
+//TODO configure AWS keys properly. (APP WONT DEPLOY WITHOUT THIS WORKING!)
+AmazonDynamoDBConfig clientConfig = new AmazonDynamoDBConfig();
+
+// Configure local endpoint if we're running in SAM CLI
+if (Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true")
+{
+    clientConfig.ServiceURL = "http://localhost:8000";
+}
+else
+{
+    clientConfig.RegionEndpoint = RegionEndpoint.APSoutheast2; //Sydney
+}
+
 
 builder.Services
-    // Configure EF to use PostgreSQL
-    .AddDbContext<AWSDbContext>(options => { options.UseNpgsql(connectionString); })
+    .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(clientConfig))
+    .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>();
 
 
