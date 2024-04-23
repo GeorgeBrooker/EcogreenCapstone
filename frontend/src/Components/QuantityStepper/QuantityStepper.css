@@ -1,0 +1,22 @@
+.quantity-stepper{
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: center;
+    width: 62px;
+    height: 40px;
+    border: 2px soild #ebebeb;
+    border-radius: 7px;
+    background: white;
+}
+.quantity-stepper span{
+    border: 2px solid #8a86866c;
+    border-radius: 7px;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.quantity-stepper button{
+    background: #5cb85c;
+}

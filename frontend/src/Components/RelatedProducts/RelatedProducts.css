@@ -1,0 +1,43 @@
+.relatedproducts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  height: 90vh;
+}
+.relatedproducts h1 {
+  color: #171717;
+  font-size: 50px;
+  font-weight: 600;
+}
+.relatedproducts hr{
+  width: 200px;
+  height: 6px;
+  border-radius: 10px;
+  background: #252525;
+}
+.relatedproducts-item {
+  display: flex;
+  margin-top: 50px;
+  gap: 30px;
+}
+
+/* .item {
+  flex: 1 1 22%; 
+  max-width: 22%;
+  min-width: 250px;
+}
+
+@media (max-width: 1024px) {
+  .item {
+    flex-basis: 45%; 
+    max-width: 45%;
+  }
+}
+
+@media (max-width: 768px) {
+  .item {
+    flex-basis: 90%; 
+    max-width: 90%;
+  }
+} */
