@@ -1,113 +1,125 @@
 ﻿using System;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
-using Npgsql;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using ShopRepository.Models;
-using Dapper;
-
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
 namespace ShopRepository.Data;
 
-public class ShopRepo
+public class ShopRepo : IShopRepo
 {
-    // Connection string is injected through env variables when using AWS lambda pattern.
-    static string userName = Environment.GetEnvironmentVariable("USER_NAME");
-    static string password = Environment.GetEnvironmentVariable("PASSWORD");
-    static string rdsProxyHost = Environment.GetEnvironmentVariable("RDS_PROXY_HOST");
-    static string dbName = Environment.GetEnvironmentVariable("DB_NAME");
-    private static readonly string connectionString = $"Server={rdsProxyHost};Username={userName};Password={password}";
+    private readonly IDynamoDBContext _dbContext;
+    public ShopRepo(IDynamoDBContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
     
-    // I think having the connection as static makes sure there's only one floating around?
-    private static NpgsqlConnection _conn;
-
-    static ShopRepo()
+    // ORDER METHODS
+    public async Task<Order> GetOrderAsync(int orderId)
     {
-        // Initialize the database connection using connection pooling
-        var connStringBuilder = new NpgsqlConnectionStringBuilder(connectionString)
-        {
-            // Specify additional connection pooling options here if needed.
-            Pooling = true,
-            MinPoolSize = 0,
-            MaxPoolSize = 100,
-            ConnectionIdleLifetime = 300,
-            ConnectionPruningInterval = 10
-        };
-        _conn = new NpgsqlConnection(connStringBuilder.ConnectionString);
+        throw new NotImplementedException();
+    }
+
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task AddOrderAsync(Order order)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateOrderAsync(Order order)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteOrderAsync(int orderId)
+    {
+        throw new NotImplementedException();
     }
     
-    //todo
-    public async Task<List<Product>> GetAllProducts()
+    // CUSTOEMR METHODS
+    public Task<Customer> GetCustomerAsync(int customerId)
     {
-        var sql = "SELECT * FROM stock;"; // Make sure the table name and columns match your schema.
-        try
-        {
-            await _conn.OpenAsync();
-            var products = await _conn.QueryAsync<Product>(sql);
-            return products.AsList();
-        }
-        finally
-        {
-            await _conn.CloseAsync();
-        }
+        throw new NotImplementedException();
     }
 
-    public async Task<Product> GetProductById(int id)
+    public Task<IEnumerable<Customer>> GetAllCustomersAsync()
     {
-        var sql = "SELECT * FROM stock WHERE id = @Id;"; // Use parameterized queries to prevent SQL injection.
-        try
-        {
-            await _conn.OpenAsync();
-            var product = await _conn.QuerySingleOrDefaultAsync<Product>(sql, new { Id = id });
-            return product;
-        }
-        finally
-        {
-            await _conn.CloseAsync();
-        }
+        throw new NotImplementedException();
     }
 
-    public async Task AddProduct(Product product)
+    public Task AddCustomerAsync(Customer customer)
     {
-        var sql = "INSERT INTO stock (name, quantity, manufacturer, price, base_cost) VALUES (@Name, @Quantity, @Manufacturer, @Price, @BaseCost);";
-        try
-        {
-            await _conn.OpenAsync();
-            await _conn.ExecuteAsync(sql, product);
-        }
-        finally
-        {
-            await _conn.CloseAsync();
-        }
+        throw new NotImplementedException();
     }
 
-    public async Task UpdateProduct(Product product)
+    public Task UpdateCustomerAsync(Customer customer)
     {
-        var sql = "UPDATE stock SET name = @Name, quantity = @Quantity, manufacturer = @Manufacturer, price = @Price, base_cost = @BaseCost WHERE id = @Id;";
-        try
-        {
-            await _conn.OpenAsync();
-            await _conn.ExecuteAsync(sql, product);
-        }
-        finally
-        {
-            await _conn.CloseAsync();
-        }
+        throw new NotImplementedException();
     }
 
-    public async Task DeleteProduct(int id)
+    public Task DeleteCustomerAsync(int customerId)
     {
-        var sql = "DELETE FROM stock WHERE id = @Id;";
-        try
-        {
-            await _conn.OpenAsync();
-            await _conn.ExecuteAsync(sql, new { Id = id });
-        }
-        finally
-        {
-            await _conn.CloseAsync();
-        }
+        throw new NotImplementedException();
+    }
+
+    // PHOTO METHODS
+    public Task<Photo> GetPhotoAsync(int photoId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<Photo>> GetAllPhotosAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddPhotoAsync(Photo photo)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdatePhotoAsync(Photo photo)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeletePhotoAsync(int photoId)
+    {
+        throw new NotImplementedException();
+    }
+
+    
+    // STOCK METHODS
+    public Task<Stock> GetStockAsync(int stockId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<Stock>> GetAllStockAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddStockAsync(Stock stock)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateStockAsync(Stock stock)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteStockAsync(int stockId)
+    {
+        throw new NotImplementedException();
     }
 }

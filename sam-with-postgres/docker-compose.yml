@@ -1,16 +1,11 @@
-version: '2'
+version: '3.8'
 services:
-  sam-postgres-db:
-    image: postgres:15
-    container_name: sam-postgres-db
-    environment:
-      - POSTGRES_PASSWORD=cs399p41testdb
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
     ports:
-      - '5432:5432'
-    networks:
-      sqlnet:
+      - "8000:8000"
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-        
-networks:
-  sqlnet:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
