@@ -17,3 +17,5 @@ and *always rebuild if you've changed your function!*
 sam build
 ```
 
+The github should contain a DB file that come pre filled with some test data. If the database is empty you can use the ```docker/dynamodb/KasishDM.json``` file with amazons ```noSQL workbench``` app to fill the database with the appropriate values.
+

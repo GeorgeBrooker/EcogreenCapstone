@@ -1,0 +1,1532 @@
+{
+  "ModelName": "KasishDM",
+  "ModelMetadata": {
+    "Author": "",
+    "DateCreated": "Apr 29, 2024, 05:55 PM",
+    "DateLastModified": "Apr 29, 2024, 11:46 PM",
+    "Description": "",
+    "AWSService": "Amazon DynamoDB",
+    "Version": "3.0"
+  },
+  "DataModel": [
+    {
+      "TableName": "Orders",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "Id",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "PaymentIntentId",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "CustomerId",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "DeliveryLabelUid",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "TrackingNumber",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "PackageReference",
+          "AttributeType": "S"
+        }
+      ],
+      "TableData": [
+        {
+          "Id": {
+            "S": "c2284a36-6a5f-485e-8a82-c8f119a55b8e"
+          },
+          "PaymentIntentId": {
+            "S": "c6206e7e-7346-4539-8d93-9cd8614aa76f"
+          },
+          "CustomerId": {
+            "S": "e9d10c7e-707a-4acf-b886-b2016c5df50c"
+          },
+          "DeliveryLabelUid": {
+            "S": "2de11ff9-bc82-4030-a1da-d163fe815672"
+          },
+          "TrackingNumber": {
+            "S": "A;>}tgM70F"
+          },
+          "PackageReference": {
+            "S": "KJ=&7!/XxR"
+          }
+        },
+        {
+          "Id": {
+            "S": "7c141baf-7d2d-4600-a2b4-01678373bedf"
+          },
+          "PaymentIntentId": {
+            "S": "cf3259af-c7bf-4918-a726-356f308ad907"
+          },
+          "CustomerId": {
+            "S": "c4f41acb-0c7a-4a39-a113-be3a4b769a1d"
+          },
+          "DeliveryLabelUid": {
+            "S": "579b9dcc-628c-4399-b729-cd5039960b6c"
+          },
+          "TrackingNumber": {
+            "S": "Kz]Yn4_yT_"
+          },
+          "PackageReference": {
+            "S": ")o7E+?a+C,"
+          }
+        },
+        {
+          "Id": {
+            "S": "480b03fa-4a8d-42b1-9f12-69e61400f525"
+          },
+          "PaymentIntentId": {
+            "S": "5a4ab955-be95-4355-8980-2273f443c0bc"
+          },
+          "CustomerId": {
+            "S": "68c433b6-fecb-4d3d-bfe4-28669bda691b"
+          },
+          "DeliveryLabelUid": {
+            "S": "9226c9c6-3996-4490-b5bc-9e7de45ba491"
+          },
+          "TrackingNumber": {
+            "S": "EZw?'rUuH="
+          },
+          "PackageReference": {
+            "S": "(zabJt*GuW"
+          }
+        },
+        {
+          "Id": {
+            "S": "e37d416a-c1d4-486e-8668-b0c12019dccf"
+          },
+          "PaymentIntentId": {
+            "S": "e1abc72f-816e-41fd-8ab1-bc0cc5cd8cfc"
+          },
+          "CustomerId": {
+            "S": "b8fdd685-62c7-4f09-983a-22e9f5d3805f"
+          },
+          "DeliveryLabelUid": {
+            "S": "a2f2def6-4b69-40d8-af44-4c784f2496d6"
+          },
+          "TrackingNumber": {
+            "S": "0za<}|7mD%"
+          },
+          "PackageReference": {
+            "S": ".5_}'O[ei["
+          }
+        },
+        {
+          "Id": {
+            "S": "33925e04-e2d9-4dfb-a685-6ece7ce5b4c4"
+          },
+          "PaymentIntentId": {
+            "S": "1d8bc55e-78f2-4ae1-92e4-afadf47de4d9"
+          },
+          "CustomerId": {
+            "S": "bb8150ef-f138-4590-8452-4fee498f50e7"
+          },
+          "DeliveryLabelUid": {
+            "S": "01bb5533-5dbc-4ef9-bf1d-d15c6c07e47a"
+          },
+          "TrackingNumber": {
+            "S": "Sy#_nbA-k-"
+          },
+          "PackageReference": {
+            "S": "R0VW)&W;*u"
+          }
+        },
+        {
+          "Id": {
+            "S": "0d4bc448-f5f0-4630-9012-055e296885cf"
+          },
+          "PaymentIntentId": {
+            "S": "49be350b-d980-4cbd-b46f-3b989c5f4581"
+          },
+          "CustomerId": {
+            "S": "3452d0be-4e8a-440a-a827-698c5dbd9080"
+          },
+          "DeliveryLabelUid": {
+            "S": "4323097c-c4cb-4b5a-a019-011c8aa98316"
+          },
+          "TrackingNumber": {
+            "S": "C?k^]YX>s:"
+          },
+          "PackageReference": {
+            "S": ")pR^>3|Ak8"
+          }
+        },
+        {
+          "Id": {
+            "S": "4228fe07-ae94-47f0-9bbd-19f1309a9ae4"
+          },
+          "PaymentIntentId": {
+            "S": "6e51a9b8-1fdc-4253-97a5-6c2546c97695"
+          },
+          "CustomerId": {
+            "S": "10e7b8cb-edef-4804-9d17-58234f8e4758"
+          },
+          "DeliveryLabelUid": {
+            "S": "fe5994be-553a-409e-a6c7-db83607875c8"
+          },
+          "TrackingNumber": {
+            "S": "E$3*k$H_]\""
+          },
+          "PackageReference": {
+            "S": "mSIld^0=al"
+          }
+        },
+        {
+          "Id": {
+            "S": "45229c70-42c5-46cc-b7bd-e901b894bd21"
+          },
+          "PaymentIntentId": {
+            "S": "83bce6ab-5544-4f07-a1eb-bdab4881cc1f"
+          },
+          "CustomerId": {
+            "S": "b9f57607-a37a-48a7-a58f-7ac3dd8e5895"
+          },
+          "DeliveryLabelUid": {
+            "S": "7afe3a5f-f53f-453c-a7d1-603949fb7932"
+          },
+          "TrackingNumber": {
+            "S": "hmT#9\\r\\%L"
+          },
+          "PackageReference": {
+            "S": "U6iXSo29N?"
+          }
+        },
+        {
+          "Id": {
+            "S": "5e93aa56-4a21-49aa-8630-d82aebb6e3b4"
+          },
+          "PaymentIntentId": {
+            "S": "3749055a-350d-4351-a1a0-542b5543ca63"
+          },
+          "CustomerId": {
+            "S": "485fc1be-db79-403d-b327-bc459c4eb07e"
+          },
+          "DeliveryLabelUid": {
+            "S": "c4082b04-30b6-46dc-99b4-3f4bfb2badbd"
+          },
+          "TrackingNumber": {
+            "S": "Ouz|$Au?JP"
+          },
+          "PackageReference": {
+            "S": "3Z[@tTt{GV"
+          }
+        },
+        {
+          "Id": {
+            "S": "69fa2c8d-c35b-4693-b1b3-5be663da95bc"
+          },
+          "PaymentIntentId": {
+            "S": "9dab5db6-2596-4662-a429-76414b8f5dd5"
+          },
+          "CustomerId": {
+            "S": "bbc854a5-c90f-49b7-a778-a75b96fa114d"
+          },
+          "DeliveryLabelUid": {
+            "S": "9829582c-0cb9-4767-baf9-0ed936b6eb2b"
+          },
+          "TrackingNumber": {
+            "S": "4O0eHuAjl'"
+          },
+          "PackageReference": {
+            "S": "pPJcwB`Q\"i"
+          }
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      },
+      "SampleDataFormats": {
+        "Id": [
+          "identifiers",
+          "UUID"
+        ],
+        "PaymentIntentId": [
+          "identifiers",
+          "UUID"
+        ],
+        "CustomerId": [
+          "identifiers",
+          "UUID"
+        ],
+        "DeliveryLabelUid": [
+          "identifiers",
+          "UUID"
+        ],
+        "TrackingNumber": [
+          "dataTypes",
+          "String"
+        ],
+        "PackageReference": [
+          "dataTypes",
+          "String"
+        ]
+      },
+      "BillingMode": "PROVISIONED",
+      "ProvisionedCapacitySettings": {
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        },
+        "AutoScalingRead": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        },
+        "AutoScalingWrite": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        }
+      }
+    },
+    {
+      "TableName": "Customers",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "Id",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "StripeId",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "FirstName",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "LastName",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Email",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Password",
+          "AttributeType": "S"
+        }
+      ],
+      "TableData": [
+        {
+          "Id": {
+            "S": "46b60493-29cc-42da-b45b-bfd00f8c9617"
+          },
+          "StripeId": {
+            "S": "aad8b5b3-6d72-44e8-ba10-91b4d0f6b053"
+          },
+          "FirstName": {
+            "S": "Parker"
+          },
+          "LastName": {
+            "S": "Bartell"
+          },
+          "Email": {
+            "S": "Kaden84@gmail.com"
+          },
+          "Password": {
+            "S": "Fanny_Dibbert"
+          }
+        },
+        {
+          "Id": {
+            "S": "af5a5034-47f3-4f86-b436-a4697d51a9c8"
+          },
+          "StripeId": {
+            "S": "799f6d22-3c38-4a1e-96d9-1f5bf863de09"
+          },
+          "FirstName": {
+            "S": "Morgan"
+          },
+          "LastName": {
+            "S": "Ondricka"
+          },
+          "Email": {
+            "S": "Oran_Kuhic30@gmail.com"
+          },
+          "Password": {
+            "S": "Jason58"
+          }
+        },
+        {
+          "Id": {
+            "S": "e010e801-c81b-40af-a814-22d91c569258"
+          },
+          "StripeId": {
+            "S": "77e4257f-b485-44bd-b8c2-6a69fded25d1"
+          },
+          "FirstName": {
+            "S": "Landen"
+          },
+          "LastName": {
+            "S": "Nikolaus"
+          },
+          "Email": {
+            "S": "Gwen.Crona@yahoo.com"
+          },
+          "Password": {
+            "S": "Creola72"
+          }
+        },
+        {
+          "Id": {
+            "S": "2652fe1e-19f8-481c-8fb6-18aa582f1988"
+          },
+          "StripeId": {
+            "S": "4a64b219-77e0-432d-aca4-dde063d70271"
+          },
+          "FirstName": {
+            "S": "Jermaine"
+          },
+          "LastName": {
+            "S": "Von"
+          },
+          "Email": {
+            "S": "Alysa_Gottlieb62@hotmail.com"
+          },
+          "Password": {
+            "S": "Toney19"
+          }
+        },
+        {
+          "Id": {
+            "S": "4562e65c-1c0f-4bcb-8fe9-96500fcc16e8"
+          },
+          "StripeId": {
+            "S": "b817fa37-77ee-4ba3-9168-69e7a6880a1d"
+          },
+          "FirstName": {
+            "S": "Patsy"
+          },
+          "LastName": {
+            "S": "Casper"
+          },
+          "Email": {
+            "S": "Vincent.Bogan4@gmail.com"
+          },
+          "Password": {
+            "S": "Bill42"
+          }
+        },
+        {
+          "Id": {
+            "S": "df7b5437-cdb3-44a3-92cd-16ce7a4f3728"
+          },
+          "StripeId": {
+            "S": "3fe209a6-a201-4ebb-9997-a142877de631"
+          },
+          "FirstName": {
+            "S": "Lloyd"
+          },
+          "LastName": {
+            "S": "Kiehn"
+          },
+          "Email": {
+            "S": "Aiyana_Davis@yahoo.com"
+          },
+          "Password": {
+            "S": "Trycia44"
+          }
+        },
+        {
+          "Id": {
+            "S": "8f947f7e-1dbf-427d-9ec2-4ecd5496cc63"
+          },
+          "StripeId": {
+            "S": "ac82929b-5d01-4704-a557-30db673f6320"
+          },
+          "FirstName": {
+            "S": "Dortha"
+          },
+          "LastName": {
+            "S": "Carroll"
+          },
+          "Email": {
+            "S": "Lea.Harber@gmail.com"
+          },
+          "Password": {
+            "S": "Isac16"
+          }
+        },
+        {
+          "Id": {
+            "S": "75c8f1e7-d866-4b99-854f-613a7fea848c"
+          },
+          "StripeId": {
+            "S": "4c2a9cf6-702a-459b-a4cc-9d0bfd7d25a4"
+          },
+          "FirstName": {
+            "S": "Verlie"
+          },
+          "LastName": {
+            "S": "Crona"
+          },
+          "Email": {
+            "S": "Pearl_Crooks-Robel@hotmail.com"
+          },
+          "Password": {
+            "S": "Joanny_Reilly34"
+          }
+        },
+        {
+          "Id": {
+            "S": "198a1a1c-cbf3-49b3-b044-affd027ef5b2"
+          },
+          "StripeId": {
+            "S": "876a6139-fa78-4325-82f3-19a59b362cac"
+          },
+          "FirstName": {
+            "S": "Emanuel"
+          },
+          "LastName": {
+            "S": "Aufderhar"
+          },
+          "Email": {
+            "S": "Leanna.Hintz@hotmail.com"
+          },
+          "Password": {
+            "S": "Haven_Lindgren"
+          }
+        },
+        {
+          "Id": {
+            "S": "43cdeec7-1dd7-4f73-85fc-659de03e6303"
+          },
+          "StripeId": {
+            "S": "f4a3e452-ddb3-41e8-b4c8-7ed8d210b339"
+          },
+          "FirstName": {
+            "S": "Fernando"
+          },
+          "LastName": {
+            "S": "Rosenbaum"
+          },
+          "Email": {
+            "S": "Casper_Lang@yahoo.com"
+          },
+          "Password": {
+            "S": "Suzanne_Haley"
+          }
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      },
+      "SampleDataFormats": {
+        "Id": [
+          "identifiers",
+          "UUID"
+        ],
+        "StripeId": [
+          "identifiers",
+          "UUID"
+        ],
+        "FirstName": [
+          "identifiers",
+          "First name"
+        ],
+        "LastName": [
+          "identifiers",
+          "Last name"
+        ],
+        "Email": [
+          "identifiers",
+          "Email"
+        ],
+        "Password": [
+          "identifiers",
+          "Username"
+        ]
+      },
+      "BillingMode": "PROVISIONED",
+      "ProvisionedCapacitySettings": {
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        },
+        "AutoScalingRead": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        },
+        "AutoScalingWrite": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        }
+      }
+    },
+    {
+      "TableName": "Stock",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "Id",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "StripeId",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Name",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "TotalStock",
+          "AttributeType": "N"
+        },
+        {
+          "AttributeName": "PhotoUri",
+          "AttributeType": "S"
+        }
+      ],
+      "TableData": [
+        {
+          "Id": {
+            "S": "f360c5a9-fdfd-4c1a-876b-44dc50b5fae9"
+          },
+          "StripeId": {
+            "S": "228030b0-d9f3-4202-ad67-b58b8d69e87a"
+          },
+          "Name": {
+            "S": "Jordan.Torp-Dooley62"
+          },
+          "TotalStock": {
+            "N": "119119535931392"
+          },
+          "PhotoUri": {
+            "S": "https://beloved-poll.com/"
+          }
+        },
+        {
+          "Id": {
+            "S": "8f182614-8d50-4b0d-ba57-253cd0ea24b7"
+          },
+          "StripeId": {
+            "S": "7b86d1f2-d3ea-4045-8ded-3daf4c1880e0"
+          },
+          "Name": {
+            "S": "Enrique.Von"
+          },
+          "TotalStock": {
+            "N": "856791386685440"
+          },
+          "PhotoUri": {
+            "S": "https://advanced-try.name/"
+          }
+        },
+        {
+          "Id": {
+            "S": "a87dff78-2fe7-4115-9944-f236707ea78b"
+          },
+          "StripeId": {
+            "S": "33b4c1a6-e7b0-4aa9-9426-5aae992ce573"
+          },
+          "Name": {
+            "S": "Erick.Quitzon78"
+          },
+          "TotalStock": {
+            "N": "6562855052640256"
+          },
+          "PhotoUri": {
+            "S": "https://baggy-list.net"
+          }
+        },
+        {
+          "Id": {
+            "S": "81ea2918-cd73-4ab4-91d6-4966840da68c"
+          },
+          "StripeId": {
+            "S": "1fadc6dc-1d68-45e3-871c-2675ceaaeb20"
+          },
+          "Name": {
+            "S": "Nicklaus.Romaguera45"
+          },
+          "TotalStock": {
+            "N": "4593641196617728"
+          },
+          "PhotoUri": {
+            "S": "https://unwitting-rectangle.net"
+          }
+        },
+        {
+          "Id": {
+            "S": "f70621e0-b096-41de-bf57-2629e920767e"
+          },
+          "StripeId": {
+            "S": "e058a4ef-b811-40b0-af34-c37e6aed862a"
+          },
+          "Name": {
+            "S": "Dorian_Corwin-Kilback58"
+          },
+          "TotalStock": {
+            "N": "3872835164438528"
+          },
+          "PhotoUri": {
+            "S": "https://writhing-thrill.com/"
+          }
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      },
+      "SampleDataFormats": {
+        "Stock": [
+          "identifiers",
+          "UUID"
+        ],
+        "Id": [
+          "identifiers",
+          "UUID"
+        ],
+        "StripeId": [
+          "identifiers",
+          "UUID"
+        ],
+        "Name": [
+          "identifiers",
+          "Username"
+        ],
+        "TotalStock": [
+          "Int"
+        ],
+        "PhotoUri": [
+          "identifiers",
+          "URL"
+        ]
+      },
+      "BillingMode": "PROVISIONED",
+      "ProvisionedCapacitySettings": {
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        },
+        "AutoScalingRead": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        },
+        "AutoScalingWrite": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        }
+      }
+    },
+    {
+      "TableName": "StockRequests",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "Id",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "ProductId",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Quantity",
+          "AttributeType": "N"
+        },
+        {
+          "AttributeName": "OrderId",
+          "AttributeType": "S"
+        }
+      ],
+      "TableData": [
+        {
+          "Id": {
+            "S": "0e0d18c4-bc2b-458a-bf45-69a6b32bc465"
+          },
+          "ProductId": {
+            "S": "6ad0cded-1316-45c6-a89c-614f363dbaa2"
+          },
+          "Quantity": {
+            "N": "6321979787313152"
+          },
+          "OrderId": {
+            "S": "b9976e39-128b-4f2a-a9dd-dd094d7280bc"
+          }
+        },
+        {
+          "Id": {
+            "S": "ecb5aff3-af33-4b29-aec6-30444882857f"
+          },
+          "ProductId": {
+            "S": "68b6c112-da08-482d-b5ec-7173384bc054"
+          },
+          "Quantity": {
+            "N": "4914243667230720"
+          },
+          "OrderId": {
+            "S": "8ee264f2-dacf-4f15-bb4a-6f2e2ed1c071"
+          }
+        },
+        {
+          "Id": {
+            "S": "ac33b843-5367-45f5-bc84-9256df5ad396"
+          },
+          "ProductId": {
+            "S": "210043bf-2800-49a7-ad01-3efbf2842219"
+          },
+          "Quantity": {
+            "N": "3315980738494464"
+          },
+          "OrderId": {
+            "S": "c45dfb0e-127b-45dc-bcc6-28d6b7d67bf4"
+          }
+        },
+        {
+          "Id": {
+            "S": "2577aeaf-9c31-402b-8363-3a391844b61a"
+          },
+          "ProductId": {
+            "S": "ac717023-e3d2-4a94-b0c1-f297bba1ff17"
+          },
+          "Quantity": {
+            "N": "1088025213796352"
+          },
+          "OrderId": {
+            "S": "f0a4c602-b86f-451b-9b93-c7dfcb653811"
+          }
+        },
+        {
+          "Id": {
+            "S": "75c4183c-4f4d-4028-ad9e-d5ba6335ccf8"
+          },
+          "ProductId": {
+            "S": "577cbab2-08cb-4203-a5ac-bb38cb8c053e"
+          },
+          "Quantity": {
+            "N": "2037256007188480"
+          },
+          "OrderId": {
+            "S": "3dae6016-ad89-46ab-b53a-11a834545030"
+          }
+        },
+        {
+          "Id": {
+            "S": "e0a83d6a-b369-4b47-a224-84de8b0f58b0"
+          },
+          "ProductId": {
+            "S": "80f68e31-1bdb-4501-a1a0-d0fd4175ac64"
+          },
+          "Quantity": {
+            "N": "5952444691382272"
+          },
+          "OrderId": {
+            "S": "4da5664f-9cd6-4167-bda2-1572df8065cd"
+          }
+        },
+        {
+          "Id": {
+            "S": "451707d0-3ae5-42a9-83de-2ac5423e6b8d"
+          },
+          "ProductId": {
+            "S": "a63ba16e-8420-4709-af8e-87a60e3cf4b3"
+          },
+          "Quantity": {
+            "N": "2325217902854144"
+          },
+          "OrderId": {
+            "S": "0ccd4244-3409-4aae-82bc-c40161aed6bb"
+          }
+        },
+        {
+          "Id": {
+            "S": "6190d531-0178-435b-ae3c-17cd8112cdf8"
+          },
+          "ProductId": {
+            "S": "b4aa3989-26de-405f-ad13-18b19f98fb91"
+          },
+          "Quantity": {
+            "N": "3056905907863552"
+          },
+          "OrderId": {
+            "S": "bc161fdb-e89a-4389-904b-837014d028f0"
+          }
+        },
+        {
+          "Id": {
+            "S": "029fcd54-e349-44eb-b896-fbd85b7f691c"
+          },
+          "ProductId": {
+            "S": "34e97b69-bb7e-47ad-8294-6dc5aedc786b"
+          },
+          "Quantity": {
+            "N": "6273079051288576"
+          },
+          "OrderId": {
+            "S": "4b1f04b1-905e-489b-9d28-ea02921cad49"
+          }
+        },
+        {
+          "Id": {
+            "S": "57fd97e4-766e-4437-aac1-807d86dbd187"
+          },
+          "ProductId": {
+            "S": "1ef9a4a4-0099-4f43-8d5b-6b837d9ae3f6"
+          },
+          "Quantity": {
+            "N": "7110381933690880"
+          },
+          "OrderId": {
+            "S": "55f4c967-fede-48ba-b931-8059dd39537f"
+          }
+        },
+        {
+          "Id": {
+            "S": "5edede72-2d8f-48aa-b155-ae8dfade094b"
+          },
+          "ProductId": {
+            "S": "12ab2c0f-3147-4594-a0fe-1d4cce997ac8"
+          },
+          "Quantity": {
+            "N": "6305587698597888"
+          },
+          "OrderId": {
+            "S": "a6d56a3c-54f4-498e-beab-ddc8406f2f2e"
+          }
+        },
+        {
+          "Id": {
+            "S": "fcc77440-be41-4d6c-96c7-2fbf447572a4"
+          },
+          "ProductId": {
+            "S": "9ff82bf8-2f4b-4b78-8a1f-ef449becc1c2"
+          },
+          "Quantity": {
+            "N": "5450975116525568"
+          },
+          "OrderId": {
+            "S": "666c9ed2-cd55-4135-a2a0-c9c31c7b5113"
+          }
+        },
+        {
+          "Id": {
+            "S": "b8ef07f4-7f63-4192-88e9-a21df019dda0"
+          },
+          "ProductId": {
+            "S": "d46ed8d8-0e34-4e59-9bab-374d5bb000e4"
+          },
+          "Quantity": {
+            "N": "3398046798839808"
+          },
+          "OrderId": {
+            "S": "1358c651-cb1a-44c1-8480-9de0e84eaec6"
+          }
+        },
+        {
+          "Id": {
+            "S": "c7ad74fe-404d-4706-8bdf-4cd085a896eb"
+          },
+          "ProductId": {
+            "S": "e7a3becb-287f-4373-9423-f86079a053e9"
+          },
+          "Quantity": {
+            "N": "5359192298749952"
+          },
+          "OrderId": {
+            "S": "093f6638-1d14-4d5b-987e-31823163c23a"
+          }
+        },
+        {
+          "Id": {
+            "S": "5c8e0262-a094-472d-8c60-000aa6afd52b"
+          },
+          "ProductId": {
+            "S": "df279bcd-eef0-46a2-a76c-3ca05ad414e1"
+          },
+          "Quantity": {
+            "N": "6625632393887744"
+          },
+          "OrderId": {
+            "S": "d41f9027-b001-42fd-8c75-a72f6184543c"
+          }
+        },
+        {
+          "Id": {
+            "S": "73edee0c-7067-43ae-8a56-5ddd70ae4cf9"
+          },
+          "ProductId": {
+            "S": "f741949f-dce7-4004-b073-7a1a9274a812"
+          },
+          "Quantity": {
+            "N": "7009589673328640"
+          },
+          "OrderId": {
+            "S": "75f44531-ac06-4455-a82b-cdbf0585d694"
+          }
+        },
+        {
+          "Id": {
+            "S": "390ee315-1b2d-421d-a840-36458cf49879"
+          },
+          "ProductId": {
+            "S": "c2d7832a-0753-4164-8a9c-f2ee98493a44"
+          },
+          "Quantity": {
+            "N": "6450607877521408"
+          },
+          "OrderId": {
+            "S": "b423f0c0-40e6-4e8f-a405-9701816f2143"
+          }
+        },
+        {
+          "Id": {
+            "S": "606d5918-cdc1-47be-8183-785540af8bd0"
+          },
+          "ProductId": {
+            "S": "97103073-8ebb-45f4-93d2-51bf93af5b96"
+          },
+          "Quantity": {
+            "N": "8191866721796096"
+          },
+          "OrderId": {
+            "S": "72ecbc48-4e73-4e2f-9065-a72f00415dc4"
+          }
+        },
+        {
+          "Id": {
+            "S": "0651c0a3-da9d-40d7-ba5a-df4dc5dffe73"
+          },
+          "ProductId": {
+            "S": "c1b75dcc-8921-4284-a12d-f9b521a2ebb5"
+          },
+          "Quantity": {
+            "N": "1425193455058944"
+          },
+          "OrderId": {
+            "S": "6ddfe6e7-a28d-414a-b3be-c1b89b21851e"
+          }
+        },
+        {
+          "Id": {
+            "S": "624d22b9-0c8f-4cf5-b98c-929cb711de50"
+          },
+          "ProductId": {
+            "S": "e478aa56-0c39-48a9-bcbb-3f8ed4db4956"
+          },
+          "Quantity": {
+            "N": "4844777270935552"
+          },
+          "OrderId": {
+            "S": "e2d3a0ec-1f17-4ba2-9c8f-eb144a28cbb0"
+          }
+        },
+        {
+          "Id": {
+            "S": "3a3c62f8-4218-4c6d-b6a0-90808abce0ed"
+          },
+          "ProductId": {
+            "S": "dbb98273-e99c-4749-a71c-3f1bbf63285e"
+          },
+          "Quantity": {
+            "N": "4841285527535616"
+          },
+          "OrderId": {
+            "S": "76bcbfde-328a-42db-aede-d9142ff7d098"
+          }
+        },
+        {
+          "Id": {
+            "S": "5b653644-c6da-4350-b35d-cc1b78ce3d13"
+          },
+          "ProductId": {
+            "S": "45d5e73a-b07b-4c90-8696-1b10abdd961b"
+          },
+          "Quantity": {
+            "N": "840864433700864"
+          },
+          "OrderId": {
+            "S": "b96c05b4-3c0b-4f3b-9d32-899318fe76c8"
+          }
+        },
+        {
+          "Id": {
+            "S": "726e5f67-131d-461a-9f64-c09c86c0c7a5"
+          },
+          "ProductId": {
+            "S": "59c14e84-abf9-4002-a942-d63c63c11e95"
+          },
+          "Quantity": {
+            "N": "2911856249274368"
+          },
+          "OrderId": {
+            "S": "fffb6052-9b4d-4d71-8896-a98de290a9af"
+          }
+        },
+        {
+          "Id": {
+            "S": "2ebe08a0-c23f-4209-ad69-fd6f40028dd0"
+          },
+          "ProductId": {
+            "S": "a32ba84e-68d1-43b0-a9f1-56b85956af3e"
+          },
+          "Quantity": {
+            "N": "7842238688133120"
+          },
+          "OrderId": {
+            "S": "3b2ecf75-5fd8-4e0c-ab4e-d90dfa453f9f"
+          }
+        },
+        {
+          "Id": {
+            "S": "9d6c94e5-b23d-4504-8654-b9037c3212f5"
+          },
+          "ProductId": {
+            "S": "9a5f6d67-d419-4dc1-97d0-0aa5b1b091df"
+          },
+          "Quantity": {
+            "N": "2091465998073856"
+          },
+          "OrderId": {
+            "S": "b2033a4c-c3c4-4349-a1db-1de4f4ef14f9"
+          }
+        },
+        {
+          "Id": {
+            "S": "04b03701-2250-4072-9639-a2e6c0f734f3"
+          },
+          "ProductId": {
+            "S": "d7183499-85c9-4696-b51c-1e47afe2f2cc"
+          },
+          "Quantity": {
+            "N": "3500554848305152"
+          },
+          "OrderId": {
+            "S": "3eed4d5b-de0c-45c9-84b0-003f7d698c80"
+          }
+        },
+        {
+          "Id": {
+            "S": "ccc3b99e-4ea4-496f-8038-67f50d3eea7a"
+          },
+          "ProductId": {
+            "S": "16b6d10d-502c-4ae0-ac42-12bc14df8faf"
+          },
+          "Quantity": {
+            "N": "1334090179543040"
+          },
+          "OrderId": {
+            "S": "f0100704-cc40-43e7-bcb7-21817e82a30c"
+          }
+        },
+        {
+          "Id": {
+            "S": "76e2b00a-dae8-4cbb-9a84-b1feb1bcbe96"
+          },
+          "ProductId": {
+            "S": "ff23cf65-ab5a-4b37-a703-0de4e02cb932"
+          },
+          "Quantity": {
+            "N": "1658524394323968"
+          },
+          "OrderId": {
+            "S": "72381c1c-27b6-47a4-83f1-160b0799af3f"
+          }
+        },
+        {
+          "Id": {
+            "S": "35fe9240-b47b-487d-94f8-846bc0c08d6a"
+          },
+          "ProductId": {
+            "S": "8ca027b1-9a43-48a2-8d3a-bf67472e4079"
+          },
+          "Quantity": {
+            "N": "6717010004148224"
+          },
+          "OrderId": {
+            "S": "d788624d-af66-47f1-8e80-1b8f5486485d"
+          }
+        },
+        {
+          "Id": {
+            "S": "d87140ea-d556-4b0e-ac82-0533d68425bf"
+          },
+          "ProductId": {
+            "S": "9a5bbe4f-0237-4571-a922-a00532176eb3"
+          },
+          "Quantity": {
+            "N": "1675406174322688"
+          },
+          "OrderId": {
+            "S": "a242d174-eac1-425b-98c5-8cfd8aaa87a2"
+          }
+        },
+        {
+          "Id": {
+            "S": "e3e451ac-e995-4ea1-871b-384dca5598f3"
+          },
+          "ProductId": {
+            "S": "a6c84648-fac2-4965-b8bf-3596baa07539"
+          },
+          "Quantity": {
+            "N": "2241548148277248"
+          },
+          "OrderId": {
+            "S": "890cd65a-1a5d-466a-a8f5-b8c59aaad25c"
+          }
+        },
+        {
+          "Id": {
+            "S": "d430d168-689a-4331-952f-8fd7e56c2a15"
+          },
+          "ProductId": {
+            "S": "90d8089f-8f97-49b6-a675-020f0994f9d2"
+          },
+          "Quantity": {
+            "N": "2350688182992896"
+          },
+          "OrderId": {
+            "S": "38b3e30f-c7cf-463d-94ce-b65a17755b8f"
+          }
+        },
+        {
+          "Id": {
+            "S": "6581b56b-8d9e-41b3-ad44-997b96b3b28d"
+          },
+          "ProductId": {
+            "S": "ba1fea42-e9ab-4564-a2d1-74790803493f"
+          },
+          "Quantity": {
+            "N": "683829564014592"
+          },
+          "OrderId": {
+            "S": "31f35f3e-9cf1-4719-8315-1e95e3d453af"
+          }
+        },
+        {
+          "Id": {
+            "S": "2d5b7f97-7e86-475e-b01a-7d0a433a5655"
+          },
+          "ProductId": {
+            "S": "163ebf6d-ea13-44ac-a667-444153a0908f"
+          },
+          "Quantity": {
+            "N": "7656674290565120"
+          },
+          "OrderId": {
+            "S": "6f6047d5-d7e2-428e-9953-0ec08fb933c6"
+          }
+        },
+        {
+          "Id": {
+            "S": "3cf47bd8-0698-446b-b80b-86841cf251e0"
+          },
+          "ProductId": {
+            "S": "ed79911a-6c0e-410a-8ad3-81b72a0726f4"
+          },
+          "Quantity": {
+            "N": "4787530243244032"
+          },
+          "OrderId": {
+            "S": "affedd44-6ebe-48ce-9793-b55260006605"
+          }
+        },
+        {
+          "Id": {
+            "S": "8bcb1eb9-545f-42bd-8108-488f0adfe5e7"
+          },
+          "ProductId": {
+            "S": "2da63189-c408-450c-a9c5-72594ea2ea59"
+          },
+          "Quantity": {
+            "N": "3533586269470720"
+          },
+          "OrderId": {
+            "S": "207908aa-4f57-4ccf-b370-263de93f43fb"
+          }
+        },
+        {
+          "Id": {
+            "S": "5678c485-12a0-4667-b075-2201ffcf49cc"
+          },
+          "ProductId": {
+            "S": "2ccb33b6-14fa-431a-a78a-f9a201170971"
+          },
+          "Quantity": {
+            "N": "1164987510816768"
+          },
+          "OrderId": {
+            "S": "f3e5d6a3-8584-4797-8c33-242383173642"
+          }
+        },
+        {
+          "Id": {
+            "S": "8727a980-df31-4578-b54a-49abd4951f27"
+          },
+          "ProductId": {
+            "S": "2979a084-2d8f-4797-a871-505e699b4f94"
+          },
+          "Quantity": {
+            "N": "2304331588042752"
+          },
+          "OrderId": {
+            "S": "cc931b24-bb49-4cf0-9c38-492dab772461"
+          }
+        },
+        {
+          "Id": {
+            "S": "72d206fb-c2a0-43f3-93c6-bc87302de8cd"
+          },
+          "ProductId": {
+            "S": "e72b049e-889c-409e-b209-534ed7d1af59"
+          },
+          "Quantity": {
+            "N": "5737227793465344"
+          },
+          "OrderId": {
+            "S": "b37a4f8c-63d3-481d-b887-c588c68e0225"
+          }
+        },
+        {
+          "Id": {
+            "S": "9e5cf423-cec6-4354-a886-5ff6e0aaeb71"
+          },
+          "ProductId": {
+            "S": "1d3ff0f2-f2a9-4b80-bb55-000957f5be66"
+          },
+          "Quantity": {
+            "N": "6314192361488384"
+          },
+          "OrderId": {
+            "S": "44e24256-970c-4132-9d8e-ebb87588f50d"
+          }
+        },
+        {
+          "Id": {
+            "S": "d9f6570c-6155-43c9-a98c-c51bb30366f7"
+          },
+          "ProductId": {
+            "S": "1252dad4-fffa-413c-b746-480c1d10eedc"
+          },
+          "Quantity": {
+            "N": "5835802881818624"
+          },
+          "OrderId": {
+            "S": "86caa8c5-a094-4fba-9608-eb08aeda22c4"
+          }
+        },
+        {
+          "Id": {
+            "S": "22093228-49d3-4c6f-a5cf-f36c29203bb3"
+          },
+          "ProductId": {
+            "S": "0dab1913-adc8-4b35-8706-29259bf9f119"
+          },
+          "Quantity": {
+            "N": "7893961072967680"
+          },
+          "OrderId": {
+            "S": "17c1bee8-3d92-4d26-9cf9-c507db000bbe"
+          }
+        },
+        {
+          "Id": {
+            "S": "3af53416-42ef-47f4-ad8b-0c32efebfefb"
+          },
+          "ProductId": {
+            "S": "f759890f-8451-4755-af9a-9e1d720a88b5"
+          },
+          "Quantity": {
+            "N": "5209291950653440"
+          },
+          "OrderId": {
+            "S": "0aee564b-dab8-41a9-b8d6-de0cf50d4b78"
+          }
+        },
+        {
+          "Id": {
+            "S": "74b7fb5c-3ba8-4803-9d5f-83a02d92c3f0"
+          },
+          "ProductId": {
+            "S": "6e0ec428-9531-446b-a0c5-3172c796791e"
+          },
+          "Quantity": {
+            "N": "8707049930096640"
+          },
+          "OrderId": {
+            "S": "dd4c84fe-084c-46b4-af4f-ed73bb2c466c"
+          }
+        },
+        {
+          "Id": {
+            "S": "2815dccf-8008-4f47-ade6-d6cebe6b5546"
+          },
+          "ProductId": {
+            "S": "c626ff31-94ba-47c6-8456-16dcd514752f"
+          },
+          "Quantity": {
+            "N": "7197891934289920"
+          },
+          "OrderId": {
+            "S": "dbbe1ea1-5a1d-4c0a-a11d-644beda74944"
+          }
+        },
+        {
+          "Id": {
+            "S": "7c9566a1-8816-4897-a50d-564544454f21"
+          },
+          "ProductId": {
+            "S": "08425279-a9e9-4b77-9750-96b3dc1318cb"
+          },
+          "Quantity": {
+            "N": "4372196247994368"
+          },
+          "OrderId": {
+            "S": "f451ca67-cd17-4608-b6ac-d2bd93e6b7ab"
+          }
+        },
+        {
+          "Id": {
+            "S": "179f92ed-da8b-4583-b5bf-5f36fafbce0a"
+          },
+          "ProductId": {
+            "S": "2118354f-249e-4879-9d7c-337ffe930e8e"
+          },
+          "Quantity": {
+            "N": "220358527418368"
+          },
+          "OrderId": {
+            "S": "c005d225-b7f6-44b7-b1ee-9de10e58797e"
+          }
+        },
+        {
+          "Id": {
+            "S": "1fca277f-2f3b-4b0c-b292-9695e586c2e9"
+          },
+          "ProductId": {
+            "S": "9617a555-2756-4e91-afc3-7a01c83b05f5"
+          },
+          "Quantity": {
+            "N": "1722053176590336"
+          },
+          "OrderId": {
+            "S": "cdc5059c-b577-4240-aaa2-281ca490a08c"
+          }
+        },
+        {
+          "Id": {
+            "S": "db87fb72-053e-4679-84f3-f3fc26e30080"
+          },
+          "ProductId": {
+            "S": "c23a701b-b815-401a-843e-fe937d1b2e32"
+          },
+          "Quantity": {
+            "N": "1554033925947392"
+          },
+          "OrderId": {
+            "S": "9468d8cf-6abb-4ae9-a98c-e742eeec66a3"
+          }
+        },
+        {
+          "Id": {
+            "S": "f06858ee-8ada-47fe-babd-25071b21d8e6"
+          },
+          "ProductId": {
+            "S": "87c20775-9e81-4a83-b7a8-b89d1d991312"
+          },
+          "Quantity": {
+            "N": "5331447650975744"
+          },
+          "OrderId": {
+            "S": "8e021263-dc76-46ff-8506-df277e3e643c"
+          }
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      },
+      "SampleDataFormats": {
+        "Id": [
+          "identifiers",
+          "UUID"
+        ],
+        "ProductId": [
+          "identifiers",
+          "UUID"
+        ],
+        "Quantity": [
+          "Int"
+        ],
+        "OrderId": [
+          "identifiers",
+          "UUID"
+        ]
+      },
+      "BillingMode": "PROVISIONED",
+      "ProvisionedCapacitySettings": {
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        },
+        "AutoScalingRead": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        },
+        "AutoScalingWrite": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        }
+      }
+    }
+  ]
+}
