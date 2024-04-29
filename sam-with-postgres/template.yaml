@@ -6,35 +6,104 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 30
     MemorySize: 512
 
 Resources:
   ShopApi:
     Type: AWS::Serverless::Function
-    Properties: 
+    Properties:
       Description: API To manage Kashish Shop actions
       CodeUri: ./src/ShopRepository/
       Handler: ShopRepository
       Runtime: dotnet8
       MemorySize: 1024
-      Environment: 
-        Variables: 
-          VAR_1: Hello!
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref customerTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref orderTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref stockTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref stockRequestsTable
+      
+      Environment:
+        Variables:
+          ORDER_TABLE: !Ref orderTable
+          CUSTOMER_TABLE: !Ref customerTable
+          STOCK_TABLE: !Ref stockTable
+          STOCK_REQUEST_TABLE: !Ref stockRequestsTable
+          
           STRIPE_API_KEY: sk_test_51P8grSEvcprk3hy6Npdx7cFlHVlY0fcPofWOTBBJVCj1ZUgmIU4p3paiOaUGyKUwqNoXOb95lJf6yJ8i0v86WQC700pFzxXcsZ
+          LOCAL_DB: http://localhost:8000
       Events:
-        ProxyResource:
-          Type: HttpApi
-          Properties:
-            PayloadFormatVersion: "2.0"
-            Path: /{proxy+}
-            Method: ANY
         RootResource:
           PayloadFormatVersion: "2.0"
           Type: HttpApi
           Properties:
-            Path: /
+            Path: /{path+}
             Method: ANY
+  
+  customerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+      
+      TableName: "Customers"
+  
+  orderTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+      
+      TableName: "Orders"
+  
+  stockTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+      
+      TableName: "Stock"
+  
+  stockRequestsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+        
+      TableName: "StockRequests"
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

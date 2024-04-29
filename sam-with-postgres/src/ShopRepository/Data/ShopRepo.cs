@@ -1,12 +1,7 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
-using Amazon.Lambda.Core;
-using Amazon.Lambda.Serialization.SystemTextJson;
+using ShopRepository.Dtos;
 using ShopRepository.Models;
-
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
 namespace ShopRepository.Data;
 
@@ -34,7 +29,6 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-
     public async Task<Order?> GetOrderFromPaymentId(string paymentIntentId)
     {
         try
@@ -49,7 +43,6 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-
     public async Task<IEnumerable<Order>?> GetAllOrders(int limit = 20)
     {
         try
@@ -73,7 +66,6 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-
     public async Task<bool> AddOrder(Order order)
     {
         try
@@ -90,7 +82,6 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-
     public async Task<bool> UpdateOrder(Order? order)
     {
         if (order == null) return false;
@@ -108,7 +99,6 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-
     public async Task<bool> DeleteOrder(int orderId)
     {
         bool result;
@@ -134,19 +124,48 @@ public class ShopRepo : IShopRepo
     }
     
     // CUSTOMER METHODS
-    public async Task<Customer?> GetCustomer(string customerId)
+    public async Task<Customer?> GetCustomer(int id)
     {
         try
         {
-            return await _dbContext.LoadAsync<Customer>(customerId);
+            return await _dbContext.LoadAsync<Customer>(id);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to find customer {customerId} in database.");
+            _logger.LogError(e, $"Failed to find customer id={id} in database.");
             return null;
         }
     }
-
+    public async Task<Customer?> GetCustomer(string stripeId)
+    {
+        try
+        {
+            var customerSearch = _dbContext.QueryAsync<Customer>("StripeId", QueryOperator.Equal, [stripeId]);
+            var customer = await customerSearch.GetRemainingAsync();
+            return customer[0];
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to find customer StripeId={stripeId} in database.");
+            return null;
+        }
+    }
+    public async Task<Customer?> GetCustomerFromEmail(string email)
+    {
+        Console.WriteLine("GetCustomerFromEmail");
+        try
+        {
+            var customerSearch = _dbContext.QueryAsync<Customer>("Email", QueryOperator.Equal, [email]);
+            var customer = await customerSearch.GetNextSetAsync();
+            Console.WriteLine("GotCustomer");
+            return customer[0];
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to find customer with email={email} in database.");
+            return null;
+        }
+    }
     public async Task<IEnumerable<Order>?> GetCustomerOrders(string customerId)
     {
         try
@@ -157,17 +176,17 @@ public class ShopRepo : IShopRepo
         }
         catch (Exception e)
         {
-            _logger.LogError($"Order lookup by customerId={customerId} failed");
+            _logger.LogError(e, $"Order lookup by Stipe CustomerId={customerId} failed");
             return null;
         }
     }
-
-    public async Task<IEnumerable<Customer>?> GetAllCustomers(int limit = 20)
+    public async Task<IEnumerable<Customer>> GetAllCustomers(int limit = 20)
     {
+        var result = new List<Customer>();
         try
         {
             if (limit <= 0)
-                return new List<Customer>();;
+                return result;
 
             var filter = new ScanFilter();
             filter.AddCondition("Id", ScanOperator.IsNotNull);
@@ -176,25 +195,41 @@ public class ShopRepo : IShopRepo
                 Limit = limit,
                 Filter = filter
             };
+            var queryResult = _dbContext.FromScanAsync<Customer>(scanConfig);
 
-            return await _dbContext.FromScanAsync<Customer>(scanConfig).GetRemainingAsync();
+            do
+                result.AddRange(await queryResult.GetNextSetAsync());
+            while (!queryResult.IsDone && result.Count < limit);
         }
         catch (Exception e)
         {
             _logger.LogError(e, $"Query Failed");
-            return null;
+            return new List<Customer>();
         }
-    }
 
-    public async Task<bool> AddCustomer(Customer customer)
+        return result;
+    }
+    public async Task<bool> AddCustomer(CustomerInput cInput)
     {
+        Console.WriteLine("AddCustomer");
+        if (GetCustomerFromEmail(cInput.Email).Result != null)
+        {
+            throw new Exception($"An account with email={cInput.Email} aready exists.");
+        }
+
+        Customer customer = new Customer();
+        customer.Id = Guid.NewGuid();
+        customer.FirstName = cInput.Fname;
+        customer.LastName = cInput.Lname;
+        customer.Email = cInput.Email;
+        
+        // TODO HASH THIS BEFORE STORING!
+        customer.Password = cInput.Pass;
+        
         try
         {
-            if (customer.Id != null)
-            {
-                await _dbContext.SaveAsync(customer);
-                _logger.LogInformation($"Customer {customer} has been added");
-            }
+            await _dbContext.SaveAsync(customer);
+            _logger.LogInformation($"Customer {customer} has been added");
         }
         catch (Exception e)
         {
@@ -204,7 +239,6 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-
     public async Task<bool> UpdateCustomer(Customer? customer)
     {
         if (customer == null) return false;
@@ -221,7 +255,6 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-
     public async Task<bool> DeleteCustomer(int customerId)
     {
         bool result;
@@ -259,7 +292,10 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-
+    public async Task<Stock?> GetStock(int id)
+    {
+        throw new NotImplementedException();
+    }
     public async Task<IEnumerable<Stock>?> GetAllStock(int limit)
     {
         try
@@ -283,7 +319,6 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-
     public async Task<bool> AddStock(Stock stock)
     {
         try
@@ -300,7 +335,6 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-
     public async Task<bool> UpdateStock(Stock? stock)
     {
         if (stock == null) return false;
@@ -318,7 +352,6 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-
     public async Task<bool> DeleteStock(int stockId)
     {
         bool result;

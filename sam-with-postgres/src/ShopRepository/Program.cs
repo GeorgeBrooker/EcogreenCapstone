@@ -17,17 +17,15 @@ builder.Services
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
 //TODO configure AWS keys properly. (APP WONT DEPLOY WITHOUT THIS WORKING!)
-var clientConfig = new AmazonDynamoDBConfig();
-
-// Configure local endpoint if we're running in SAM CLI
-if (Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true")
-    clientConfig.ServiceURL = "http://localhost:8000";
-else
-    clientConfig.RegionEndpoint = RegionEndpoint.APSoutheast2; //Sydney
+var accessKeyId = Environment.GetEnvironmentVariable("ACCESS_KEY");
+var secretKeyId = Environment.GetEnvironmentVariable("SECRET_KEY");
+var dynamoConfig = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true" ? new AmazonDynamoDBConfig { ServiceURL = Environment.GetEnvironmentVariable("LOCAL_DB"), UseHttp = true } : new AmazonDynamoDBConfig();
 
 
+var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
+dynamoConfig.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
 builder.Services
-    .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(clientConfig))
+    .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(dynamoConfig))
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>();
 

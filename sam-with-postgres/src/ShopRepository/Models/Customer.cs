@@ -6,15 +6,17 @@ namespace ShopRepository.Models;
 [DynamoDBTable("Customers")]
 public class Customer
 {
-    [DynamoDBHashKey] public string Id{ get; set; }
+    [DynamoDBHashKey] public Guid Id { get; set; } = Guid.Empty;
 
+    [DynamoDBProperty] 
+    public string? StripeId { get; set; }
     [DynamoDBProperty]
-    public string FirstName { get; set; }
+    public string? FirstName { get; set; }
     [DynamoDBProperty]
-    public string LastName { get; set; }
+    public string? LastName { get; set; }
     [DynamoDBProperty]
-    public string Email { get; set; }
+    public string? Email { get; set; }
     // stored as bcrypt hash
     [DynamoDBProperty]
-    private string Password { get; set; }
+    public string? Password { get; set; }
 }

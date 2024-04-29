@@ -10,15 +10,17 @@ public class Order
     
     // Payment info
     [DynamoDBProperty]
-    public string PaymentIntentID { get; set; }
+    public string? PaymentIntentId { get; set; }
     [DynamoDBProperty] // 1-m relationship
-    public string CustomerID { get; set; }
+    public string? CustomerId { get; set; }
     
     // Delivery info
     [DynamoDBProperty]
-    public string DeliveryLabelUID { get; set; }
+    public string? DeliveryLabelUid { get; set; }
     [DynamoDBProperty]
-    public string TrackingNumber { get; set; }
+    public string? TrackingNumber { get; set; }
+    
+    //Unique package reference for business use.
     [DynamoDBProperty]
-    public string PackageReference { get; set; }
+    public string? PackageReference { get; set; }
 }

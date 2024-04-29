@@ -6,12 +6,14 @@ namespace ShopRepository.Models;
 [DynamoDBTable("Stock")]
 public class Stock
 {
-    [DynamoDBHashKey] public string Id { get; set; }
+    [DynamoDBHashKey] public Guid Id { get; set; } = Guid.Empty;
     
+    [DynamoDBProperty] 
+    public string? StripeId { get; set; }
     [DynamoDBProperty]
-    public string Name { get; set; }
+    public string? Name { get; set; }
     [DynamoDBProperty]
-    public int TotalStock { get; set; }
+    public int? TotalStock { get; set; }
     [DynamoDBProperty]
-    public IEnumerable<string> PhotoUri { get; set; }
+    public IEnumerable<string>? PhotoUri { get; set; }
 }
