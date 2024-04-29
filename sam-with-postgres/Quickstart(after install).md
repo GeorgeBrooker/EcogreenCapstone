@@ -5,7 +5,7 @@ Docker-Desktop must be running somewhere to compose the project
 ```bash
 docker-compose up -d
 sam build
-sam local start-api
+sam local start-api --docker-network host
 ```
 This starts a local server hosting all our API endpoints on localhost:3000. You can call these with a normal HTTP request. (make sure you're using HTTP, not HTTPS if you're having trouble)
 I recommend using an HTTP request manager like POSTMAN to send these requests (more info in installation readme)

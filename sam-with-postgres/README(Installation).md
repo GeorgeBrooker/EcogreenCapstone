@@ -2,7 +2,7 @@
 ### IMPORTANT NOTE
 This guide sets up a dev environment, so you don't have to think about AWS as you are developing. In setting up this environment I have configured all the weird AWS shit, so we don't have to think about it anymore.
 
-If you are ever confused about how to use AWS, try to ignore it. Build the project using ```sam build```, run the project using ```sam local start-api``` (and make sure the DB is running using docker_desktop).
+If you are ever confused about how to use AWS, try to ignore it. Build the project using ```sam build```, run the project using ```sam local start-api --docker-network host``` (and make sure the DB is running using docker_desktop).
 Then just develop the project like any other C# backend. Our Lambda function is the entire backend, which AWS calls by running ```src/ShopRepository/Program.cs```. To create helper functions, classes, or controllers just add those files in the ShopRepository folder. The entire project gets pushed to AWS. 
 
 To call functions from the frontend just send HTTP requests to the API gateway. In development this is ```localhost:3000/{function_endpoint_url}```. In production these URLs will be given to us by Amazon (so don't worry about it yet). 
@@ -49,7 +49,7 @@ To enable network mirroring create a .wslconfig file in your home directory ```[
 
 - Initialise AWS<br><br>
     - Confirm you are in the project root directory. This is the folder containing the readme files.<br><br>
-    - In a new terminal run ```sam local start-api``` this starts a docker container that emulates an AWS server locally. This server takes control of the terminal, so I recommend doing it in one you won't be using. (so not the jetbrains terminal)<br>
+    - In a new terminal run ```sam local start-api --docker-network host``` this starts a docker container that emulates an AWS server locally. This server takes control of the terminal, so I recommend doing it in one you won't be using. (so not the jetbrains terminal)<br>
 ## Development methodology.
 The AWS server will listen for REST HTTP requests and route them to the appropriate endpoint using the structure defined in ```template.yml```. This has already been set up for you to run the ShopController in the ShopRepository project.
 
@@ -57,7 +57,7 @@ YOU CAN NOW DEVELOP FOR THE BACKEND AS NORMAL. **YOU NO LONGER NEED TO CONSIDER 
 ### To develop new functions
 Go to the ShopRepository project in ```sam-with-postgres/src``` and create any classes or controllers as normal using standard .net methods. 
 
-To make a method callable from the outside put it inside a **.net API controller**. **For example:** the database API is hosted in ```/ShopRepository/Controllers/ShopController.cs``` and is reachable on ```localhost:3000/api/shopapi``` when running ```sam local start-api```.
+To make a method callable from the outside put it inside a **.net API controller**. **For example:** the database API is hosted in ```/ShopRepository/Controllers/ShopController.cs``` and is reachable on ```localhost:3000/api/shop``` when running ```sam local start-api --docker-network host```.
 You can then use any HTTP api tester to call your code and check the response is correct. 
 
 I **HIGHLY** recommend using postman for this as it's really nice to use.
@@ -65,7 +65,7 @@ I **HIGHLY** recommend using postman for this as it's really nice to use.
 ### To test (run) your code
 To run any of your code it must either be in a controller method or called by a controller method.
 
-run ```sam local start-api```
+run ```sam local start-api --docker-network host```
 Either manually send an HTTP packet to ```localhost:3000/{YourMethodUrl}``` or use a HTTP packet sender to do so.
 Check the response from the server matches what you expect.
 
@@ -76,7 +76,7 @@ To test a method using postman:
 - Click the plus to create a new collection. You can use a template if you want.
 - Hover over your collection name, right click, click "add request" in the drop-down menu
 - Select the type of request (GET,POST,ETC..)
-- Enter the API endpoint url. (i.e ```http://localhost:3000/api/shopapi```) Which calls the default method of ShopController (```GetAlive()```)
+- Enter the API endpoint url. (i.e ```http://localhost:3000/api/shop```) Which calls the default method of ShopController (```GetAlive()```)
 - The full HTTP response is now visible. You can also define tests and view the status of those.
 - An example of a successful postman request is in /docs/img
 
