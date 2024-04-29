@@ -34,9 +34,8 @@ Resources:
           CUSTOMER_TABLE: !Ref customerTable
           STOCK_TABLE: !Ref stockTable
           STOCK_REQUEST_TABLE: !Ref stockRequestsTable
-          
           STRIPE_API_KEY: sk_test_51P8grSEvcprk3hy6Npdx7cFlHVlY0fcPofWOTBBJVCj1ZUgmIU4p3paiOaUGyKUwqNoXOb95lJf6yJ8i0v86WQC700pFzxXcsZ
-          LOCAL_DB: http://localhost:8000
+          LOCAL_DB: http://host.docker.internal:8000
       Events:
         RootResource:
           PayloadFormatVersion: "2.0"

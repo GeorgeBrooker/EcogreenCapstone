@@ -2,6 +2,8 @@
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.Runtime;
+using Amazon.Util;
 using ShopRepository.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,16 +18,28 @@ builder.Services
     .AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
-//TODO configure AWS keys properly. (APP WONT DEPLOY WITHOUT THIS WORKING!)
-var accessKeyId = Environment.GetEnvironmentVariable("ACCESS_KEY");
-var secretKeyId = Environment.GetEnvironmentVariable("SECRET_KEY");
-var dynamoConfig = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true" ? new AmazonDynamoDBConfig { ServiceURL = Environment.GetEnvironmentVariable("LOCAL_DB"), UseHttp = true } : new AmazonDynamoDBConfig();
-
+// NOTE: To deploy this properly you will need to configure your AWS keys (Access & Secret) AND your session token in the AWS CLI (>aws configure; then >aws configure set aws_session_token {token})
 
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
-dynamoConfig.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
+
+var dynamoConfig = new AmazonDynamoDBConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(region) };
+AmazonDynamoDBClient client;
+
+if (Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true")
+{
+    Console.WriteLine("\nRUNNING WITH LOCAL DYNAMODB IN TEST MODE!\n");
+    dynamoConfig.ServiceURL = Environment.GetEnvironmentVariable("LOCAL_DB");
+    dynamoConfig.AuthenticationRegion = "ap-southeast-2";
+    var creds = new SessionAWSCredentials("fake", "key", "Fake");
+    client = new AmazonDynamoDBClient(creds, dynamoConfig);
+}
+else
+{
+    client = new AmazonDynamoDBClient(dynamoConfig);
+}
+
 builder.Services
-    .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(dynamoConfig))
+    .AddSingleton<IAmazonDynamoDB>(client)
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>();
 
