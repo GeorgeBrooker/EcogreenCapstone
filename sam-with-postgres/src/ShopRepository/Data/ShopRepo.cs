@@ -17,7 +17,7 @@ public class ShopRepo : IShopRepo
 
 
     // ORDER METHODS
-    public async Task<Order?> GetOrder(int orderId)
+    public async Task<Order?> GetOrder(Guid orderId)
     {
         try
         {
@@ -99,7 +99,9 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-    public async Task<bool> DeleteOrder(int orderId)
+    
+    // TODO normalise how ID's are handled.
+    public async Task<bool> DeleteOrder(string orderId)
     {
         bool result;
         
@@ -124,7 +126,7 @@ public class ShopRepo : IShopRepo
     }
     
     // CUSTOMER METHODS
-    public async Task<Customer?> GetCustomer(int id)
+    public async Task<Customer?> GetCustomer(Guid id)
     {
         try
         {
@@ -136,7 +138,7 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-    public async Task<Customer?> GetCustomer(string stripeId)
+    public async Task<Customer?> GetCustomerFromStripe(string stripeId)
     {
         try
         {
@@ -152,7 +154,6 @@ public class ShopRepo : IShopRepo
     }
     public async Task<Customer?> GetCustomerFromEmail(string email)
     {
-        Console.WriteLine("GetCustomerFromEmail");
         try
         {
             var customerSearch = _dbContext.QueryAsync<Customer>("Email", QueryOperator.Equal, [email]);
@@ -183,6 +184,7 @@ public class ShopRepo : IShopRepo
     public async Task<IEnumerable<Customer>> GetAllCustomers(int limit = 20)
     {
         var result = new List<Customer>();
+        
         try
         {
             if (limit <= 0)
@@ -211,21 +213,21 @@ public class ShopRepo : IShopRepo
     }
     public async Task<bool> AddCustomer(CustomerInput cInput)
     {
-        Console.WriteLine("AddCustomer");
         if (GetCustomerFromEmail(cInput.Email).Result != null)
         {
             throw new Exception($"An account with email={cInput.Email} aready exists.");
         }
 
-        Customer customer = new Customer();
-        customer.Id = Guid.NewGuid();
-        customer.FirstName = cInput.Fname;
-        customer.LastName = cInput.Lname;
-        customer.Email = cInput.Email;
-        
-        // TODO HASH THIS BEFORE STORING!
-        customer.Password = cInput.Pass;
-        
+        var customer = new Customer
+        {
+            Id = Guid.NewGuid(),
+            FirstName = cInput.Fname,
+            LastName = cInput.Lname,
+            Email = cInput.Email,
+            // TODO HASH THIS BEFORE STORING!
+            Password = cInput.Pass
+        };
+
         try
         {
             await _dbContext.SaveAsync(customer);
@@ -255,7 +257,7 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-    public async Task<bool> DeleteCustomer(int customerId)
+    public async Task<bool> DeleteCustomer(Guid customerId)
     {
         bool result;
         
@@ -280,7 +282,7 @@ public class ShopRepo : IShopRepo
     }
 
     // STOCK METHODS
-    public async Task<Stock?> GetStock(string stockId)
+    public async Task<Stock?> GetStockFromStripe(string stockId)
     {
         try
         {
@@ -292,7 +294,9 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-    public async Task<Stock?> GetStock(int id)
+    
+    // TODO
+    public async Task<Stock?> GetStock(Guid id)
     {
         throw new NotImplementedException();
     }
@@ -319,11 +323,13 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
+    
+    // TODO update this to work with a DTO.
     public async Task<bool> AddStock(Stock stock)
     {
         try
         {
-            if (stock.Id == null) throw new ArgumentException(); 
+            if (stock.Id == Guid.Empty) throw new ArgumentException(); 
             await _dbContext.SaveAsync(stock);
             _logger.LogInformation($"Stock: {stock} has been added");
         }
@@ -352,7 +358,9 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
-    public async Task<bool> DeleteStock(int stockId)
+    
+    // TODO this should probably work off the standard id and not the stripe id.
+    public async Task<bool> DeleteStock(string stockId)
     {
         bool result;
         
@@ -375,4 +383,7 @@ public class ShopRepo : IShopRepo
 
         return result;
     }
+    
+    // StockRequest METHODS
+    // TODO Actually create these.
 }
