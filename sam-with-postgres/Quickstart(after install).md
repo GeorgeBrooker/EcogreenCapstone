@@ -20,4 +20,10 @@ sam build
 The github should contain a DB file that come pre filled with some test data. If the database is empty you can use the ```docker/dynamodb/KasishDM.json``` file with amazons ```noSQL workbench``` app to fill the database with the appropriate values.
 
 ## DEPLOYMENT.
-To deploy the application you will need to set your proper AWS credentials in the AWS cli.
+To deploy the application you will need to set your proper AWS credentials in the AWS cli. AWS credentials regularly expire, so you will most likely net to reset them every deployment.
+
+To reset your AWS credentials:
+- Go to the login portal and get your access keys & session token
+- run ```aws configure``` in the terminal and put in your access key and secret key.
+- run ```aws configure set aws_session_token {your session token}``` to set your session token.
+- confirm sucessful credentials change by running ```aws sts get-caller-identity```. If it returns a userId, account, and Arn, you're in.
