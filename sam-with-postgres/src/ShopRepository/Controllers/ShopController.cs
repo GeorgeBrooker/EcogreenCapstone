@@ -52,7 +52,7 @@ public class ShopController : ControllerBase
     }
 
     [HttpGet("GetCustomerOrders/{customerId}")]
-    public async Task<ActionResult<IEnumerable<Order>>> GetCustomerOrders(string customerId)
+    public async Task<ActionResult<IEnumerable<Order>>> GetCustomerOrders(Guid customerId)
     {
         return Ok(await _repo.GetCustomerOrders(customerId));
     }
