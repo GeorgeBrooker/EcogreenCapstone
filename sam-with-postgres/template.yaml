@@ -3,13 +3,23 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Serverless API for Kashish Ecommerce platform
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+# Configure global properties for resources.
 Globals:
+  # Globals for AWS::Serverless::Function types
   Function:
     Timeout: 30
-    MemorySize: 512
+    MemorySize: 1024
+    
+  # Globals for AWS::Serverless::HttpApi types
+  HttpApi: 
+    Auth:
+      EnableIamAuthorizer: true
+      DefaultAuthorizer: AWS_IAM
 
+# This represents the parts of our app. i.e. the lambda function and database tables.
 Resources:
+  
+  # Lambda config
   ShopApi:
     Type: AWS::Serverless::Function
     Properties:
@@ -17,8 +27,8 @@ Resources:
       CodeUri: ./src/ShopRepository/
       Handler: ShopRepository
       Runtime: dotnet8
-      MemorySize: 1024
-      Policies:
+
+      Policies: # App permissions. Specifically giving our function permission to create,request,update,&delete items in the following DB tables
         - DynamoDBCrudPolicy:
             TableName: !Ref customerTable
         - DynamoDBCrudPolicy:
@@ -27,22 +37,25 @@ Resources:
             TableName: !Ref stockTable
         - DynamoDBCrudPolicy:
             TableName: !Ref stockRequestsTable
-      
+
       Environment:
         Variables:
           ORDER_TABLE: !Ref orderTable
           CUSTOMER_TABLE: !Ref customerTable
           STOCK_TABLE: !Ref stockTable
           STOCK_REQUEST_TABLE: !Ref stockRequestsTable
+          # TODO replace this with AWS secrets manager
           STRIPE_API_KEY: sk_test_51P8grSEvcprk3hy6Npdx7cFlHVlY0fcPofWOTBBJVCj1ZUgmIU4p3paiOaUGyKUwqNoXOb95lJf6yJ8i0v86WQC700pFzxXcsZ
           LOCAL_DB: http://host.docker.internal:8000
-      Events:
-        RootResource:
-          PayloadFormatVersion: "2.0"
+
+      Events: # Events are what calls the function. In this case we generate an AWS HttpApi gateway. 
+        RootApiGateway:
           Type: HttpApi
           Properties:
-            Path: /{path+}
+            Path: /{path+} # What endpoints this API is mapped too. {path+} maps all endpoints in our application.
             Method: ANY
+            Auth: 
+              Authorizer: AWS_IAM
 
   # Database config.
   customerTable:
@@ -118,7 +131,6 @@ Resources:
           Projection:
             ProjectionType: "KEYS_ONLY"        
 
-  
   stockTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -144,7 +156,6 @@ Resources:
           Projection:
             ProjectionType: "KEYS_ONLY"
   
-  
   stockRequestsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -160,10 +171,8 @@ Resources:
         - AttributeName: "Id"
           KeyType: "HASH"
 
+# Information to output into the AWS stack in cloudformation. In this case we output the endpoint of our shop api for easy access.
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ShopApiEndpoint:
     Description: "Shop API Gateway Endpoint URL"
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
