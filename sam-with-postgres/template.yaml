@@ -43,66 +43,122 @@ Resources:
           Properties:
             Path: /{path+}
             Method: ANY
-  
+
+  # Database config.
   customerTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: "Customers"
+      
+      # At least for testing we shouldn't provision excess capacity
+      BillingMode: "PAY_PER_REQUEST"
+      
+      # All attributes that will be used for keying
       AttributeDefinitions:
         - AttributeName: "Id"
           AttributeType: "S"
+        - AttributeName: "Email"
+          AttributeType: "S"
+        - AttributeName: "StripeId"
+          AttributeType: "S"
+      
+      # Primary Key Definition: 
       KeySchema:
         - AttributeName: "Id"
           KeyType: "HASH"
-      ProvisionedThroughput:
-        ReadCapacityUnits: "1"
-        WriteCapacityUnits: "1"
       
-      TableName: "Customers"
+      # Indexes so we can key on other items (lets us query instead of scanning on these attributes)
+      GlobalSecondaryIndexes:
+        - IndexName: "CustomerEmailIndex"
+          KeySchema:
+            - AttributeName: "Email"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "KEYS_ONLY"
+            
+        - IndexName: "CustomerStripeIndex"
+          KeySchema:
+            - AttributeName: "StripeId"
+              KeyType: "HASH"
+          Projection: 
+            ProjectionType: "KEYS_ONLY"
+               
   
   orderTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: "Orders"
+      
+      BillingMode: "PAY_PER_REQUEST"
+      
       AttributeDefinitions:
         - AttributeName: "Id"
           AttributeType: "S"
+        - AttributeName: "CustomerId"
+          AttributeType: "S"
+        - AttributeName: "PaymentIntentId"
+          AttributeType: "S"
+          
       KeySchema:
         - AttributeName: "Id"
           KeyType: "HASH"
-      ProvisionedThroughput:
-        ReadCapacityUnits: "1"
-        WriteCapacityUnits: "1"
-      
-      TableName: "Orders"
+
+      GlobalSecondaryIndexes:
+        - IndexName: "OrderCustomerIndex"
+          KeySchema:
+            - AttributeName: "CustomerId"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "KEYS_ONLY"
+    
+        - IndexName: "OrderPaymentIndex"
+          KeySchema:
+            - AttributeName: "PaymentIntentId"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "KEYS_ONLY"        
+
   
   stockTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: "Stock"
+      
+      BillingMode: "PAY_PER_REQUEST"
+      
       AttributeDefinitions:
         - AttributeName: "Id"
           AttributeType: "S"
+        - AttributeName: "StripeId"
+          AttributeType: "S"
+          
       KeySchema:
         - AttributeName: "Id"
           KeyType: "HASH"
-      ProvisionedThroughput:
-        ReadCapacityUnits: "1"
-        WriteCapacityUnits: "1"
-      
-      TableName: "Stock"
+
+      GlobalSecondaryIndexes:
+        - IndexName: "StockStripeIndex"
+          KeySchema:
+            - AttributeName: "StripeId"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "KEYS_ONLY"
+  
   
   stockRequestsTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: "StockRequests"
+      
+      BillingMode: "PAY_PER_REQUEST"
+      
       AttributeDefinitions:
         - AttributeName: "Id"
           AttributeType: "S"
+          
       KeySchema:
         - AttributeName: "Id"
           KeyType: "HASH"
-      ProvisionedThroughput:
-        ReadCapacityUnits: "1"
-        WriteCapacityUnits: "1"
-        
-      TableName: "StockRequests"
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
