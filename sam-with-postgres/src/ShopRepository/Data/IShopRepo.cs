@@ -21,7 +21,7 @@ public interface IShopRepo
     Task<Customer?> GetCustomerFromStripe(string customerId);
     Task<Customer?> GetCustomer(Guid id);
     Task<Customer?> GetCustomerFromEmail(string email);
-    Task<IEnumerable<Order>?> GetCustomerOrders(string customerId);
+    Task<IEnumerable<Order>?> GetCustomerOrders(Guid id);
     Task<IEnumerable<Customer>> GetAllCustomers(int limit);
     Task<bool> AddCustomer(CustomerInput customer);
     Task<bool> UpdateCustomer(Customer customer);
@@ -34,4 +34,7 @@ public interface IShopRepo
     Task<bool> AddStock(Stock stock);
     Task<bool> UpdateStock(Stock stock);
     Task<bool> DeleteStock(string stockId);
+    
+    // StockRequest
+    // TODO
 }

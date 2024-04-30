@@ -29,6 +29,7 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
+    // TODO
     public async Task<Order?> GetOrderFromPaymentId(string paymentIntentId)
     {
         try
@@ -43,12 +44,13 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
+    // TODO
     public async Task<IEnumerable<Order>?> GetAllOrders(int limit = 20)
     {
         try
         {
             if (limit <= 0)
-                return new List<Order>();;
+                return new List<Order>();
 
             var filter = new ScanFilter();
             filter.AddCondition("Id", ScanOperator.IsNotNull);
@@ -66,6 +68,7 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
+    // TODO
     public async Task<bool> AddOrder(Order order)
     {
         try
@@ -82,6 +85,7 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
+    // TODO
     public async Task<bool> UpdateOrder(Order? order)
     {
         if (order == null) return false;
@@ -100,7 +104,7 @@ public class ShopRepo : IShopRepo
         return true;
     }
     
-    // TODO normalise how ID's are handled.
+    // TODO normalise how ID's are handled. {make application as independent from stripe as possible}
     public async Task<bool> DeleteOrder(string orderId)
     {
         bool result;
@@ -142,9 +146,20 @@ public class ShopRepo : IShopRepo
     {
         try
         {
-            var customerSearch = _dbContext.QueryAsync<Customer>("StripeId", QueryOperator.Equal, [stripeId]);
-            var customer = await customerSearch.GetRemainingAsync();
-            return customer[0];
+            var customerIdSearch = _dbContext.FromQueryAsync<Customer>(
+                new QueryOperationConfig
+                {
+                    IndexName = "CustomerStripeIndex",
+                    Select = SelectValues.AllProjectedAttributes,
+                    KeyExpression = new Expression
+                    {
+                        ExpressionStatement = "#stripe = :v_stripe",
+                        ExpressionAttributeNames = new Dictionary<string, string> { {"#stripe", "StripeId"} },
+                        ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> { {":v_stripe", new Primitive {Value = stripeId} } }
+                    }
+                });
+            var projectedCustomer = await customerIdSearch.GetRemainingAsync();
+            return await _dbContext.LoadAsync<Customer>(projectedCustomer.FirstOrDefault()!.Id);
         }
         catch (Exception e)
         {
@@ -156,10 +171,21 @@ public class ShopRepo : IShopRepo
     {
         try
         {
-            var customerSearch = _dbContext.QueryAsync<Customer>("Email", QueryOperator.Equal, [email]);
-            var customer = await customerSearch.GetNextSetAsync();
-            Console.WriteLine("GotCustomer");
-            return customer[0];
+            var customerIdSearch = _dbContext.FromQueryAsync<Customer>(
+                // Run Query on GSI table containing customer emails as partition key.
+                new QueryOperationConfig
+                {
+                    IndexName = "CustomerEmailIndex",
+                    Select = SelectValues.AllProjectedAttributes,
+                    KeyExpression = new Expression
+                    {
+                        ExpressionStatement = "#email = :v_email",
+                        ExpressionAttributeNames = new Dictionary<string, string> { { "#email", "Email" } },
+                        ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> { { ":v_email", new Primitive {Value = email} } }
+                    }
+                });
+            var projectedCustomer = await customerIdSearch.GetRemainingAsync(); // Customer object that contains only ID & Email
+            return await _dbContext.LoadAsync<Customer>(projectedCustomer.FirstOrDefault()!.Id); // Find full customer via Id of projected customer
         }
         catch (Exception e)
         {
@@ -167,17 +193,37 @@ public class ShopRepo : IShopRepo
             return null;
         }
     }
-    public async Task<IEnumerable<Order>?> GetCustomerOrders(string customerId)
+    public async Task<IEnumerable<Order>?> GetCustomerOrders(Guid id)
     {
         try
         {
-            var orderSearch = _dbContext.QueryAsync<Order>("CustomerID", QueryOperator.Equal, [customerId]);
-            var order = await orderSearch.GetRemainingAsync();
-            return order;
+            var orderSearch = _dbContext.QueryAsync<Order>(new QueryOperationConfig
+            {
+                IndexName = "OrderCustomerIndex",
+                Select = SelectValues.AllProjectedAttributes,
+                KeyExpression = new Expression
+                {
+                    ExpressionStatement = "#customer = :v_customer",
+                    ExpressionAttributeNames = new Dictionary<string, string>{ { "#customer", "CustomerId" } },
+                    ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> { { ":v_customer", new Primitive{Value = id} } }
+                }
+            });
+            
+            var projectedOrders = new List<Order>();
+            do
+                projectedOrders.AddRange(await orderSearch.GetNextSetAsync());
+            while (!orderSearch.IsDone);
+
+            var orders = new List<Order>();
+            foreach (var o in projectedOrders)
+            {
+                orders.Add(await _dbContext.LoadAsync<Order>(o.Id));
+            }
+            return orders;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Order lookup by Stipe CustomerId={customerId} failed");
+            _logger.LogError(e, $"Order lookup by Stipe CustomerId={id} failed");
             return null;
         }
     }
@@ -211,6 +257,8 @@ public class ShopRepo : IShopRepo
 
         return result;
     }
+    
+    // TODO
     public async Task<bool> AddCustomer(CustomerInput cInput)
     {
         if (GetCustomerFromEmail(cInput.Email).Result != null)
@@ -241,6 +289,7 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
+    // TODO
     public async Task<bool> UpdateCustomer(Customer? customer)
     {
         if (customer == null) return false;
@@ -257,6 +306,7 @@ public class ShopRepo : IShopRepo
 
         return true;
     }
+    // TODO
     public async Task<bool> DeleteCustomer(Guid customerId)
     {
         bool result;
@@ -282,6 +332,7 @@ public class ShopRepo : IShopRepo
     }
 
     // STOCK METHODS
+    // TODO
     public async Task<Stock?> GetStockFromStripe(string stockId)
     {
         try
@@ -300,12 +351,13 @@ public class ShopRepo : IShopRepo
     {
         throw new NotImplementedException();
     }
+    // TODO
     public async Task<IEnumerable<Stock>?> GetAllStock(int limit)
     {
         try
         {
             if (limit <= 0)
-                return new List<Stock>();;
+                return new List<Stock>();
 
             var filter = new ScanFilter();
             filter.AddCondition("Id", ScanOperator.IsNotNull);

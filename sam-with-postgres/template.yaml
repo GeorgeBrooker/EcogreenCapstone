@@ -54,7 +54,7 @@ Resources:
           Properties:
             Path: /{path+} # What endpoints this API is mapped too. {path+} maps all endpoints in our application.
             Method: ANY
-            Auth: 
+            Auth:
               Authorizer: AWS_IAM
 
   # Database config.
