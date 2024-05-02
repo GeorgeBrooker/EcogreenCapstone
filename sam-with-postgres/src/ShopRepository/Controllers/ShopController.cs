@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Amazon.DynamoDBv2.DataModel;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
 using ShopRepository.Models;
@@ -59,28 +59,34 @@ public class ShopController : ControllerBase
     
     // CUSTOMER POST METHODS
     [HttpPost("AddCustomer")]
-    public async Task<ActionResult<CustomerInput>> AddCustomer(CustomerInput nCustomer)
+    public async Task<ActionResult<CustomerInput>> AddCustomer([FromBody] CustomerInput nCustomer)
     {
         if (await _repo.AddCustomer(nCustomer))
             return Ok(nCustomer);
         
         return BadRequest();
     }
-
-    [HttpPost("UpdateCustomer")]
-    public async Task<ActionResult<CustomerInput>> UpdateCustomer(CustomerInput customer)
+    
+    // CUSTOMER PUT METHODS
+    
+    // This method should only be called with a complete CustomerInput DTO as input.
+    // Input DTO should be created from a fresh retrieval of the customer information.
+    // You will have to retrieve the customer object to get ID anyway so this shouldn't be expensive.
+    [HttpPut("UpdateCustomer/{id}")]
+    public async Task<ActionResult> UpdateCustomer(Guid id, [FromBody] CustomerInput? customer)
     {
-        var updated =  _repo.GetCustomerFromEmail(customer.Email).Result;
-        if (updated == null)
-            throw new Exception($"Could not find existing customer with email address {customer.Email}, update canceled.");
+        if (id == Guid.Empty || customer == null) return ValidationProblem("Invalid payload");
+        
+        var updated =  await _repo.GetCustomer(id);
+        if (updated == null) return NotFound($"Could not find existing customer with id={id}. Update canceled.");
 
         updated.Email = customer.Email;
         updated.FirstName = customer.Fname;
         updated.LastName = customer.Fname;
-        updated.Password = customer.Pass;
+        updated.Password = new PasswordHasher<Customer>().HashPassword(updated, customer.Pass);
 
         await _repo.UpdateCustomer(updated);
-        return Ok(customer);
+        return Ok();
     }
     
     // CUSTOMER DELETE METHODS

@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
+using Microsoft.AspNetCore.Identity;
 using ShopRepository.Dtos;
 using ShopRepository.Models;
 
@@ -130,6 +131,36 @@ public class ShopRepo : IShopRepo
     }
     
     // CUSTOMER METHODS
+    public async Task<IEnumerable<Customer>> GetAllCustomers(int limit = 20)
+    {
+        var result = new List<Customer>();
+        
+        try
+        {
+            if (limit <= 0)
+                return result;
+
+            var filter = new ScanFilter();
+            filter.AddCondition("Id", ScanOperator.IsNotNull);
+            var scanConfig = new ScanOperationConfig()
+            {
+                Limit = limit,
+                Filter = filter
+            };
+            var queryResult = _dbContext.FromScanAsync<Customer>(scanConfig);
+
+            do
+                result.AddRange(await queryResult.GetNextSetAsync());
+            while (!queryResult.IsDone && result.Count < limit);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Query Failed");
+            return new List<Customer>();
+        }
+
+        return result;
+    }
     public async Task<Customer?> GetCustomer(Guid id)
     {
         try
@@ -197,99 +228,63 @@ public class ShopRepo : IShopRepo
     {
         try
         {
-            var orderSearch = _dbContext.QueryAsync<Order>(new QueryOperationConfig
-            {
-                IndexName = "OrderCustomerIndex",
-                Select = SelectValues.AllProjectedAttributes,
-                KeyExpression = new Expression
+            // GSI's are not always consistent all the time. We should be careful how we use results returned from GSI queries.
+            var orderSearch = _dbContext.FromQueryAsync<Order>(
+                new QueryOperationConfig
                 {
-                    ExpressionStatement = "#customer = :v_customer",
-                    ExpressionAttributeNames = new Dictionary<string, string>{ { "#customer", "CustomerId" } },
-                    ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> { { ":v_customer", new Primitive{Value = id} } }
-                }
-            });
+                    IndexName = "OrderCustomerIndex",
+                    Select = SelectValues.AllProjectedAttributes,
+                    KeyExpression = new Expression
+                    {
+                        ExpressionStatement = "#customer = :v_customer",
+                        ExpressionAttributeNames = new Dictionary<string, string>{ { "#customer", "CustomerId" } },
+                        ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> { { ":v_customer", new Primitive{Value = id.ToString()} } }
+                    }
+                });
             
             var projectedOrders = new List<Order>();
             do
                 projectedOrders.AddRange(await orderSearch.GetNextSetAsync());
             while (!orderSearch.IsDone);
-
+            
             var orders = new List<Order>();
             foreach (var o in projectedOrders)
-            {
                 orders.Add(await _dbContext.LoadAsync<Order>(o.Id));
-            }
+            
             return orders;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Order lookup by Stipe CustomerId={id} failed");
+            _logger.LogError(e, $"Order lookup by CustomerId failed");
             return null;
         }
     }
-    public async Task<IEnumerable<Customer>> GetAllCustomers(int limit = 20)
-    {
-        var result = new List<Customer>();
-        
-        try
-        {
-            if (limit <= 0)
-                return result;
-
-            var filter = new ScanFilter();
-            filter.AddCondition("Id", ScanOperator.IsNotNull);
-            var scanConfig = new ScanOperationConfig()
-            {
-                Limit = limit,
-                Filter = filter
-            };
-            var queryResult = _dbContext.FromScanAsync<Customer>(scanConfig);
-
-            do
-                result.AddRange(await queryResult.GetNextSetAsync());
-            while (!queryResult.IsDone && result.Count < limit);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"Query Failed");
-            return new List<Customer>();
-        }
-
-        return result;
-    }
-    
-    // TODO
     public async Task<bool> AddCustomer(CustomerInput cInput)
     {
-        if (GetCustomerFromEmail(cInput.Email).Result != null)
-        {
-            throw new Exception($"An account with email={cInput.Email} aready exists.");
-        }
-
-        var customer = new Customer
-        {
-            Id = Guid.NewGuid(),
-            FirstName = cInput.Fname,
-            LastName = cInput.Lname,
-            Email = cInput.Email,
-            // TODO HASH THIS BEFORE STORING!
-            Password = cInput.Pass
-        };
-
         try
         {
+            if (await GetCustomerFromEmail(cInput.Email) != null)
+                throw new Exception($"An account with email={cInput.Email} already exists.");
+            
+            var customer = new Customer
+            {
+                Id = Guid.NewGuid(),
+                FirstName = cInput.Fname,
+                LastName = cInput.Lname,
+                Email = cInput.Email,
+            };
+            customer.Password = new PasswordHasher<Customer>().HashPassword(customer, cInput.Pass);
+        
             await _dbContext.SaveAsync(customer);
-            _logger.LogInformation($"Customer {customer} has been added");
+            _logger.LogInformation($"Customer has been added");
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to add {customer} to the database");
+            _logger.LogError(e, $"Failed to add customer to the database");
             return false;
         }
-
         return true;
     }
-    // TODO
     public async Task<bool> UpdateCustomer(Customer? customer)
     {
         if (customer == null) return false;
@@ -297,32 +292,29 @@ public class ShopRepo : IShopRepo
         try
         {
             await _dbContext.SaveAsync(customer);
-            _logger.LogInformation($"Order {customer} was updated");
+            _logger.LogInformation("Customer was updated");
         }
         catch (Exception e){
-            _logger.LogError(e, "failed to update customer");
+            _logger.LogError(e, "Failed to update customer");
             return false;
         }
 
         return true;
     }
-    // TODO
     public async Task<bool> DeleteCustomer(Guid customerId)
     {
         bool result;
         
         try
         {
-            // Delete
             await _dbContext.DeleteAsync<Customer>(customerId);
             // Check for delete success
-            var config = new DynamoDBContextConfig { ConsistentRead = true };
-            Customer ghost = await _dbContext.LoadAsync<Customer>(customerId, config);
+            var ghost = await _dbContext.LoadAsync<Customer>(customerId, new DynamoDBOperationConfig { ConsistentRead = true });
             result = ghost == null;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to delete customer id={customerId}");
+            _logger.LogError(e, "Failed to delete customer");
             result = false;
         }
         
@@ -341,7 +333,7 @@ public class ShopRepo : IShopRepo
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to find stock: id={stockId} in database.");
+            _logger.LogError(e, $"Failed to find stock in database.");
             return null;
         }
     }
