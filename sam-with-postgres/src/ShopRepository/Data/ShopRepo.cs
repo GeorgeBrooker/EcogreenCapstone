@@ -18,6 +18,36 @@ public class ShopRepo : IShopRepo
 
 
     // ORDER METHODS
+    public async Task<IEnumerable<Order>> GetAllOrders(int limit = 20)
+    {
+        var result = new List<Order>();
+        
+        try
+        {
+            if (limit <= 0)
+                return result;
+
+            var filter = new ScanFilter();
+            filter.AddCondition("Id", ScanOperator.IsNotNull);
+            var scanConfig = new ScanOperationConfig
+            {
+                Limit = limit,
+                Filter = filter
+            };
+            var queryResult = _dbContext.FromScanAsync<Order>(scanConfig);
+
+            do
+                result.AddRange(await queryResult.GetNextSetAsync());
+            while (!queryResult.IsDone && result.Count < limit);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to find any orders");
+            return new List<Order>();
+        }
+
+        return result;
+    }
     public async Task<Order?> GetOrder(Guid orderId)
     {
         try
@@ -26,67 +56,64 @@ public class ShopRepo : IShopRepo
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to find order {orderId} in database.");
+            _logger.LogError(e, $"Failed to find order in database.");
             return null;
         }
     }
-    // TODO
     public async Task<Order?> GetOrderFromPaymentId(string paymentIntentId)
     {
         try
         {
-            var orderSearch = _dbContext.QueryAsync<Order>("PaymentIntentID", QueryOperator.Equal, [paymentIntentId]);
-            var order = await orderSearch.GetRemainingAsync();
-            return order[0];
+            var paymentIdSearch = _dbContext.FromQueryAsync<Order>(
+                new QueryOperationConfig
+                {
+                    IndexName = "OrderPaymentIndex",
+                    Select = SelectValues.AllProjectedAttributes,
+                    KeyExpression = new Expression
+                    {
+                        ExpressionStatement = "#stripe = :v_stripe",
+                        ExpressionAttributeNames = new Dictionary<string, string> { { "#stripe", "PaymentIntentId" } },
+                        ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry>
+                            { { ":v_stripe", new Primitive { Value = paymentIntentId } } }
+                    }
+                });
+            
+            var projectedOrder = await paymentIdSearch.GetRemainingAsync();
+            return await _dbContext.LoadAsync<Order>(projectedOrder.FirstOrDefault()!.Id);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to find order with payment id {paymentIntentId}");
+            _logger.LogError(e, $"Failed to find order from paymentId.");
             return null;
         }
     }
-    // TODO
-    public async Task<IEnumerable<Order>?> GetAllOrders(int limit = 20)
+    public async Task<bool> AddOrder(OrderInput nOrder)
     {
         try
         {
-            if (limit <= 0)
-                return new List<Order>();
+            if (await GetOrderFromPaymentId(nOrder.paymentId) != null)
+                throw new Exception($"An order with paymentId={nOrder.paymentId} already exists.");
 
-            var filter = new ScanFilter();
-            filter.AddCondition("Id", ScanOperator.IsNotNull);
-            var scanConfig = new ScanOperationConfig()
+            var order = new Order
             {
-                Limit = limit,
-                Filter = filter
+                Id = Guid.NewGuid(),
+                PaymentIntentId = nOrder.paymentId,
+                CustomerId = nOrder.customerId,
+                DeliveryLabelUid = nOrder.deliveryLabel,
+                TrackingNumber = nOrder.tracking,
+                PackageReference = nOrder.packageRef
             };
-
-            return await _dbContext.FromScanAsync<Order>(scanConfig).GetRemainingAsync();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"Query Failed");
-            return null;
-        }
-    }
-    // TODO
-    public async Task<bool> AddOrder(Order order)
-    {
-        try
-        {
-            order.Id = Guid.NewGuid();
+            
             await _dbContext.SaveAsync(order);
-            _logger.LogInformation($"Order {order} has been added");
+            _logger.LogInformation($"Order added");
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to add {order} to database");
+            _logger.LogError(e, $"Failed to add order to database");
             return false;
         }
-
         return true;
     }
-    // TODO
     public async Task<bool> UpdateOrder(Order? order)
     {
         if (order == null) return false;
@@ -94,19 +121,16 @@ public class ShopRepo : IShopRepo
         try
         {
             await _dbContext.SaveAsync(order);
-            _logger.LogInformation($"Order {order} was updated");
+            _logger.LogInformation($"Order was updated.");
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "failed to update order");
+            _logger.LogError(e, "Failed to update order.");
             return false;
         }
-
         return true;
     }
-    
-    // TODO normalise how ID's are handled. {make application as independent from stripe as possible}
-    public async Task<bool> DeleteOrder(string orderId)
+    public async Task<bool> DeleteOrder(Guid orderId)
     {
         bool result;
         
@@ -115,18 +139,16 @@ public class ShopRepo : IShopRepo
             // Delete
             await _dbContext.DeleteAsync<Order>(orderId);
             // Check for delete success
-            var config = new DynamoDBContextConfig { ConsistentRead = true };
-            Order ghost = await _dbContext.LoadAsync<Order>(orderId, config);
+            var ghost = await _dbContext.LoadAsync<Order>(orderId, new DynamoDBOperationConfig { ConsistentRead = true });
             result = ghost == null;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to delete order id={orderId}");
+            _logger.LogError(e, $"Failed to delete order");
             result = false;
         }
         
         if (result) _logger.LogInformation("Order successfully deleted");
-
         return result;
     }
     
@@ -142,7 +164,7 @@ public class ShopRepo : IShopRepo
 
             var filter = new ScanFilter();
             filter.AddCondition("Id", ScanOperator.IsNotNull);
-            var scanConfig = new ScanOperationConfig()
+            var scanConfig = new ScanOperationConfig
             {
                 Limit = limit,
                 Filter = filter
@@ -155,7 +177,7 @@ public class ShopRepo : IShopRepo
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Query Failed");
+            _logger.LogError(e, $"Failed to find any Customers");
             return new List<Customer>();
         }
 
@@ -169,7 +191,7 @@ public class ShopRepo : IShopRepo
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to find customer id={id} in database.");
+            _logger.LogError(e, $"Failed to find customer in database.");
             return null;
         }
     }
@@ -186,15 +208,17 @@ public class ShopRepo : IShopRepo
                     {
                         ExpressionStatement = "#stripe = :v_stripe",
                         ExpressionAttributeNames = new Dictionary<string, string> { {"#stripe", "StripeId"} },
-                        ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> { {":v_stripe", new Primitive {Value = stripeId} } }
+                        ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> 
+                            { {":v_stripe", new Primitive {Value = stripeId} } }
                     }
                 });
+            
             var projectedCustomer = await customerIdSearch.GetRemainingAsync();
             return await _dbContext.LoadAsync<Customer>(projectedCustomer.FirstOrDefault()!.Id);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to find customer StripeId={stripeId} in database.");
+            _logger.LogError(e, $"Failed to find customer from stripeId.");
             return null;
         }
     }
@@ -298,7 +322,6 @@ public class ShopRepo : IShopRepo
             _logger.LogError(e, "Failed to update customer");
             return false;
         }
-
         return true;
     }
     public async Task<bool> DeleteCustomer(Guid customerId)
@@ -317,40 +340,20 @@ public class ShopRepo : IShopRepo
             _logger.LogError(e, "Failed to delete customer");
             result = false;
         }
-        
         if (result) _logger.LogInformation("Book successfully deleted");
-
         return result;
     }
 
     // STOCK METHODS
-    // TODO
-    public async Task<Stock?> GetStockFromStripe(string stockId)
+    public async Task<IEnumerable<Stock>> GetAllStock(int limit)
     {
-        try
-        {
-            return await _dbContext.LoadAsync<Stock>(stockId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"Failed to find stock in database.");
-            return null;
-        }
-    }
-    
-    // TODO
-    public async Task<Stock?> GetStock(Guid id)
-    {
-        throw new NotImplementedException();
-    }
-    // TODO
-    public async Task<IEnumerable<Stock>?> GetAllStock(int limit)
-    {
+        var result = new List<Stock>();
+        
         try
         {
             if (limit <= 0)
-                return new List<Stock>();
-
+                return result;
+            
             var filter = new ScanFilter();
             filter.AddCondition("Id", ScanOperator.IsNotNull);
             var scanConfig = new ScanOperationConfig()
@@ -358,31 +361,83 @@ public class ShopRepo : IShopRepo
                 Limit = limit,
                 Filter = filter
             };
-
-            return await _dbContext.FromScanAsync<Stock>(scanConfig).GetRemainingAsync();
+            var stockSearch = _dbContext.FromScanAsync<Stock>(scanConfig);
+            
+            do
+            {
+                result.AddRange(await stockSearch.GetNextSetAsync());
+            } while (!stockSearch.IsDone && result.Count < limit);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Query Failed");
-            return null;
+            _logger.LogError(e, $"Failed to find any stock");
+            return new List<Stock>();
         }
+
+        return result;
     }
-    
-    // TODO update this to work with a DTO.
-    public async Task<bool> AddStock(Stock stock)
+    public async Task<Stock?> GetStock(Guid id)
     {
         try
         {
-            if (stock.Id == Guid.Empty) throw new ArgumentException(); 
-            await _dbContext.SaveAsync(stock);
-            _logger.LogInformation($"Stock: {stock} has been added");
+            return await _dbContext.LoadAsync<Stock>(id);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to add stock: {stock} to database");
+            _logger.LogError(e, "Failed to find stock in the database.");
+            return null;
+        }
+    }
+    public async Task<Stock?> GetStockFromStripe(string stripeId)
+    {
+        try
+        {
+            var stockIdSearch = _dbContext.FromQueryAsync<Stock>(
+                new QueryOperationConfig
+                {
+                    IndexName = "StockStripeIndex",
+                    Select = SelectValues.AllProjectedAttributes,
+                    KeyExpression = new Expression
+                    {
+                        ExpressionStatement = "#stripe = :v_stripe",
+                        ExpressionAttributeNames = new Dictionary<string, string> { { "#stripe", "StripeId" } },
+                        ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry>
+                            { { ":v_stripe", new Primitive { Value = stripeId } } }
+                    }
+                });
+
+            var projectedStock = await stockIdSearch.GetRemainingAsync();
+            return await _dbContext.LoadAsync<Stock>(projectedStock.FirstOrDefault()!.Id);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to find stock from stripeId");
+            return null;
+        }
+    }
+    public async Task<bool> AddStock(StockInput nStock)
+    {
+        try
+        {
+            if (!nStock.CreateWithoutStripeLink && await GetStockFromStripe(nStock.StripeId!) != null)
+                throw new Exception($"Stock with stripeId={nStock.StripeId} already exists.");
+
+            var stock = new Stock
+            {
+                Id = Guid.NewGuid(),
+                StripeId = nStock.StripeId,
+                Name = nStock.Name,
+                TotalStock = nStock.TotalStock,
+                PhotoUri = nStock.PhotoUri
+            };
+            await _dbContext.SaveAsync(stock);
+            _logger.LogInformation($"Stock has been added");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to add stock to database");
             return false;
         }
-
         return true;
     }
     public async Task<bool> UpdateStock(Stock? stock)
@@ -392,29 +447,25 @@ public class ShopRepo : IShopRepo
         try
         {
             await _dbContext.SaveAsync(stock);
-            _logger.LogInformation($"Stock: {stock} was updated");
+            _logger.LogInformation("Stock was updated");
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "failed to update order");
+            _logger.LogError(e, "Failed to update stock");
             return false;
         }
-
         return true;
     }
-    
     // TODO this should probably work off the standard id and not the stripe id.
-    public async Task<bool> DeleteStock(string stockId)
+    public async Task<bool> DeleteStock(Guid stockId)
     {
         bool result;
         
         try
         {
-            // Delete
             await _dbContext.DeleteAsync<Stock>(stockId);
             // Check for delete success
-            var config = new DynamoDBContextConfig { ConsistentRead = true };
-            Stock ghost = await _dbContext.LoadAsync<Stock>(stockId, config);
+            var ghost = await _dbContext.LoadAsync<Stock>(stockId, new DynamoDBContextConfig { ConsistentRead = true });
             result = ghost == null;
         }
         catch (Exception e)
@@ -422,9 +473,7 @@ public class ShopRepo : IShopRepo
             _logger.LogError(e, $"Failed to delete stock: id={stockId}");
             result = false;
         }
-        
         if (result) _logger.LogInformation("Order successfully deleted");
-
         return result;
     }
     

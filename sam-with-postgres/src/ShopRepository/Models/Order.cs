@@ -10,9 +10,9 @@ public class Order
     
     // Payment info
     [DynamoDBProperty]
-    public string? PaymentIntentId { get; set; }
+    public required string PaymentIntentId { get; set; }
     [DynamoDBProperty] 
-    public string? CustomerId { get; set; } // 1-m relationship [This is the customer GUID from our DB not the stripe ID of the customer. StripeID can be retrieved via payment intent]
+    public required string CustomerId { get; set; } // 1-m relationship [This is the customer GUID from our DB not the stripe ID of the customer. StripeID can be retrieved via payment intent]
     
     // Delivery info
     [DynamoDBProperty]

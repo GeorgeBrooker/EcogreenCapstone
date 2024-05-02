@@ -12,10 +12,10 @@ public interface IShopRepo
     // Orders
     Task<Order?> GetOrder(Guid id);
     Task<Order?> GetOrderFromPaymentId(string paymentIntentId);
-    Task<IEnumerable<Order>?> GetAllOrders(int limit);
-    Task<bool> AddOrder(Order order);
-    Task<bool> UpdateOrder(Order? order);
-    Task<bool> DeleteOrder(string orderId);
+    Task<IEnumerable<Order>> GetAllOrders(int limit);
+    Task<bool> AddOrder(OrderInput order);
+    Task<bool> UpdateOrder(Order order);
+    Task<bool> DeleteOrder(Guid id);
 
     // Customers
     Task<Customer?> GetCustomerFromStripe(string customerId);
@@ -30,10 +30,10 @@ public interface IShopRepo
     // Stock
     Task<Stock?> GetStockFromStripe(string stockId);
     Task<Stock?> GetStock(Guid id);
-    Task<IEnumerable<Stock>?> GetAllStock(int limit);
-    Task<bool> AddStock(Stock stock);
+    Task<IEnumerable<Stock>> GetAllStock(int limit);
+    Task<bool> AddStock(StockInput stock);
     Task<bool> UpdateStock(Stock stock);
-    Task<bool> DeleteStock(string stockId);
+    Task<bool> DeleteStock(Guid id);
     
     // StockRequest
     // TODO
