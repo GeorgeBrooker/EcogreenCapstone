@@ -151,13 +151,21 @@
       "Properties": {
         "KeySchema": [
           {
-            "AttributeName": "Id",
+            "AttributeName": "OrderId",
             "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "ProductId",
+            "KeyType": "RANGE"
           }
         ],
         "AttributeDefinitions": [
           {
-            "AttributeName": "Id",
+            "AttributeName": "OrderId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "ProductId",
             "AttributeType": "S"
           }
         ],

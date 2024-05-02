@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
@@ -26,7 +25,7 @@ public class ShopController : ControllerBase
     {
         return Ok("You are now listening to the shop controller");
     }
-    
+
     // *CUSTOMER*
     // GET
     [HttpGet("GetCustomers")]
@@ -58,19 +57,19 @@ public class ShopController : ControllerBase
     {
         return Ok(await _repo.GetCustomerOrders(customerId));
     }
-    
+
     // POST 
     [HttpPost("AddCustomer")]
     public async Task<ActionResult<CustomerInput>> AddCustomer([FromBody] CustomerInput nCustomer)
     {
         if (await _repo.AddCustomer(nCustomer))
             return Ok(nCustomer);
-        
+
         return BadRequest();
     }
-    
+
     // PUT 
-    
+
     // This method should only be called with a complete CustomerInput DTO as input.
     // Input DTO should be created from a fresh retrieval of the customer information.
     // You will have to retrieve the customer object to get ID anyway so this shouldn't be expensive.
@@ -78,8 +77,8 @@ public class ShopController : ControllerBase
     public async Task<ActionResult> UpdateCustomer(Guid id, [FromBody] CustomerInput? customer)
     {
         if (id == Guid.Empty || customer == null) return ValidationProblem("Invalid payload");
-        
-        var updated =  await _repo.GetCustomer(id);
+
+        var updated = await _repo.GetCustomer(id);
         if (updated == null) return NotFound($"Could not find existing customer with id={id}. Update canceled.");
 
         updated.Email = customer.Email;
@@ -90,7 +89,7 @@ public class ShopController : ControllerBase
         await _repo.UpdateCustomer(updated);
         return Ok();
     }
-    
+
     // DELETE
     [HttpDelete("DeleteCustomer/{id}")]
     public async Task<ActionResult> DeleteCustomer(Guid id)
@@ -104,26 +103,28 @@ public class ShopController : ControllerBase
         await _repo.DeleteCustomer(customer.Id);
         return Ok();
     }
-    
+
     // *ORDERS*
-    
+
     // GET
     [HttpGet("GetOrders")]
     public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders(int limit = 20)
     {
         return Ok(await _repo.GetAllOrders(limit));
     }
+
     [HttpGet("GetOrder/{id}")]
     public async Task<ActionResult<Order>> GetOrderById(Guid id)
     {
         return Ok(await _repo.GetOrder(id));
     }
+
     [HttpGet("GetOrderByPaymentId/{id}")]
     public async Task<ActionResult<Order>> GetOrderByPaymentId(string id)
     {
         return Ok(await _repo.GetOrderFromPaymentId(id));
     }
-    
+
     // POST
     // This will need to be modified to sync with stripe. We may want to call this internally from a different endpoint.
     [HttpPost("AddOrder")]
@@ -131,10 +132,10 @@ public class ShopController : ControllerBase
     {
         if (await _repo.AddOrder(nOrder))
             return Ok(nOrder);
-        
+
         return BadRequest();
     }
-    
+
     // PUT
     // This method should only be called with a complete OrderInput DTO as input.
     // See equivalent customer method for more details
@@ -146,16 +147,16 @@ public class ShopController : ControllerBase
         var updated = await _repo.GetOrder(id);
         if (updated == null) throw new Exception($"Could not find existing order with id={id}. Update canceled.");
 
-        updated.PaymentIntentId = order.paymentId;
-        updated.CustomerId = order.customerId;
-        updated.DeliveryLabelUid = order.deliveryLabel;
-        updated.TrackingNumber = order.tracking;
-        updated.PackageReference = order.packageRef;
+        updated.PaymentIntentId = order.PaymentId;
+        updated.CustomerId = order.CustomerId;
+        updated.DeliveryLabelUid = order.DeliveryLabel;
+        updated.TrackingNumber = order.Tracking;
+        updated.PackageReference = order.PackageRef;
 
         await _repo.UpdateOrder(updated);
         return Ok();
     }
-    
+
     // DELETE
     public async Task<ActionResult> DeleteOrder(Guid id)
     {
@@ -167,8 +168,7 @@ public class ShopController : ControllerBase
         await _repo.DeleteOrder(id);
         return Ok();
     }
-    
+
     // STOCK
     // GET
-    
 }
