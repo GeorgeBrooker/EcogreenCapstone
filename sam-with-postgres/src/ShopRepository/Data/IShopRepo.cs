@@ -32,7 +32,7 @@ public interface IShopRepo
     Task<Stock?> GetStock(Guid id);
     Task<IEnumerable<Stock>> GetAllStock(int limit);
     Task<bool> AddStock(StockInput stock);
-    Task<bool> UpdateStock(Stock stock);
+    Task<bool> UpdateStock(Stock? stock);
     Task<bool> DeleteStock(Guid id);
 
     // StockRequest
