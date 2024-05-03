@@ -3,7 +3,9 @@ using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Runtime;
+using Microsoft.AspNetCore.Authentication;
 using ShopRepository.Data;
+using ShopRepository.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,13 @@ builder.Services
     .AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
-// NOTE: To deploy this properly you will need to configure your AWS keys (Access & Secret) AND your session token in the AWS CLI (>aws configure; then >aws configure set aws_session_token {token})
+// Add Authentication
+builder.Services.AddAuthentication("BasicAuthentication")
+    .AddScheme<AuthenticationSchemeOptions, AuthHandler>("BasicAuthentication", null);
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CustomerOnly", policy => 
+        policy.RequireClaim("customer"));
 
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
 

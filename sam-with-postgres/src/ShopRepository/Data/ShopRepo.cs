@@ -1,4 +1,6 @@
-﻿using Amazon.DynamoDBv2.DataModel;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Microsoft.AspNetCore.Identity;
 using ShopRepository.Dtos;
@@ -281,6 +283,41 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
     }
 
+    public async Task<Customer?> GetCustomerFromCookie(HttpRequest request, string secretKey)
+    {
+        if (!request.Cookies.TryGetValue("CustomerId", out var customerIdString) ||
+            !request.Cookies.TryGetValue("CustomerHash", out var customerHash))
+        {
+            return null;
+        }
+
+        if (!Guid.TryParse(customerIdString, out var customerId))
+        {
+            return null;
+        }
+
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+        var customerIdBytes = Encoding.UTF8.GetBytes(customerId.ToString());
+        var hash = hmac.ComputeHash(customerIdBytes);
+        var hashString = Convert.ToBase64String(hash);
+
+        if (hashString != customerHash)
+        {
+            return null;
+        }
+
+        return await GetCustomer(customerId);
+    }
+
+    public async Task<bool> ValidLogin(string email, string password)
+    {
+        var customer = await GetCustomerFromEmail(email);
+        if (customer==null) return false;
+        
+        var pwHasher = new PasswordHasher<Customer>();
+        return pwHasher.VerifyHashedPassword(customer, customer.Password, password) == PasswordVerificationResult.Success;
+    }
+
     public async Task<IEnumerable<Order>?> GetCustomerOrders(Guid id)
     {
         try
@@ -331,7 +368,8 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
                 Id = Guid.NewGuid(),
                 FirstName = cInput.Fname,
                 LastName = cInput.Lname,
-                Email = cInput.Email
+                Email = cInput.Email,
+                Password = ""
             };
             customer.Password = new PasswordHasher<Customer>().HashPassword(customer, cInput.Pass);
 

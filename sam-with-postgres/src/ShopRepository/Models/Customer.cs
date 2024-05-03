@@ -13,8 +13,8 @@ public class Customer
 
     [DynamoDBProperty] public string? LastName { get; set; }
 
-    [DynamoDBProperty] public string? Email { get; set; }
+    [DynamoDBProperty] public required string Email { get; set; }
 
     // stored as a hash using PasswordHasher
-    [DynamoDBProperty] public string? Password { get; set; }
+    [DynamoDBProperty] public required string Password { get; set; }
 }

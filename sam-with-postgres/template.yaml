@@ -44,8 +44,11 @@ Resources:
           CUSTOMER_TABLE: !Ref customerTable
           STOCK_TABLE: !Ref stockTable
           STOCK_REQUEST_TABLE: !Ref stockRequestsTable
-          # TODO replace this with AWS secrets manager
+          
+          # TODO replace these with AWS secrets manager
           STRIPE_API_KEY: sk_test_51P8grSEvcprk3hy6Npdx7cFlHVlY0fcPofWOTBBJVCj1ZUgmIU4p3paiOaUGyKUwqNoXOb95lJf6yJ8i0v86WQC700pFzxXcsZ
+          SECRET_COOKIE_KEY: yadayadayadathisisanicelongsecretkeythatwillbereplacedbeforeprod
+          
           LOCAL_DB: http://host.docker.internal:8000
 
       Events: # Events are what calls the function. In this case we generate an AWS HttpApi gateway. 
