@@ -7,7 +7,7 @@ using ShopRepository.Models;
 
 namespace ShopRepository.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
