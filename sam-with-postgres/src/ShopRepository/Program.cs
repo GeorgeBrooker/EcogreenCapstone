@@ -39,6 +39,18 @@ if (Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true")
     dynamoConfig.AuthenticationRegion = "ap-southeast-2";
     var creds = new SessionAWSCredentials("fake", "key", "Fake");
     client = new AmazonDynamoDBClient(creds, dynamoConfig);
+    
+    // CORS CONFIG FOR LOCAL TESTING. IN PROD CORS IS CONFIGURED THROUGH API GATEWAY.
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAllOrigins", policyBuilder =>
+        {
+            policyBuilder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+    });
 }
 else
 {
