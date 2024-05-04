@@ -8,15 +8,17 @@ namespace ShopRepository.Controllers;
 public class StripeController : ControllerBase
 {
     // API KEY CONFIG
-    public StripeController() { StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY"); }
-    
-    [HttpGet("AllCustomers")]
-    public ActionResult<StripeList<Stripe.Customer>> GetCustomers()
+    public StripeController()
     {
-        
+        StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
+    }
+
+    [HttpGet("AllCustomers")]
+    public ActionResult<StripeList<Customer>> GetCustomers()
+    {
         var options = new CustomerListOptions { Limit = 10 };
         var service = new CustomerService();
-        
+
         return Ok(service.List(options));
     }
 }
