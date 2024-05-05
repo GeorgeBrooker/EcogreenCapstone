@@ -1,7 +1,11 @@
-import React, { useState } from "react"
+import React, {useContext, useState} from "react"
+import { ShopContext } from '../Context/ShopContext'
 import './CSS/LoginSignup.css'
 
 const LoginSignup = () => {
+    const {serverUri} = useContext(ShopContext);
+    const {checkLogin} = useContext(ShopContext);
+    
     const [state, setState] = useState("Login");
     const [formData, setFormData] = useState({
         firstName: "",
