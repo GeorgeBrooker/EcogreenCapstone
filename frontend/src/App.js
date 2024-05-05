@@ -10,6 +10,10 @@ import Home from './Pages/Home';
 import ContactUs from './Pages/ContactUs';
 import Footer from './Components/Footer/Footer';
 
+
+localStorage.setItem("email", "");
+localStorage.setItem("pass","");
+
 function App() {
   return (
     <div>

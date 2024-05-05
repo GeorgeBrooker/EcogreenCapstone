@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
@@ -312,4 +313,16 @@ public class ShopController(IShopRepo repo) : ControllerBase
         await repo.DeleteStockRequest(retreivedStockRq);
         return Ok();
     }
+    
+//
+// AUTHENTICATION
+//
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [Authorize(Policy = "CustomerOnly")]
+    [HttpGet("CheckLogin")]
+    public ActionResult CheckLogin()
+    {
+        return Ok();
+    }
+
 }

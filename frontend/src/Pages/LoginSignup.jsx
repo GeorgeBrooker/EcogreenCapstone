@@ -1,8 +1,12 @@
-import React, { useState } from "react"
+import React, {useContext, useState} from "react"
+import { ShopContext } from '../Context/ShopContext'
 import './CSS/LoginSignup.css'
 
-const LoginSignup = () => {
 
+const LoginSignup = () => {
+    const {serverUri} = useContext(ShopContext);
+    const {checkLogin} = useContext(ShopContext);
+    
     const [state, setState] = useState("Login");
     const [formData,setFormData] = useState({
         firstName:"",
@@ -15,33 +19,30 @@ const LoginSignup = () => {
         setFormData({...formData,[e.target.name]:e.target.value})
     }
 
-    const login = async () =>{
-        console.log("Login Function Executed",formData);
-        // Create Json Object with format CustomerInput (Backend/Dtos) to send to the server TODO THIS NEEDS TO CHANGE FOR LOGIN. LOGIN VIA EMAIL AND PASSWORD (no username)
-        let customerInput = {
-            Fname:formData.firstName,
-            Lname:formData.lastName,
-            Email:formData.email,
-            password:formData.password
-        };
+    const login = async ()=> {
         
-        let responseData;
-        await fetch('http://localhost:4000/login',{
-            method:'POST',
-            headers:{
-                Accept:'application/form-data',
-                'Content-Type':'application/json',
-            },
-            body: JSON.stringify(customerInput),
-        }).then((response)=> response.json()).then((data)=>responseData=data)
+        localStorage.setItem("email", formData.email);
+        localStorage.setItem("pass", formData.password);
+        console.log("Login Function Executed", formData);
+        console.log(serverUri);
 
-        if(responseData.success){
-            localStorage.setItem('auth-token',responseData.token);
-            window.localtion.replace("/home");
-        }
-        else{
-            alert(responseData.errors)
-        }
+        fetch(serverUri + "/api/shop/CheckLogin", {
+            method: "GET",
+            headers: {
+                'Authorization': 'Basic ' + btoa(localStorage.getItem("email") + ":" + localStorage.getItem("pass")),
+                'accept': 'text/plain'
+            }
+        })
+            .then(response => {
+                if (response.status >= 400) {
+                    console.log("Login failed");
+                }
+                if (response.status === 200 || response.status === 204) {
+                    console.log("Login successful");
+                    checkLogin();
+                    window.location.replace("/home");
+                }
+            })
     }
 
     const signup = async () =>{

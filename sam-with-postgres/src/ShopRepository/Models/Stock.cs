@@ -13,5 +13,5 @@ public class Stock
 
     [DynamoDBProperty] public int? TotalStock { get; set; }
 
-    [DynamoDBProperty] public IEnumerable<string> PhotoUri { get; set; } = new List<string>();
+    [DynamoDBProperty] public string PhotoUri { get; set; } = "";
 }

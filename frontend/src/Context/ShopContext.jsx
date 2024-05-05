@@ -2,8 +2,8 @@ import React, { createContext, useState } from "react";
 import all_product from '../Components/Assets/all_product'; //remove this line when de-comment this file for front and back connection
 
 export const ShopContext = createContext(null);
-
-const getDefaultCart =()=>{
+const serverUri = "http://localhost:3000";
+const getDefaultCart = ()=>{
     let cart = {};
     for (let index = 0; index < all_product.length+1; index++){
         cart[index] = 0;
@@ -11,6 +11,31 @@ const getDefaultCart =()=>{
     return cart;
 }
 
+const checkLogin = ()=>{
+    fetch(serverUri + "/api/shop/CheckLogin", {
+        method: "GET",
+        headers: {
+            'Authorization': 'Basic ' + btoa(localStorage.getItem("email") + ":" + localStorage.getItem("pass")),
+            'accept': 'text/plain'
+        }
+    })
+        .then(response => {
+            if (response.status >= 400) {
+                console.log("Login failed");
+                return false
+            }
+
+            if (response.status === 200 || response.status === 204) {
+                console.log("Login successful");
+                return true
+            }
+        })
+}
+const logout = ()=>{
+    localStorage.setItem("email", "");
+    localStorage.setItem("pass", "");
+    checkLogin()
+}
 const ShopContextProvider = (props)=> {
 
     // const [all_product,setAll_Product] = useState([]);
@@ -105,7 +130,7 @@ const ShopContextProvider = (props)=> {
             }
         
     
-    const contextValue = {updateCart, getTotalCartItems, getTotalCartAmount,all_product,cartItems,addToCart,removeFromCart};
+    const contextValue = {serverUri, checkLogin, logout, updateCart, getTotalCartItems, getTotalCartAmount,all_product,cartItems,addToCart,removeFromCart};
 
     return (
         <ShopContext.Provider value={contextValue}>
