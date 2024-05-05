@@ -1,31 +1,36 @@
+/* div {
+    border: 1px solid;
+} */
 .hero{
-    height: 100vh;
-    background: linear-gradient(180deg, #009900, #e1ffea22 100%);
+    height: 80vh;
+    background: #d4fbcb;
     display: flex;
 }
 .hero-left{
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
     gap: 20px;
-    padding-left: 180px;
+    padding-left: 200px;
     line-height: 1.1;
 }
 .hero-left h2{
-    color: #090909;
-    font-size: 28px;
-    font-weight: 600;
+    color: #4CAF50;
+    font-size: 80px;
+    font-weight: 700;
+    
 }
 .hero-left p{
-    color:#171717;
-    font-size: 100px;
-    font-weight: 700;
+    color:#4CAF50;
+    font-size: 20px;
+    font-weight: 600;
 }
 .hero-hand-icon{
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
 }
 .hero-hand-icon img{
     width: 105px;
@@ -39,8 +44,7 @@
     height: 70px;
     border-radius: 75px;
     margin-top: 75px;
-    background: #ff4141;
-    color: white;
+    color: #4CAF50;
     font-size: 22px;
     font-weight: 500;
 }
@@ -49,4 +53,36 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding-right: 200px;
 }
+.hero-right p{
+    margin-left: 10px;
+    color: #ff4141;
+    font-size: larger;
+}
+.coconut-burn img:hover{
+    cursor: url('../Assets/fire-hover.png'), auto;
+}
+
+@keyframes burn {
+    0% {
+        filter: brightness(100%);
+    }
+    25% {
+        filter: brightness(150%) hue-rotate(-50deg) saturate(500%);
+    }
+    50% {
+        filter: brightness(200%) sepia(1) hue-rotate(-50deg) saturate(500%);
+    }
+    75% {
+        filter: brightness(150%) hue-rotate(-50deg) saturate(500%);
+    }
+    100% {
+        filter: brightness(100%);
+    }
+}
+
+.coconut-burn img.burn {
+    animation: burn 5s linear;
+}
+

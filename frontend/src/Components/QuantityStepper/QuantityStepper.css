@@ -10,7 +10,7 @@
     background: white;
 }
 .quantity-stepper span{
-    border: 2px solid #8a86866c;
+    border: 1px solid #8a86866c;
     border-radius: 7px;
     padding-left: 15px;
     padding-right: 15px;
@@ -18,5 +18,5 @@
     margin-right: 5px;
 }
 .quantity-stepper button{
-    background: #5cb85c;
+    background: #24831a;
 }

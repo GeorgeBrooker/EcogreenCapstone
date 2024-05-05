@@ -1,7 +1,7 @@
 import React from 'react';
 import './QuantityStepper.css'
-import remove_icon from '../Assets/remove_icon.png';
-import add_icon from '../Assets/add_icon.png';
+import remove_icon from '../Assets/remove_icon_white.png';
+import add_icon from '../Assets/add_icon_white.png';
 
 
 const QuantityStepper = ({ quantity, onIncrease, onDecrease }) => {
