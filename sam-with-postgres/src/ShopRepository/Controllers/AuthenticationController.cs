@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Options;
 using ShopRepository.Data;
 using ShopRepository.Models;
 
