@@ -38,7 +38,7 @@ const LoginSignup = () => {
     const signup = async () =>{
         console.log("Signup Function Executed",formData);
         let responseData;
-        await fetch('http://localhost:4000/signup',{
+        await fetch('http://127.0.0.1:3000/AddCustomer',{
             method:'POST',
             headers:{
                 Accept:'application/form-data',
@@ -49,7 +49,7 @@ const LoginSignup = () => {
 
         if(responseData.success){
             localStorage.setItem('auth-token',responseData.token);
-            window.localtion.replace("/home");
+            window.location.replace("/home");
         }
         else{
             alert(responseData.errors)
