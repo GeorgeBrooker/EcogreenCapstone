@@ -35,32 +35,31 @@ const LoginSignup = () => {
         return true;
     };
 
-    const login = async () => {
-        if (!isFormValid()) return; // Validate form fields and terms agreement before proceeding
-
+    const login = async ()=> {
+        
+        localStorage.setItem("email", formData.email);
+        localStorage.setItem("pass", formData.password);
         console.log("Login Function Executed", formData);
-        let customerInput = {
-            email: formData.email,
-            password: formData.password
-        };
+        console.log(serverUri);
 
-        let responseData;
-        await fetch('http://localhost:4000/login', {
-            method: 'POST',
+        fetch(serverUri + "/api/shop/CheckLogin", {
+            method: "GET",
             headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(customerInput),
-        }).then((response) => response.json()).then((data) => responseData = data)
-
-        if (responseData.success) {
-            localStorage.setItem('auth-token', responseData.token);
-            window.location.replace("/home");
-        } else {
-            alert(responseData.errors);
-        }
-    };
+                'Authorization': 'Basic ' + btoa(localStorage.getItem("email") + ":" + localStorage.getItem("pass")),
+                'accept': 'text/plain'
+            }
+        })
+            .then(response => {
+                if (response.status >= 400) {
+                    console.log("Login failed");
+                }
+                if (response.status === 200 || response.status === 204) {
+                    console.log("Login successful");
+                    checkLogin();
+                    window.location.replace("/home");
+                }
+            })
+    }
 
     const signup = async () => {
         if (!isFormValid()) return; // Validate form fields and terms agreement before proceeding
@@ -88,7 +87,7 @@ const LoginSignup = () => {
         } else {
             alert(responseData.errors);
         }
-    };
+    }
 
     return (
         <div className="loginsignup">
@@ -117,7 +116,7 @@ const LoginSignup = () => {
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-export default LoginSignup;
+export default LoginSignup
