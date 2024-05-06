@@ -1,8 +1,31 @@
 import React, { createContext, useState } from "react";
-import all_product from '../Components/Assets/all_product'; //remove this line when de-comment this file for front and back connection
-
 export const ShopContext = createContext(null);
 const serverUri = "http://localhost:3000";
+
+const all_products = async ()=>{
+    const response = await fetch(serverUri + "/api/shop/GetAllStock", {
+        method: "GET",
+        headers: {
+            'accept': 'application/json'
+        }
+    })
+    const data = await response.json();
+    const mappedProucts = data.map(product => {
+        let uriName = product.name.replace(/\s/g, '-');
+        let productUri = `${product.photoUri}${uriName}-${product.id}/`;
+        return {
+            id: product.id,
+            name: product.name,
+            image: productUri + "1.jpeg",
+            new_price: 45,
+            old_price: 50
+        };
+    });
+    return mappedProucts;
+}
+// TODO find a way to have this more elegantly placed, perhaps move all cosnt declarations to the bottom?
+// TODO inspect the best way to manage this API call, at the moment this slows down the load of the site significantly.
+const all_product = await all_products();
 const getDefaultCart = ()=>{
     let cart = {};
     for (let index = 0; index < all_product.length+1; index++){
@@ -130,7 +153,7 @@ const ShopContextProvider = (props)=> {
             }
         
     
-    const contextValue = {serverUri, checkLogin, logout, updateCart, getTotalCartItems, getTotalCartAmount,all_product,cartItems,addToCart,removeFromCart};
+    const contextValue = {serverUri, checkLogin, logout, updateCart, getTotalCartItems, getTotalCartAmount, all_product,cartItems,addToCart,removeFromCart};
 
     return (
         <ShopContext.Provider value={contextValue}>

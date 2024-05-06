@@ -8,6 +8,5 @@ public class StockRequest
     // Weak child entity of orderId. Partitioned on orderId and sorted by product type.
     [DynamoDBHashKey] public Guid OrderId { get; set; }
     [DynamoDBRangeKey] public Guid ProductId { get; set; }
-
-    [DynamoDBProperty] public int Quantity { get; set; }
+    [DynamoDBProperty] public long Quantity { get; set; }
 }

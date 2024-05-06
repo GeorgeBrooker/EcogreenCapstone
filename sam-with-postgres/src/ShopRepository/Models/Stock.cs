@@ -10,8 +10,7 @@ public class Stock
     [DynamoDBProperty] public string? StripeId { get; set; }
 
     [DynamoDBProperty] public string? Name { get; set; }
-
-    [DynamoDBProperty] public int? TotalStock { get; set; }
+    [DynamoDBProperty] public long? TotalStock { get; set; }
 
     [DynamoDBProperty] public string PhotoUri { get; set; } = "";
 }
