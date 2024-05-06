@@ -1,0 +1,58 @@
+.user-details {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  
+  .user-details h2,
+  .user-details h3 {
+    color: #333;
+  }
+  
+  .user-details div {
+    margin-bottom: 10px;
+  }
+  
+  .user-details ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .user-details li {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    cursor: pointer;
+  }
+  
+  .user-details li:hover {
+    background-color: #eee;
+  }
+  
+  .user-details table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .user-details th, .user-details td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .user-details th {
+    background-color: #f4f4f4;
+  }
+  
+  .user-details tr:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .user-details button {
+    cursor: pointer;
+    user-select: none;
+
+  }
