@@ -6,7 +6,6 @@ import './CSS/Shop.css'
 
 const Shop = (props) => {
     const {all_product} = useContext(ShopContext);
-
     return (
         <div className="shop">
             <div className="shop-indexSort">
