@@ -2,7 +2,10 @@
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.Runtime;
+using Microsoft.AspNetCore.Authentication;
 using ShopRepository.Data;
+using ShopRepository.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,18 +19,46 @@ builder.Services
     .AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
-//TODO configure AWS keys properly. (APP WONT DEPLOY WITHOUT THIS WORKING!)
-var clientConfig = new AmazonDynamoDBConfig();
+// Add Authentication
+builder.Services.AddAuthentication("BasicAuthentication")
+    .AddScheme<AuthenticationSchemeOptions, AuthHandler>("BasicAuthentication", null);
 
-// Configure local endpoint if we're running in SAM CLI
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CustomerOnly", policy => 
+        policy.RequireClaim("customer"));
+
+var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
+
+var dynamoConfig = new AmazonDynamoDBConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(region) };
+AmazonDynamoDBClient client;
+
 if (Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true")
-    clientConfig.ServiceURL = "http://localhost:8000";
+{
+    Console.WriteLine("\nRUNNING WITH LOCAL DYNAMODB IN TEST MODE!\n");
+    dynamoConfig.ServiceURL = Environment.GetEnvironmentVariable("LOCAL_DB");
+    dynamoConfig.AuthenticationRegion = "ap-southeast-2";
+    var creds = new SessionAWSCredentials("fake", "key", "Fake");
+    client = new AmazonDynamoDBClient(creds, dynamoConfig);
+    
+    // CORS CONFIG FOR LOCAL TESTING. IN PROD CORS IS CONFIGURED THROUGH API GATEWAY.
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAllOrigins", policyBuilder =>
+        {
+            policyBuilder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+    });
+}
 else
-    clientConfig.RegionEndpoint = RegionEndpoint.APSoutheast2; //Sydney
-
+{
+    client = new AmazonDynamoDBClient(dynamoConfig);
+}
 
 builder.Services
-    .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(clientConfig))
+    .AddSingleton<IAmazonDynamoDB>(client)
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>();
 
@@ -42,7 +73,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
+app.UseCors("AllowAllOrigins");
 app.MapGet("/", () => "Welcome to running ASP.NET Core Minimal API on AWS Lambda");
 
 app.Run();

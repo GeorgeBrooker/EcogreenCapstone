@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sam-with-postgres", "sam-with-postgres", "{418FAE3C-96C4-4939-9DC7-02153FC1D330}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{12825E71-239F-4495-898F-ABB9EA14052A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShopRepository", "sam-with-postgres\src\ShopRepository\ShopRepository.csproj", "{2DB48C6F-E1B2-4811-B5BE-52C9D71E4A6C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2DB48C6F-E1B2-4811-B5BE-52C9D71E4A6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DB48C6F-E1B2-4811-B5BE-52C9D71E4A6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DB48C6F-E1B2-4811-B5BE-52C9D71E4A6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DB48C6F-E1B2-4811-B5BE-52C9D71E4A6C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{12825E71-239F-4495-898F-ABB9EA14052A} = {418FAE3C-96C4-4939-9DC7-02153FC1D330}
+		{2DB48C6F-E1B2-4811-B5BE-52C9D71E4A6C} = {12825E71-239F-4495-898F-ABB9EA14052A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3D2A6FF6-4767-4F80-BDC8-A9427DA7414D}
+	EndGlobalSection
+EndGlobal

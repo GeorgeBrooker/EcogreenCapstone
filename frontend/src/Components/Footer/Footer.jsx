@@ -1,6 +1,6 @@
 import React from "react"
 import './Footer.css'
-import footer_logo from '../Assets/logo.jpg'
+import footer_logo from '../Assets/logo.png'
 import instagram_icon from '../Assets/insta.png'
 
 const Footer = () => {
@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="footer">
             <div className="footer-logo">
                 <img src={footer_logo} alt="" />
-                <p></p>
+                <p>Ecogreen</p>
             </div>
             <ul className="footer-links">
                 <li>Company</li>

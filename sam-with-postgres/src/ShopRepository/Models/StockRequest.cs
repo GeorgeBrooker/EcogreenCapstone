@@ -5,14 +5,8 @@ namespace ShopRepository.Models;
 [DynamoDBTable("StockRequests")]
 public class StockRequest
 {
-    [DynamoDBHashKey] public Guid Id { get; set; } = Guid.NewGuid();
-
-    [DynamoDBProperty] 
-    public Stock Product { get; set; }
-    [DynamoDBProperty] 
-    public int Quantity { get; set; }
-    
-    // Parent order
-    [DynamoDBProperty] 
-    public Guid orderId { get; set; }
+    // Weak child entity of orderId. Partitioned on orderId and sorted by product type.
+    [DynamoDBHashKey] public Guid OrderId { get; set; }
+    [DynamoDBRangeKey] public Guid ProductId { get; set; }
+    [DynamoDBProperty] public long Quantity { get; set; }
 }

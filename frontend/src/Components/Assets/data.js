@@ -1,7 +1,7 @@
 import p1_img from './coco.png'
-import p2_img from './coconut.jpg'
+import p2_img from './coconut.png'
 import p3_img from './charcoal.png'
-import p4_img from './logo.png'
+import p4_img from './lego.png'
 
 let data_product = [
     {

@@ -1,6 +1,6 @@
 import React, {useContext, useState} from 'react'
 import './Navbar.css'
-import logo from '../Assets/pnglogo.png'
+import logo from '../Assets/logo.png'
 import cart_icon from '../Assets/cart_icon1.png'
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../../Context/ShopContext';
@@ -24,7 +24,9 @@ const Navbar = () => {
                 <li onClick={()=>{setMenu("contactUs")}}><Link style={{textDecoration: 'none'}} to='/contactUs'>Contact Us</Link>{menu==="contactUs"?<hr />:<></> }</li>
             </ul>
             <div className="nav-login-cart">
-                <Link to='/login'><button>Login</button></Link>
+                {localStorage.getItem('auth-token')?
+                <button onClick={()=>{localStorage.removeItem('auth-token');window.location.replace('/home')}}>Logout</button>
+                :<Link to='/login'><button>Login</button></Link>}
                 <Link to='/cart'><img src={cart_icon} alt='' /></Link>
                 <div className="nav-cart-count">{getTotalCartItems()}</div>
             </div>
