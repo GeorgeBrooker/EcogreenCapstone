@@ -323,8 +323,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
     public async Task<IEnumerable<Order>?> GetCustomerOrders(Guid id)
     {
         try
-        {
-            // GSI's are not always consistent all the time. We should be careful how we use results returned from GSI queries.
+        {   // GSI's are not always consistent all the time. We should be careful how we use results returned from GSI queries.
             var orderSearch = dbContext.FromQueryAsync<Order>(
                 new QueryOperationConfig
                 {
