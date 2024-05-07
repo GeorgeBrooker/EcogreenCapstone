@@ -66,6 +66,7 @@ const LoginSignup = () => {
                 localStorage.setItem('auth-token', token);
               
                 console.log("Got login token: ", token);
+                window.location.replace('/home')
             }
         }
         
