@@ -13,12 +13,20 @@ const all_products = async ()=>{
     const mappedProucts = data.map(product => {
         let uriName = product.name.replace(/\s/g, '-');
         let productUri = `${product.photoUri}${uriName}-${product.id}/`;
+        
+        let discountedPrice = Number(product.price) * (1 - (Number(product.discountPercentage)/100));
+        let roundedPrice = Math.round(discountedPrice / 0.05) * 0.05;
+        
         return {
             id: product.id,
             name: product.name,
             image: productUri + "1.jpeg",
-            new_price: 45,
-            old_price: 50
+            old_price: product.price,
+            
+            // Ensures string displays in 4 digit 2dp format, rounded to nearest 5 cents. 
+            // This is aestheticly pleasing ana accurate enough (cast with Number() when calculating)
+            new_price: roundedPrice.toFixed(2),
+            description: product.description
         };
     });
     return mappedProucts;
@@ -28,9 +36,11 @@ const all_products = async ()=>{
 const all_product = await all_products();
 const getDefaultCart = ()=>{
     let cart = {};
-    for (let index = 0; index < all_product.length+1; index++){
-        cart[index] = 0;
+    for(const product of all_product){
+        cart[product.id] = 0;
+        console.log(product.name, product.id);
     }
+    console.log(cart);
     return cart;
 }
 
@@ -64,35 +74,21 @@ const checkLogin = async ()=>{
 
 // TODO update this to work with new login system
 const logout = ()=>{
-    localStorage.setItem("email", "");
-    localStorage.setItem("pass", "");
+    localStorage.removeItem('auth-token');
+    sessionStorage.clear();
+    // TODO SET STATE TO LOGGED OUT
 }
 const ShopContextProvider = (props)=> {
 
     // const [all_product,setAll_Product] = useState([]);
-    const [cartItems,setCarItems] = useState(getDefaultCart());
-
-    // useEffect(()=>{
-    //     fetch('http://localhost:4000/allproducts')
-    //     .then((response)=>response.json())
-    //     .then((data)=>setAll_Product(data))
-
-    //     if(localStorage.getItem('auth-token')){
-    //         fetch('http://localhost:4000/getcart',{
-    //             method:'POST',
-    //             headers:{
-    //                 Accept:'application/form-data',
-    //                 'auth-token':`${localStorage.getItem('auth-token')}`,
-    //                 'Content-Type':'application.json',
-    //             },
-    //             body:'',
-    //         }).then((response)=>response.json()).then((data)=>setCarItems(data));
-    //     }
-    // },[])
-    
+    const [cartItems,setCartItems] = useState(getDefaultCart());
     
     const addToCart = (itemId) =>{
-        setCarItems((prev)=>({...prev,[itemId]:prev[itemId]+1}));
+        console.log("addToCart")
+        setCartItems( (prev)=>( {...prev,[itemId]:prev[itemId]+1} ) );
+        //
+        // TODO IF LOGGED IN POST UPDATE TO SERVER
+        //
         // if(localStorage.getItem('auth-token')){
         //     fetch('http://localhost:4000/addtocart',{
         //         method:'POST',
@@ -106,10 +102,10 @@ const ShopContextProvider = (props)=> {
         //     .then((response)=>response.json())
         //     .then((data)=>console.log(data));
         // }
-    }
+    };
 
     const removeFromCart = (itemId) =>{
-        setCarItems((prev)=>({...prev,[itemId]:prev[itemId]-1}))
+        setCartItems((prev)=>({...prev,[itemId]:prev[itemId]-1}))
         // if(localStorage.getItem('auth-token')){
         //     fetch('http://localhost:4000/removefromcart',{
         //         method:'POST',
@@ -123,43 +119,48 @@ const ShopContextProvider = (props)=> {
         //     .then((response)=>response.json())
         //     .then((data)=>console.log(data));
         // }
-    }
+    };
      
     const updateCart = (itemId, quantity) => {
         if (quantity >= 0) {
-            setCarItems((prev) => ({
+            setCartItems((prev) => ({
                 ...prev,
                 [itemId]: quantity,
             }));
         }
+        // TODO If logged in update the cart on the server
     };
-
+    
     const getTotalCartAmount =() =>{
         let totalAmount = 0;
-        for(const item in cartItems )
+        for(const key in cartItems )
         {
-            if(cartItems[item]>0)
+            console.log(key, cartItems[key]);
+            if(cartItems[key]>0)
             {
-                let itemInfo = all_product.find((product)=>product.id === Number(item))
-                totalAmount += itemInfo.new_price * cartItems[item];
+                let product = all_product.find((e)=>{
+                    console.log(e.id);
+                    console.log(e.id === key);
+                    return e.id === key;
+                });// TODO investigate better way to do this, Could we store all products in a dict and map to them?
+                totalAmount += product.new_price * cartItems[key];
             }
-             
         }
         return totalAmount;
-    }
-        const getTotalCartItems =() =>{
-                let totalItem = 0;
-                for(const item in cartItems)
+    };
+    
+    const getTotalCartItems =() =>{
+            let totalItem = 0;
+            for(const item in cartItems)
+            {
+                if(cartItems[item]>0)
                 {
-                    if(cartItems[item]>0)
-                    {
-                        totalItem += cartItems[item];
-                    }
-
+                    totalItem += cartItems[item];
                 }
-                return totalItem;
             }
-        
+            return totalItem;
+        };
+    
     
     const contextValue = {serverUri, checkLogin, logout, updateCart, getTotalCartItems, getTotalCartAmount, all_product,cartItems,addToCart,removeFromCart};
 

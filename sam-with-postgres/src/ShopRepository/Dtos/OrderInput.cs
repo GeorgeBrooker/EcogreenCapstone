@@ -2,10 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ShopRepository.Dtos;
 
-public class OrderInput(string payId, string customId)
+public class OrderInput
 {
-    [Required] public string PaymentId { get; set; } = payId;
-    [Required] public string CustomerId { get; set; } = customId;
+    [Required] public required string PaymentId { get; set; }
+    [Required] public required string CustomerId { get; set; }
     public string? DeliveryLabel { get; set; }
     public string? Tracking { get; set; }
     public string? PackageRef { get; set; }
