@@ -20,7 +20,7 @@ const Navbar = () => {
                 <li onClick={() => { setMenu("home") }}><Link style={{ textDecoration: 'none' }} to='/home'>Home</Link>{menu === "home" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("shop") }}><Link style={{ textDecoration: 'none' }} to='/shop'>Shop</Link>{menu === "shop" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("contactUs") }}><Link style={{ textDecoration: 'none' }} to='/contactUs'>Contact Us</Link>{menu === "contactUs" ? <hr /> : <></>}</li>
-                {!isLoggedIn && (
+                {isLoggedIn && (
                     <li onClick={() => { setMenu("detail") }}><Link style={{ textDecoration: 'none' }} to='/detail'>Detail</Link>{menu === "detail" ? <hr /> : <></>}</li> // 只有登录后才显示
                 )}
             </ul>

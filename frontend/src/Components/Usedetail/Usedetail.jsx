@@ -28,23 +28,23 @@ const Usedetail = ({ user, purchases }) => {
       <h2>User Details</h2>
       <div>Name: {user.name}</div>
       <div>Email: {user.email}</div>
-      <div>Address: {user.address}</div>
+       
       <button onClick={toggleDropdown}>Purchase History</button>
       {isDropdownOpen && purchases.length > 0 ? (
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Item Name</th>
-              <th>Amount</th>
+              <th>trackingNumber</th>
+              <th>packageReference</th>
+              <th>id</th>
             </tr>
           </thead>
           <tbody>
             {purchases.map((purchase, index) => (
               <tr key={index} onClick={() => handleOpenPopup(purchase)}>
-                <td>{purchase.date}</td>
-                <td>{purchase.itemName}</td>
-                <td>${purchase.amount}</td>
+                <td>{purchase.trackingNumber}</td>
+                <td>{purchase.packageReference}</td>
+                <td>${purchase.id}</td>
               </tr>
             ))}
           </tbody>
@@ -58,3 +58,4 @@ const Usedetail = ({ user, purchases }) => {
 };
 
 export default Usedetail;
+ 
