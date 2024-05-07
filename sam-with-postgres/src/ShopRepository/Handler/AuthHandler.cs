@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Security.Cryptography;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
@@ -11,42 +12,67 @@ using ShopRepository.Data;
 namespace ShopRepository.Handler;
 
 public class AuthHandler(
-    IShopRepo repo,
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    TimeProvider time)
+    TimeProvider time,
+    IConfiguration config)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     private readonly TimeProvider _time = time;
-
+    ILogger _logger = logger.CreateLogger<AuthHandler>();
     
-    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (!Request.Headers.ContainsKey("Authorization"))
-        {
-            Response.Headers.WWWAuthenticate = "Basic";
-                
-            return AuthenticateResult.Fail("Authorization header not found");
-        }
-            
+        if (config["Environment"] == "local") //Access-Control-Allow-Origin headers are only set in local environment
+            Response.Headers.AccessControlAllowOrigin = "*";
+        
+        // Check for authorization header & token
         var authHeader = AuthenticationHeaderValue.Parse(Request.Headers.Authorization!);
-        var credentialBytes = Convert.FromBase64String(authHeader.Parameter!);
-        var credentials = Encoding.UTF8.GetString(credentialBytes).Split(":");
-        var userEmail = credentials[0];
-        var password = credentials[1];
-        
-        
-        if (await repo.ValidLogin(userEmail, password))
+        var token = authHeader.Parameter;
+        if (string.IsNullOrEmpty(token))
         {
-            var claims = new[] { new Claim("userEmail", userEmail), new Claim("customer", userEmail) };
-            var identity = new ClaimsIdentity(claims, "Basic");
-            var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, Scheme.Name);
-                
-            return AuthenticateResult.Success(ticket);
+            Response.Headers.WWWAuthenticate = "Bearer";
+            return Task.FromResult(AuthenticateResult.Fail("Authorization header not found"));
         }
-            
-        return AuthenticateResult.Fail("Invalid login");
+        
+        // Get token & set up handler and validation parameters
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidIssuer = config["Jwt:Issuer"],
+            ValidAudience = config["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
+        };
+        
+        // Attempt to validate token
+        try
+        {
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            if (principal == null)
+                return Task.FromResult(AuthenticateResult.Fail("Invalid login token"));
+
+            // Add type claim to principal if it exists
+            var jwtToken = validatedToken as JwtSecurityToken;
+            var typeClaim = jwtToken?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Typ);
+            if (typeClaim != null)
+                ((ClaimsIdentity)principal.Identity!).AddClaim(typeClaim);
+
+
+            var ticket = new AuthenticationTicket(principal, Scheme.Name);
+            return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+        catch (SecurityTokenExpiredException)
+        {
+            return Task.FromResult(AuthenticateResult.Fail("Expired Token"));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Authentication failed.");
+            return Task.FromResult(AuthenticateResult.Fail("Authentication failed."));
+        }
     }
 }

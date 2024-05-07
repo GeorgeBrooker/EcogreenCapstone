@@ -25,7 +25,7 @@ public interface IShopRepo
     // It should be a secret string that is not stored in the database or hard coded.
     // We will store this in AWS secrets manager during deployment.
     Task<Customer?> GetCustomerFromCookie(HttpRequest request, string secretKey);
-    Task<bool> ValidLogin(string email, string password);
+    Task<Customer?> ValidLogin(string email, string password);
     Task<IEnumerable<Order>?> GetCustomerOrders(Guid id);
     Task<IEnumerable<Customer>> GetAllCustomers(int limit);
     Task<bool> AddCustomer(CustomerInput customer);
