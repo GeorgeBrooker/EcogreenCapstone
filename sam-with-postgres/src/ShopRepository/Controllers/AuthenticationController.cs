@@ -39,7 +39,7 @@ namespace ShopRepository.Controllers
             {
                 Email = customer.Email,
                 Fname = customer.FirstName,
-                Lname = customer.FirstName,
+                Lname = customer.LastName,
                 Id = customer.Id.ToString(),
             };
             return Ok(returnCustomer);
