@@ -34,30 +34,38 @@ const getDefaultCart = ()=>{
     return cart;
 }
 
-const checkLogin = ()=>{
-    fetch(serverUri + "/api/shop/CheckLogin", {
+const checkLogin = async ()=>{
+    const token = localStorage.getItem('auth-token');
+    if (!token) {
+        console.log('No token found');
+        return false;
+    }
+
+    const response = await fetch(serverUri + '/api/auth/ValidateCustomer', {
         method: "GET",
         headers: {
-            'Authorization': 'Basic ' + btoa(localStorage.getItem("email") + ":" + localStorage.getItem("pass")),
-            'accept': 'text/plain'
-        }
-    })
-        .then(response => {
-            if (response.status >= 400) {
-                console.log("Login failed");
-                return false
-            }
-
-            if (response.status === 200 || response.status === 204) {
-                console.log("Login successful");
-                return true
-            }
-        })
+            'Authorization': 'Bearer ' + token,
+        },
+    });
+    if (response.ok) {
+        const userSession = await response.json();
+        sessionStorage.setItem('Email', userSession.Email);
+        sessionStorage.setItem('Fname', userSession.Fname);
+        sessionStorage.setItem('Lname', userSession.Lname);
+        sessionStorage.setItem('Id', userSession.Id);
+        
+        console.log('User session restored', userSession);
+        return true
+    } else {
+        console.error('Failed to restore user session');
+        return false
+    }
 }
+
+// TODO update this to work with new login system
 const logout = ()=>{
     localStorage.setItem("email", "");
     localStorage.setItem("pass", "");
-    checkLogin()
 }
 const ShopContextProvider = (props)=> {
 

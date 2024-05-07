@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
@@ -56,10 +55,13 @@ public class ShopController(IShopRepo repo) : ControllerBase
     [HttpPost("AddCustomer")]
     public async Task<ActionResult<CustomerInput>> AddCustomer([FromBody] CustomerInput nCustomer)
     {
+        if (await repo.GetCustomerFromEmail(nCustomer.Email) != null)
+            return BadRequest("Customer with that email already exists.");
+        
         if (await repo.AddCustomer(nCustomer))
             return Ok(nCustomer);
 
-        return BadRequest();
+        return BadRequest("Sign up failed, please try again.");
     }
 
     // PUT 
@@ -313,16 +315,4 @@ public class ShopController(IShopRepo repo) : ControllerBase
         await repo.DeleteStockRequest(retreivedStockRq);
         return Ok();
     }
-    
-//
-// AUTHENTICATION
-//
-    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
-    [Authorize(Policy = "CustomerOnly")]
-    [HttpGet("CheckLogin")]
-    public ActionResult CheckLogin()
-    {
-        return Ok();
-    }
-
 }

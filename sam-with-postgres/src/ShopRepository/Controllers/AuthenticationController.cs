@@ -1,66 +1,71 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using ShopRepository.Data;
+using ShopRepository.Dtos;
 using ShopRepository.Models;
 
 namespace ShopRepository.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthenticationController : ControllerBase
+    public class AuthenticationController(IShopRepo repo, IConfiguration config) : ControllerBase
     {
-        private readonly IShopRepo _repo;
-        private readonly string _secretKey;
-
-        public AuthenticationController(IShopRepo repo)
+        [HttpPost("CustomerLogin")]
+        public async Task<IActionResult> Login([FromBody] CustomerInput customer)
         {
-            _repo = repo;
-            // TODO replace with AWS secrets manager
-            _secretKey = Environment.GetEnvironmentVariable("SECRET_COOKIE_KEY")!;
+            var authCustomer = await repo.ValidLogin(customer.Email, customer.Pass);
+            if (authCustomer == null) return Unauthorized("Invalid username or password");
+            
+            var tokenString = GenerateJsonWebToken(authCustomer);
+            return Ok(new { token = tokenString });
         }
-
-        [HttpPost("GenerateCookie/{customerId:guid}")]
-        public IActionResult GenerateCookie(Guid customerId)
+        
+        [Authorize(Policy = "CustomerOnly")]
+        [HttpGet("ValidateCustomer")]
+        public async Task<IActionResult> CheckLogin()
         {
-            SetCookie(Response, customerId, _secretKey);
-            return Ok();
-        }
+            var customerClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (customerClaim == null) return Unauthorized("Invalid token");
 
-        [HttpGet("GetCustomerFromCookie")]
-        public async Task<ActionResult<Customer>> GetCustomerFromCookie()
-        {
-            var customer = await _repo.GetCustomerFromCookie(Request, _secretKey);
-            if (customer == null)
+            var customerId = customerClaim.Value;
+            var customer = await repo.GetCustomer(Guid.Parse(customerId));
+            if (customer == null) return Unauthorized("Invalid Account");
+
+            var returnCustomer = new CustomerSession
             {
-                return NotFound();
-            }
-
-            return Ok(customer);
-        }
-
-        [HttpPost("VerifyLogin")]
-        public async Task<ActionResult<bool>> VerifyLogin(string username, string password)
-        {
-            return Ok(await _repo.ValidLogin(username, password));
-        }
-
-        private static void SetCookie(HttpResponse response, Guid customerId, string secretKey)
-        {
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
-            var customerIdBytes = Encoding.UTF8.GetBytes(customerId.ToString());
-            var hash = hmac.ComputeHash(customerIdBytes);
-            var hashString = Convert.ToBase64String(hash);
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict
+                Email = customer.Email,
+                Fname = customer.FirstName,
+                Lname = customer.LastName,
+                Id = customer.Id.ToString(),
             };
+            return Ok(returnCustomer);
+        }
+        
+        private string GenerateJsonWebToken(Customer customer)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            response.Cookies.Append("CustomerId", customerId.ToString(), cookieOptions);
-            response.Cookies.Append("CustomerHash", hashString, cookieOptions);
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Email, customer.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, customer.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Typ, "Customer")
+            };
+            var token = new JwtSecurityToken(
+                config["Jwt:Issuer"],
+                config["jwt:Audience"],
+                claims,
+                expires: DateTime.Now.AddDays(14),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
 using ShopRepository.Dtos;
 using ShopRepository.Models;

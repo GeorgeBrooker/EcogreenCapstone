@@ -9,9 +9,9 @@ public class Customer
 
     [DynamoDBProperty] public string? StripeId { get; set; }
 
-    [DynamoDBProperty] public string? FirstName { get; set; }
+    [DynamoDBProperty] public required string FirstName { get; set; }
 
-    [DynamoDBProperty] public string? LastName { get; set; }
+    [DynamoDBProperty] public required string LastName { get; set; }
 
     [DynamoDBProperty] public required string Email { get; set; }
 

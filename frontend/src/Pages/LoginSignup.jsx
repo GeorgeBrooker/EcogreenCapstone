@@ -32,38 +32,72 @@ const LoginSignup = () => {
                 return false;
             }
         }
-        if (!agreedToTerms) {
+        // Do not check terms agreement for login (customer has already agreed on sign up)
+        if (!agreedToTerms && state === "Sign Up") {
             alert("You must agree to the terms and privacy policy before continuing.");
             return false;
         }
         return true;
     };
 
-    const login = async ()=> {
+    const login = async () => {
+        let token = localStorage.getItem('auth-token');
+        let customerInput = {
+            "Fname": "None",
+            "Lname": "None",
+            "Email": formData.email,
+            "Pass": formData.password
+        };
         
-        localStorage.setItem("email", formData.email);
-        localStorage.setItem("pass", formData.password);
-        console.log("Login Function Executed", formData);
-        console.log(serverUri);
-
-        fetch(serverUri + "/api/shop/CheckLogin", {
+        // Get token if no token is stored
+        if(!token) {
+            const response = await fetch(serverUri + '/api/auth/CustomerLogin', {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(customerInput),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                token = data.token;
+                localStorage.setItem('auth-token', token);
+                console.log("Got login token: ", token);
+            }
+        }
+        
+        // Validate token
+        const response = await fetch(serverUri + '/api/auth/ValidateCustomer', {
             method: "GET",
             headers: {
-                'Authorization': 'Basic ' + btoa(localStorage.getItem("email") + ":" + localStorage.getItem("pass")),
-                'accept': 'text/plain'
-            }
-        })
-            .then(response => {
-                if (response.status >= 400) {
-                    console.log("Login failed");
-                }
-                if (response.status === 200 || response.status === 204) {
-                    console.log("Login successful");
-                    checkLogin();
-                    window.location.replace("/home");
-                }
-            })
-    }
+                'Authorization': 'Bearer ' + token,
+            },
+        });
+        if (!response.ok) {
+            console.error("Login failed for user with email: ", formData.email, " and password: ", formData.password);
+            localStorage.removeItem('auth-token');
+            alert("Login failed");
+            return
+        }
+        
+        // Store user session in session storage
+        const userSession = await response.json();
+        sessionStorage.setItem('Email', userSession.email);
+        sessionStorage.setItem('Fname', userSession.fname);
+        sessionStorage.setItem('Lname', userSession.lname);
+        sessionStorage.setItem('Id', userSession.id);
+        
+        console.log(
+            `login successful, user information stored in session storage
+            \nEmail=${sessionStorage.getItem("Email")}
+            \nFname=${sessionStorage.getItem("Fname")}
+            \nLname=${sessionStorage.getItem("Lname")}
+            \nId=${sessionStorage.getItem("Id")}`
+        );
+        
+        // Handle successful login
+        alert("Login successful!");
+    };
 
     const signup = async () => {
         if (!isFormValid()) return; // Validate form fields and terms agreement before proceeding
@@ -75,23 +109,25 @@ const LoginSignup = () => {
             "Email": formData.email,
             "Pass": formData.password
         };
-        let responseData;
-        await fetch('http://127.0.0.1:3000/api/shop/AddCustomer', {
-            method: 'POST',
+        
+        const response = await fetch(serverUri + '/api/shop/AddCustomer', {
+            method: "POST",
             headers: {
-                Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(customerInput),
-        }).then((response) => response.json()).then((data) => responseData = data)
-
-        if (responseData.success) {
-            localStorage.setItem('auth-token', responseData.token);
-            window.location.replace("/home");
-        } else {
-            alert(responseData.errors);
+        });
+        if (response.ok) {
+            // Signup successful, clear any existing auth token and log the user in.
+            console.log("Signup successful, logging user in now");
+            
+            localStorage.removeItem('auth-token');
+            await login();
+        }else{
+            console.error("Signup failed");
+            alert("Signup failed");
         }
-    }
+    };
 
     return (
         <div className="loginsignup">
@@ -111,13 +147,16 @@ const LoginSignup = () => {
                 </div>
                 <button onClick={() => { state === "Login" ? login() : signup() }}>Continue</button>
                 {state === "Sign Up" ?
-                    <p className="loginsignup-login">Already have an account? <span onClick={() => { setState("Login") }}>Login here</span></p> :
-                    <p className="loginsignup-login">Need an account? <span onClick={() => { setState("Sign Up") }}>Sign up here</span></p>
+                    <>
+                        <div className="loginsignup-agree">
+                            <input type="checkbox" checked={agreedToTerms} onChange={termsChangeHandler}/>
+                            <p>By continuing, I agree to the terms & privacy policy.</p>
+                        </div>
+                        <p className="loginsignup-login">Already have an account? <span onClick={() => {setState("Login")}}>Login here</span></p>
+                    </> 
+                    :
+                    <p className="loginsignup-login">Need an account? <span onClick={() => {setState("Sign Up")}}>Sign up here</span></p>
                 }
-                <div className="loginsignup-agree">
-                    <input type="checkbox" checked={agreedToTerms} onChange={termsChangeHandler} />
-                    <p>By continuing, I agree to the terms & privacy policy.</p>
-                </div>
             </div>
         </div>
     )

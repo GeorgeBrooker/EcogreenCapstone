@@ -309,13 +309,15 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         return await GetCustomer(customerId);
     }
 
-    public async Task<bool> ValidLogin(string email, string password)
+    public async Task<Customer?> ValidLogin(string email, string password)
     {
         var customer = await GetCustomerFromEmail(email);
-        if (customer==null) return false;
-        
         var pwHasher = new PasswordHasher<Customer>();
-        return pwHasher.VerifyHashedPassword(customer, customer.Password, password) == PasswordVerificationResult.Success;
+        
+        if (customer == null || pwHasher.VerifyHashedPassword(customer, customer.Password, password) == PasswordVerificationResult.Failed)
+            return null;
+        
+        return customer;
     }
 
     public async Task<IEnumerable<Order>?> GetCustomerOrders(Guid id)
