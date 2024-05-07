@@ -1,3 +1,5 @@
+/* eslint-disable no-use-before-define */
+ 
 import React, {useContext, useState} from "react"
 import { ShopContext } from '../Context/ShopContext'
 import './CSS/LoginSignup.css'
@@ -62,6 +64,7 @@ const LoginSignup = () => {
                 const data = await response.json();
                 token = data.token;
                 localStorage.setItem('auth-token', token);
+              
                 console.log("Got login token: ", token);
             }
         }
@@ -85,8 +88,8 @@ const LoginSignup = () => {
         sessionStorage.setItem('Email', userSession.email);
         sessionStorage.setItem('Fname', userSession.fname);
         sessionStorage.setItem('Lname', userSession.lname);
-        sessionStorage.setItem('Id', userSession.id);
-        
+        localStorage.setItem('Id', userSession.id);
+         
         console.log(
             `login successful, user information stored in session storage
             \nEmail=${sessionStorage.getItem("Email")}
