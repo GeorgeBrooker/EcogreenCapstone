@@ -34,7 +34,7 @@ function Detail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = localStorage.getItem('Id');
+    const userId = sessionStorage.getItem('Id');
     const userUrl = `http://127.0.0.1:3000/api/shop/GetCustomerByID/${userId}`;
     const purchasesUrl = `http://127.0.0.1:3000/api/shop/GetCustomerOrders/bb8150ef-f138-4590-8452-4fee498f50e7`;/*test id in here*/
 

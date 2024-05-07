@@ -63,10 +63,9 @@ const LoginSignup = () => {
             if (response.ok) {
                 const data = await response.json();
                 token = data.token;
+                
                 localStorage.setItem('auth-token', token);
-              
                 console.log("Got login token: ", token);
-                window.location.replace('/home')
             }
         }
         
@@ -89,7 +88,7 @@ const LoginSignup = () => {
         sessionStorage.setItem('Email', userSession.email);
         sessionStorage.setItem('Fname', userSession.fname);
         sessionStorage.setItem('Lname', userSession.lname);
-        localStorage.setItem('Id', userSession.id);
+        sessionStorage.setItem('Id', userSession.id);
          
         console.log(
             `login successful, user information stored in session storage
@@ -101,6 +100,7 @@ const LoginSignup = () => {
         
         // Handle successful login
         alert("Login successful!");
+        window.location.replace('/home')
     };
 
     const signup = async () => {
