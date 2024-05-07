@@ -43,8 +43,8 @@ const LoginSignup = () => {
     const login = async () => {
         let token = localStorage.getItem('auth-token');
         let customerInput = {
-            "Fname": "",
-            "Lname": ""
+            "Fname": "None",
+            "Lname": "None",
             "Email": formData.email,
             "Pass": formData.password
         };
@@ -62,8 +62,7 @@ const LoginSignup = () => {
                 const data = await response.json();
                 token = data.token;
                 localStorage.setItem('auth-token', token);
-                console.log("Got loging token: ", token);
-                return
+                console.log("Got login token: ", token);
             }
         }
         
@@ -83,10 +82,10 @@ const LoginSignup = () => {
         
         // Store user session in session storage
         const userSession = await response.json();
-        sessionStorage.setItem('Email', userSession.Email);
-        sessionStorage.setItem('Fname', userSession.Email);
-        sessionStorage.setItem('Lname', userSession.Email);
-        sessionStorage.setItem('Id', userSession.Email);
+        sessionStorage.setItem('Email', userSession.email);
+        sessionStorage.setItem('Fname', userSession.fname);
+        sessionStorage.setItem('Lname', userSession.lname);
+        sessionStorage.setItem('Id', userSession.id);
         
         console.log(
             `login successful, user information stored in session storage
@@ -123,7 +122,7 @@ const LoginSignup = () => {
             console.log("Signup successful, logging user in now");
             
             localStorage.removeItem('auth-token');
-            login();
+            await login();
         }else{
             console.error("Signup failed");
             alert("Signup failed");

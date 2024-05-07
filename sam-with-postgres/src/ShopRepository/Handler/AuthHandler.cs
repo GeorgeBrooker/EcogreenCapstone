@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using ShopRepository.Data;
+
 
 
 namespace ShopRepository.Handler;
@@ -20,23 +20,26 @@ public class AuthHandler(
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     private readonly TimeProvider _time = time;
-    ILogger _logger = logger.CreateLogger<AuthHandler>();
+    private readonly ILogger _logger = logger.CreateLogger<AuthHandler>();
     
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (config["Environment"] == "local") //Access-Control-Allow-Origin headers are only set in local environment
+        {
+            Console.WriteLine("Running Locally");
             Response.Headers.AccessControlAllowOrigin = "*";
+        }
         
         // Check for authorization header & token
-        var authHeader = AuthenticationHeaderValue.Parse(Request.Headers.Authorization!);
-        var token = authHeader.Parameter;
-        if (string.IsNullOrEmpty(token))
+        var parseSuccess = AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out var authHeader);
+        if (!parseSuccess || string.IsNullOrEmpty(authHeader!.Parameter))
         {
             Response.Headers.WWWAuthenticate = "Bearer";
             return Task.FromResult(AuthenticateResult.Fail("Authorization header not found"));
         }
+        var token = authHeader.Parameter;
         
-        // Get token & set up handler and validation parameters
+        // set up handler and validation parameters
         var tokenHandler = new JwtSecurityTokenHandler();
         var validationParameters = new TokenValidationParameters
         {
@@ -54,14 +57,21 @@ public class AuthHandler(
             var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
             if (principal == null)
                 return Task.FromResult(AuthenticateResult.Fail("Invalid login token"));
-
-            // Add type claim to principal if it exists
+            
+            // Add Customer claim to claimsPrincipal if token has type "Customer
             var jwtToken = validatedToken as JwtSecurityToken;
             var typeClaim = jwtToken?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Typ);
-            if (typeClaim != null)
-                ((ClaimsIdentity)principal.Identity!).AddClaim(typeClaim);
-
-
+            if (typeClaim != null && principal.Identity is ClaimsIdentity)
+            {
+                var claimsIdentity = (ClaimsIdentity)principal.Identity;
+                // Check if the claim already exists
+                if (!claimsIdentity.HasClaim(c => c.Type == typeClaim.Type && c.Value == typeClaim.Value))
+                {
+                    var claims = new List<Claim>(claimsIdentity.Claims) { typeClaim };
+                    var identity = new ClaimsIdentity(claims, Scheme.Name);
+                    principal = new ClaimsPrincipal(identity);
+                }
+            }
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }

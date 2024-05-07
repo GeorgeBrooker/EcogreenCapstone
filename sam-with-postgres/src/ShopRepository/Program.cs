@@ -1,5 +1,4 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using System.Text.Json;
 using Amazon;
 using Amazon.DynamoDBv2;
@@ -7,9 +6,9 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.Runtime;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication;
 using ShopRepository.Data;
+using ShopRepository.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,9 +34,9 @@ if (local)
     // List of SAFE local secret examples. These are not sensitive and can be stored in the code.
     var localSecrets = new Dictionary<string, string> 
     {
-        { "Jwt:Issuer", "your-local-issuer" },
-        { "Jwt:Audience", "your-local-audience" },
-        { "Jwt:Key", "your-local-key" },
+        { "Jwt:Issuer", "your-local-issuer-this-is-the-backend-server-kashish-web-app" },
+        { "Jwt:Audience", "your-local-audience-this-is-a-reference-to-the-tokens-audiance-aka-this-app" },
+        { "Jwt:Key", "your-local-JWT-Signing-key-this-must-be-at-least-128-bits-long(32chars)" },
         { "Stripe:SecretKey", "your-local-stripe-key" },
         { "Stripe:PublishableKey", "your-local-stripe-pub-key" },
         { "SECRET_COOKIE_KEY", "yoursecretcookiekey" },
@@ -67,31 +66,19 @@ else
     }
 }
 
-// Add Authentication and Authorization policies
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"], 
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
-    });
 
+// Add Authentication and Authorization policies
+builder.Services.AddAuthentication("CustomAuthHandler")
+    .AddScheme<AuthenticationSchemeOptions, AuthHandler>("CustomAuthHandler", null);
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CustomerOnly", policy => 
         policy.RequireClaim(JwtRegisteredClaimNames.Typ, "Customer"));
+
 
 // Add services to the container.
 builder.Services
     .AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
-
 
 
 // Add DynamoDB Context and Repositories
