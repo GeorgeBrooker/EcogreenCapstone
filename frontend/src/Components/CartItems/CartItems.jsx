@@ -32,7 +32,7 @@ const CartItems =()=>{
             {all_product.map((e) => {
                 if(cartItems[e.id]>0)
                 {
-                    return <div>
+                    return <div key={e.id}>
                                 <div className="cartitems-format cartitems-format-main">
                                     <img src={e.image} alt="" className="carticon-product-icon" />
                                     <p>{e.name}</p>
@@ -60,7 +60,7 @@ const CartItems =()=>{
                     <h1>Cart Totals</h1>
                     <div>
                         <div className="cartitems-total-item">
-                            <p>Subtatal</p>
+                            <p>Subtotal</p>
                             <p>${getTotalCartAmount()}</p>
                         </div>
                         <hr />
