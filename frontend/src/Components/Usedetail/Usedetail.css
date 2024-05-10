@@ -1,9 +1,17 @@
+.parent-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+ 
+}
 .user-details {
     margin: 20px;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    background-color: #f9f9f9;
+    background-color: #d4fbcb;
+    width:80%;
+    
   }
   
   .user-details h2,
@@ -35,6 +43,7 @@
   .user-details table {
     width: 100%;
     border-collapse: collapse;
+    background-color: #fff
   }
   
   .user-details th, .user-details td {
@@ -56,3 +65,27 @@
     user-select: none;
 
   }
+  .user-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid white;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+.contact-link {
+ 
+   
+  color: white; /* White text */
+  padding: 10px 20px; 
+  text-align: center; 
+  text-decoration: none;  
+   
+ 
+ 
+}
+
+.contact-link:hover {
+  font-weight: bolder; /* Darker green background on hover */
+}

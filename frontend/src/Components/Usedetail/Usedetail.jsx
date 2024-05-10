@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Popup from '../Popup/Popup';  
 import './Usedetail.css'; 
+import use_logo from '../Assets/login.png'
+import { Link } from 'react-router-dom';
 
 const Usedetail = ({ user, purchases }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +26,12 @@ const Usedetail = ({ user, purchases }) => {
   };
 
   return (
+    <div className='parent-container'> 
+     
     <div className="user-details">
+    <div>
+    <img src={use_logo} alt="user" className='user-image' />
+  </div>  
       <h2>User Details</h2>
       <div>Name: {user.name}</div>
       <div>Email: {user.email}</div>
@@ -53,6 +60,11 @@ const Usedetail = ({ user, purchases }) => {
         <div>No purchase records found.</div>
       ) : null}
       <Popup isOpen={isOpen} close={handleClosePopup} purchase={selectedPurchase} />
+      <div className='contact-link'> 
+      <Link to="/contactUs">npm install nodemailerIf you have any questions, please contact us</Link>
+     
+      </div>
+    </div>
     </div>
   );
 };
