@@ -23,6 +23,11 @@
     width: 50px; /* 或者您希望的任何尺寸 */
     height: 50px; 
 }
+.active .sidebar-item {
+    background-color: #24831a;  /* Adjust the color as needed */
+    color: white;
+      /* Adds a left border to highlight active item */
+}
 @media(max-width:800px){
     .sidebar{
         padding: 30px 0px;
