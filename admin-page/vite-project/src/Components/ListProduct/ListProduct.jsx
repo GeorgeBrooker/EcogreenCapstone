@@ -32,7 +32,7 @@ return (
             {allProducts.map((product, index) => {
                  
                 const uriName = product.name.replace(/\s/g, '-');
-                const productUri = `${product.photoUri}${uriName}-${product.id}1.jpeg/`;
+                const productUri = `${product.photoUri}${uriName}-${product.id}1.jpeg`;
                 const discountedPrice = Number(product.price) * (1 - (Number(product.discountPercentage)/100));
 
                 return (
