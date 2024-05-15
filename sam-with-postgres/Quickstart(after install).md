@@ -7,6 +7,13 @@ docker-compose up -d
 sam build
 sam local start-api --docker-network host
 ```
+Just a note for _ONLY Linux_ users, --docker-network host works a bit different on linux
+to connect use:
+```bash
+sam local start-api --add-host host.docker.internal:host-gateway
+```
+Ignore this last line if you're using any other OS.
+
 This starts a local server hosting all our API endpoints on localhost:3000. You can call these with a normal HTTP request. (make sure you're using HTTP, not HTTPS if you're having trouble)
 I recommend using an HTTP request manager like POSTMAN to send these requests (more info in installation readme)
 *Remember to open your new terminal in the ```\sam-with-postgres``` directory not the git repo root directory*
