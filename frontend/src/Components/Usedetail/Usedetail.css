@@ -89,3 +89,25 @@
 .contact-link:hover {
   font-weight: bolder; /* Darker green background on hover */
 }
+
+
+
+
+.purchase-history-button{
+  margin-top: 30px;
+}
+.password-reset{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.change-password{
+  margin-bottom: 15px;
+}
+.password-reset input{
+  height: 20px;
+  border-radius: 20px;
+  border: solid 1px;
+  padding-left: 5px;
+}
