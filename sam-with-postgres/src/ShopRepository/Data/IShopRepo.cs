@@ -24,7 +24,6 @@ public interface IShopRepo
     // Secret key is used to sign the cookie.
     // It should be a secret string that is not stored in the database or hard coded.
     // We will store this in AWS secrets manager during deployment.
-    Task<Customer?> GetCustomerFromCookie(HttpRequest request, string secretKey);
     Task<Customer?> ValidLogin(string email, string password);
     Task<IEnumerable<Order>?> GetCustomerOrders(Guid id);
     Task<IEnumerable<Customer>> GetAllCustomers(int limit);
@@ -32,6 +31,13 @@ public interface IShopRepo
     Task<bool> UpdateCustomer(Customer customer);
     Task<bool> DeleteCustomer(Guid customerId);
 
+    // Customer Addresses
+    Task<Address?> GetCustomerAddress(Guid customerId, string addressName);
+    Task<IEnumerable<Address>> GetCustomerAddresses(Guid customerId);
+    Task<bool> AddCustomerAddress(Address address);
+    Task<bool> UpdateCustomerAddress(Address address);
+    Task<bool> DeleteCustomerAddress(Address address);
+    
     // Stock
     Task<Stock?> GetStockFromStripe(string stockId);
     Task<Stock?> GetStock(Guid id);

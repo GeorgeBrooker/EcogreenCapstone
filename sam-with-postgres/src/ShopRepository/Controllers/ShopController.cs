@@ -155,6 +155,8 @@ public class ShopController(IShopRepo repo) : ControllerBase
         updated.DeliveryLabelUid = order.DeliveryLabel;
         updated.TrackingNumber = order.Tracking;
         updated.PackageReference = order.PackageRef;
+        updated.CustomerAddress = order.CustomerAddress;
+        updated.OrderStatus = order.OrderStatus;
 
         await repo.UpdateOrder(updated);
         return Ok();
@@ -218,6 +220,9 @@ public class ShopController(IShopRepo repo) : ControllerBase
         retrievedStock.StripeId = stock.StripeId;
         retrievedStock.TotalStock = stock.TotalStock;
         retrievedStock.PhotoUri = stock.PhotoUri;
+        retrievedStock.Description = stock.Description;
+        retrievedStock.Price = stock.Price;
+        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
         
         return Ok(await repo.UpdateStock(retrievedStock));
     }
@@ -232,6 +237,9 @@ public class ShopController(IShopRepo repo) : ControllerBase
         retrievedStock.StripeId = stock.StripeId;
         retrievedStock.TotalStock = stock.TotalStock;
         retrievedStock.PhotoUri = stock.PhotoUri;
+        retrievedStock.Description = stock.Description;
+        retrievedStock.Price = stock.Price;
+        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
 
         return Ok(await repo.UpdateStock(retrievedStock));
     }
@@ -314,5 +322,62 @@ public class ShopController(IShopRepo repo) : ControllerBase
 
         await repo.DeleteStockRequest(retreivedStockRq);
         return Ok();
+    }
+    
+    //
+    // CUSTOMER ADDRESSES
+    //
+    
+    // GET
+    [HttpGet("GetCustomerAddresses/{customerId:guid}")]
+    public async Task<ActionResult<IEnumerable<Address>>> GetCustomerAddresses(Guid customerId)
+    {
+        return Ok(await repo.GetCustomerAddresses(customerId));
+    }
+    
+    [HttpGet("GetCustomerAddress/{customerId:guid}/{addressName}")]
+    public async Task<ActionResult<Address>> GetCustomerAddress(Guid customerId, string addressName)
+    {
+        return Ok(await repo.GetCustomerAddress(customerId, addressName));
+    }
+    
+    // POST
+    [HttpPost("AddCustomerAddress")]
+    public async Task<ActionResult<bool>> AddCustomerAddress([FromBody] Address address)
+    {
+        var addressExists = await repo.GetCustomerAddress(address.CustomerId, address.AddressName);
+        if (addressExists != null) return BadRequest("Address already exists.");
+        return Ok(await repo.AddCustomerAddress(address));
+    }
+    
+    // PUT
+    [HttpPut("UpdateCustomerAddress")]
+    public async Task<ActionResult<bool>> UpdateCustomerAddress([FromBody] AddressInput nAddress)
+    {
+        var address = await repo.GetCustomerAddress(nAddress.CustomerId, nAddress.AddressName);
+        if (address == null) return BadRequest("Address does not exist.");
+        
+        // Map the input to the existing address
+        address.CustomerId = nAddress.CustomerId;
+        address.AddressName = nAddress.AddressName;
+        address.StreetNumber = nAddress.StreetNumber;
+        address.Street = nAddress.Street;
+        address.City = nAddress.City;
+        address.PostCode = nAddress.PostCode;
+        address.Country = nAddress.Country;
+        address.PhoneNumber = nAddress.PhoneNumber;
+        address.Email = nAddress.Email;
+        
+        return Ok(await repo.UpdateCustomerAddress(address));
+    }
+    
+    // DELETE
+    [HttpDelete("DeleteCustomerAddress/{customerId:guid}/{addressName}")]
+    public async Task<ActionResult<bool>> DeleteCustomerAddress(Guid customerId, string addressName)
+    {
+        var address = await repo.GetCustomerAddress(customerId, addressName);
+        if (address == null) return BadRequest("Address does not exist.");
+        
+        return Ok(await repo.DeleteCustomerAddress(address));
     }
 }
