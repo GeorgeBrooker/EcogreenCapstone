@@ -1,14 +1,26 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Drawing.Printing;
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using Amazon;
+using Amazon.CognitoIdentityProvider;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Runtime;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using Microsoft.AspNetCore.Authentication;
 using ShopRepository.Data;
+using Amazon.Extensions.NETCore.Setup;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ShopRepository.Handler;
+using ShopRepository.Services;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +48,10 @@ if (local)
     {
         { "Jwt:Issuer", "your-local-issuer-this-is-the-backend-server-kashish-web-app" },
         { "Jwt:Audience", "your-local-audience-this-is-a-reference-to-the-tokens-audiance-aka-this-app" },
+        { "Cognito:UserPoolId", "ap-southeast-2_RXmB1ATp1" },
+        { "Cognito:ClientId", "d06f48kk6k9kcp491mlkskkta" },
+        { "Cognito:Region", "ap-southeast-2"},
+        { "Cognito:ClientSecret", "189anlvjvs2hrjeantnv5dbiol5upt456n3toes8mv7lcu00andv"},
         { "Jwt:Key", "your-local-JWT-Signing-key-this-must-be-at-least-128-bits-long(32chars)" },
         { "Stripe:SecretKey", "your-local-stripe-key" },
         { "Stripe:PublishableKey", "your-local-stripe-pub-key" },
@@ -66,14 +82,24 @@ else
     }
 }
 
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
 
 // Add Authentication and Authorization policies
-builder.Services.AddAuthentication("CustomAuthHandler")
-    .AddScheme<AuthenticationSchemeOptions, AuthHandler>("CustomAuthHandler", null);
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("CustomerOnly", policy => 
-        policy.RequireClaim(JwtRegisteredClaimNames.Typ, "Customer"));
+builder.Services.AddAuthentication("CustomCognitoAuth")
+    .AddScheme<AuthenticationSchemeOptions, AuthHandler>("CustomCognitoAuth", null);
 
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CustomerOnly", policy =>
+        policy.RequireAssertion(context =>
+            {
+                var groups = context.User.Claims.Where(c => c.Type == "cognito:groups").Select(c => c.Value).ToList();
+                Console.WriteLine("\n\nMade it to the policy!\n\n");
+                Console.WriteLine(groups.Contains("Customers"));
+                
+                return groups != null && (groups.Contains("Customers") || groups.Contains("Administrators"));
+            }
+        ));
 
 // Add services to the container.
 builder.Services
@@ -85,7 +111,9 @@ builder.Services
 builder.Services
     .AddSingleton<IAmazonDynamoDB>(client)
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
-    .AddScoped<IShopRepo, ShopRepo>();
+    .AddScoped<IShopRepo, ShopRepo>()
+    .AddScoped<CognitoService>()
+    .AddScoped<AuthHandler>();
 
 // Add AWS Lambda support. When running the application as an AWS Serverless application, Kestrel is replaced
 // with a Lambda function contained in the Amazon.Lambda.AspNetCoreServer package, which marshals the request into the ASP.NET Core hosting framework.
