@@ -564,8 +564,8 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
             return null;
         }
     }
-
-    public async Task<bool> AddStock(StockInput nStock)
+    
+    public async Task<Guid?> AddStock(StockInput nStock)
     {
         try
         {
@@ -591,14 +591,13 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
             
             await dbContext.SaveAsync(stock);
             logger.LogInformation("Stock has been added");
+            return stock.Id;
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to add stock to database");
-            return false;
+            return null;
         }
-
-        return true;
     }
 
     public async Task<bool> UpdateStock(Stock? stock)

@@ -18,7 +18,6 @@ Globals:
 
 # This represents the parts of our app. i.e. the lambda function and database tables.
 Resources:
-  
   # Lambda config
   ShopApi:
     Type: AWS::Serverless::Function
@@ -55,6 +54,8 @@ Resources:
         RootApiGateway:
           Type: HttpApi
           Properties:
+            binaryMediaTypes: # What media types we can accept. In this case we accept all to allow for file uploads.
+              - '*/*'
             Path: /{path+} # What endpoints this API is mapped too. {path+} maps all endpoints in our application.
             Method: ANY
             Auth:

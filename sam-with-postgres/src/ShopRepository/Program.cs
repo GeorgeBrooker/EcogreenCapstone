@@ -19,6 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ShopRepository.Handler;
+using ShopRepository.Helper;
 using ShopRepository.Services;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -46,16 +47,16 @@ if (local)
     // List of SAFE local secret examples. These are not sensitive and can be stored in the code.
     var localSecrets = new Dictionary<string, string> 
     {
-        { "Jwt:Issuer", "your-local-issuer-this-is-the-backend-server-kashish-web-app" },
-        { "Jwt:Audience", "your-local-audience-this-is-a-reference-to-the-tokens-audiance-aka-this-app" },
         { "Cognito:UserPoolId", "ap-southeast-2_RXmB1ATp1" },
         { "Cognito:ClientId", "d06f48kk6k9kcp491mlkskkta" },
         { "Cognito:Region", "ap-southeast-2"},
         { "Cognito:ClientSecret", "189anlvjvs2hrjeantnv5dbiol5upt456n3toes8mv7lcu00andv"},
-        { "Jwt:Key", "your-local-JWT-Signing-key-this-must-be-at-least-128-bits-long(32chars)" },
+        
         { "Stripe:SecretKey", "your-local-stripe-key" },
         { "Stripe:PublishableKey", "your-local-stripe-pub-key" },
-        { "SECRET_COOKIE_KEY", "yoursecretcookiekey" },
+        
+        { "StockUploadBucket", "kashish-web-asset-bucket" },
+        
         { "Environment", "local" }
     };
     foreach (var kvp in localSecrets)
@@ -82,8 +83,12 @@ else
     }
 }
 
+// Add AWS services to dependency injection
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
-builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
+builder.Services
+    .AddAWSService<IAmazonCognitoIdentityProvider>()
+    .AddAWSService<Amazon.S3.IAmazonS3>();
+    
 
 // Add Authentication and Authorization policies
 builder.Services.AddAuthentication("CustomCognitoAuth")
@@ -113,7 +118,8 @@ builder.Services
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>()
     .AddScoped<CognitoService>()
-    .AddScoped<AuthHandler>();
+    .AddScoped<AuthHandler>()
+    .AddScoped<StockUploadHelper>();
 
 // Add AWS Lambda support. When running the application as an AWS Serverless application, Kestrel is replaced
 // with a Lambda function contained in the Amazon.Lambda.AspNetCoreServer package, which marshals the request into the ASP.NET Core hosting framework.

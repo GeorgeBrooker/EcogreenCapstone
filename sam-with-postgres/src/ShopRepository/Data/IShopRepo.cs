@@ -42,7 +42,7 @@ public interface IShopRepo
     Task<Stock?> GetStockFromStripe(string stockId);
     Task<Stock?> GetStock(Guid id);
     Task<IEnumerable<Stock>> GetAllStock(int limit);
-    Task<bool> AddStock(StockInput stock);
+    Task<Guid?> AddStock(StockInput stock);
     Task<bool> UpdateStock(Stock? stock);
     Task<bool> DeleteStock(Guid id);
 

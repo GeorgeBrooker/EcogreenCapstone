@@ -2,13 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
+using ShopRepository.Helper;
 using ShopRepository.Models;
 
 namespace ShopRepository.Controllers;
 
 [Route("api/inventory")]
 [Produces("application/json")]
-public class InventoryController(IShopRepo repo) : ControllerBase
+public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader) : ControllerBase
 {
 //
 // *CUSTOMER*
@@ -242,7 +243,6 @@ public class InventoryController(IShopRepo repo) : ControllerBase
         await repo.DeleteStock(id);
         return Ok();
     }
-    
 //
 // *StockRequests*
 //
@@ -307,5 +307,29 @@ public class InventoryController(IShopRepo repo) : ControllerBase
 
         await repo.DeleteStockRequest(retreivedStockRq);
         return Ok();
+    }
+//
+// STOCK PHOTOS
+//
+    [HttpPost("UploadPhotos/{stockId:guid}")]
+    public async Task<ActionResult<bool>> UploadPhotos(Guid stockId)
+    {
+        var form = Request.Form;
+        var files = Request.Form.Keys;
+        var images = new byte[files.Count][];
+
+        int i = 0;
+        foreach (var key in files)
+        {
+            images[i] = Convert.FromBase64String(form[key]!);
+            i++;
+        }
+
+        var result = await stockUploader.UploadImages(images, stockId);
+        
+        if (result) 
+            return Ok();
+
+        return BadRequest("Image upload failed");
     }
 }
