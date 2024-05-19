@@ -44,8 +44,8 @@ const LoginSignup = () => {
 
     const login = async () => {
         let token = localStorage.getItem('id-token');
-        let access_token = localStorage.getItem('access_token');
-        let refresh_token = localStorage.getItem('refresh_token');
+        let access_token = localStorage.getItem('auth-token');
+        let refresh_token = localStorage.getItem('refresh-token');
         
         let customerInput = {
             "Fname": "None",
@@ -69,9 +69,9 @@ const LoginSignup = () => {
                 access_token = data.accessToken;
                 refresh_token = data.refreshToken;
                 
-                localStorage.setItem('id_token', token);
-                localStorage.setItem('access_token', access_token);
-                localStorage.setItem('refresh_token', refresh_token);
+                localStorage.setItem('id-token', token);
+                localStorage.setItem('auth-token', access_token);
+                localStorage.setItem('refresh-token', refresh_token);
                 
                 console.log("Got login tokens:\n", token, "\n\n", access_token, "\n\n", refresh_token);
             }
@@ -81,13 +81,13 @@ const LoginSignup = () => {
         const response = await fetch(serverUri + '/api/auth/ValidateCustomer', {
             method: "GET",
             headers: {
-                'Authorization': 'Bearer ' + btoa(localStorage.getItem('access_token') + ':' + localStorage.getItem('refresh_token')),
+                'Authorization': 'Bearer ' + btoa(localStorage.getItem('auth-token') + ':' + localStorage.getItem('refresh-token')),
             },
         });
         if (!response.ok) {
             console.error("Login failed for user with email: ", formData.email, " and password: ", formData.password);
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('auth-token');
+            localStorage.removeItem('refresh-token');
             localStorage.removeItem('id-token');
             alert("Login failed");
             return
@@ -124,7 +124,7 @@ const LoginSignup = () => {
             "Pass": formData.password
         };
         
-        const response = await fetch(serverUri + '/api/shop/AddCustomer', {
+        const response = await fetch(serverUri + '/api/auth/RegisterCustomer', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -134,8 +134,9 @@ const LoginSignup = () => {
         if (response.ok) {
             // Signup successful, clear any existing auth token and log the user in.
             console.log("Signup successful, logging user in now");
+            localStorage.removeItem("auth-token");
+            localStorage.removeItem("refresh-token");
             
-            localStorage.removeItem('access_token');
             await login();
         }else{
             console.error("Signup failed");

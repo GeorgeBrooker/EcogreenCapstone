@@ -422,7 +422,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
             result = false;
         }
 
-        if (result) logger.LogInformation("Book successfully deleted");
+        if (result) logger.LogInformation("Customer successfully deleted");
         return result;
     }
 

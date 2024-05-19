@@ -8,21 +8,14 @@ using ShopRepository.Services;
 
 namespace ShopRepository.Handler;
 
-public class AuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class AuthHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    TimeProvider clock,
+    CognitoService cognitoService)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    private readonly CognitoService _cognitoService;
-
-    public AuthHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder,
-        ISystemClock clock,
-        CognitoService cognitoService)
-        : base(options, logger, encoder, clock)
-    {
-        _cognitoService = cognitoService;
-    }
-
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var authHeader = Request.Headers["Authorization"].FirstOrDefault();
@@ -45,21 +38,21 @@ public class AuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
             }
         }
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken)) return AuthenticateResult.Fail("Invalid token");
-        Console.WriteLine($"\n\n{accessToken}\n\n {refreshToken}\n\n");
         
         // Validate the access token
-        var isValid = await _cognitoService.ValidateToken(accessToken);
+        var isValid = await cognitoService.ValidateToken(accessToken);
         if (!isValid)
         {
-            // If the token is not valid, refresh it
-            var newAccessToken = await _cognitoService.RefreshSession(refreshToken);
+            // If the token is not valid, try to refresh it
+            var newAccessToken = await cognitoService.RefreshSession(refreshToken);
             if (string.IsNullOrEmpty(newAccessToken)) return AuthenticateResult.Fail("Invalid token");
             
             accessToken = newAccessToken;
         }
         
+        // Create the claims and principal
         var claims = GetTokenClaims(accessToken);
-        var identity = new ClaimsIdentity(claims, Scheme.Name);
+        var identity = new ClaimsIdentity(claims, Scheme.Name) { BootstrapContext = accessToken };
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
                     
@@ -71,11 +64,6 @@ public class AuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadToken(accessToken) as JwtSecurityToken;
         var tokenClaims = token.Claims.ToList();
-        Console.WriteLine("Token claims:");
-        foreach (var claim in tokenClaims)
-        {
-            Console.WriteLine(claim);
-        }
 
         return tokenClaims;
     }

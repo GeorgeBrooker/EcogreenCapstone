@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using Amazon.CognitoIdentityProvider;
@@ -13,15 +14,16 @@ public class CognitoService
 {
     private readonly IAmazonCognitoIdentityProvider _cognitoClient;
     private readonly CognitoUserPool _userPool;
-
+    private readonly string _clientSecret;
     public CognitoService(IAmazonCognitoIdentityProvider cognito, IConfiguration configuration)
     {
+        _clientSecret = configuration["Cognito:ClientSecret"]!;
         _cognitoClient = cognito;
         _userPool = new CognitoUserPool(
-            configuration["Cognito:UserPoolId"],
-            configuration["Cognito:ClientId"],
-            _cognitoClient,
-            configuration["Cognito:ClientSecret"]
+            poolID: configuration["Cognito:UserPoolId"],
+            clientID: configuration["Cognito:ClientId"],
+            provider: _cognitoClient,
+            clientSecret: _clientSecret
         );
     }
     
@@ -44,12 +46,30 @@ public class CognitoService
             return false;
         }
     }
-    
-    public CognitoUser GetUser(string email)
+
+    public async Task<CognitoUser?> GetUser(string? id, string? accessToken)
     {
-        var user = _userPool.GetUser(email);
+        CognitoUser? user = null;
+        try
+        {
+            if (id == null || accessToken == null) throw new Exception();
+            user = _userPool.GetUser(id);
+            
+            // Populate the user object with the user's attributes
+            var request = new GetUserRequest { AccessToken =  accessToken};
+            var response = await _cognitoClient.GetUserAsync(request);
+            foreach (var attribute in response.UserAttributes)
+            {
+                user.Attributes.Add(attribute.Name, attribute.Value);
+            }
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("User not found in cognito pool");
+        }
         return user;
     }
+
     public async Task<CognitoUserSession> Login(string email, string password)
     {
         var user = _userPool.GetUser(email);
@@ -88,26 +108,58 @@ public class CognitoService
         return authResponse.AuthenticationResult.AccessToken;
     }
     
-    public async Task<CognitoUser> Register(string email, string password)
+    public async Task<bool> Register(string email, string password, string fname, string lname)
     {
+        Console.WriteLine("CognitoRegister function");
         var signUpRequest = new SignUpRequest
         {
             ClientId = _userPool.ClientID,
             Username = email,
             Password = password,
-            UserAttributes = new List<AttributeType>
+            SecretHash = CalculateSecretHash(_userPool.ClientID, _clientSecret, email),
+            UserAttributes = 
             {
                 new AttributeType
                 {
                     Name = "email",
                     Value = email
-                } 
-            } 
+                },
+                new AttributeType
+                {
+                    Name = "name",
+                    Value = fname + " " + lname
+                },
+                new AttributeType
+                {
+                    Name = "family_name",
+                    Value = lname
+                },
+                new AttributeType
+                {
+                    Name = "given_name",
+                    Value = fname
+                }
+            }
         };
         
         var signUpResponse = await _cognitoClient.SignUpAsync(signUpRequest);
-        if (signUpResponse.HttpStatusCode == HttpStatusCode.OK) return _userPool.GetUser(email);
+        if (signUpResponse.HttpStatusCode != HttpStatusCode.OK)
+        {
+            Console.WriteLine($"Registration failed with status code: {signUpResponse.HttpStatusCode}");
+            return false;
+        }
 
-        throw new Exception("Registration failed");
+        return true;
+    }
+    
+    public string CalculateSecretHash(string userPoolClientId, string userPoolClientSecret, string userName)
+    {
+        var dataString = userName + userPoolClientId;
+
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(userPoolClientSecret));
+        var dataBytes = Encoding.UTF8.GetBytes(dataString);
+        var hash = hmac.ComputeHash(dataBytes);
+
+        return Convert.ToBase64String(hash);
     }
 }
