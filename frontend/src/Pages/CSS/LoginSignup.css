@@ -1,3 +1,59 @@
+.verification-box {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.verification-box-inner {
+    position: absolute;
+    width: 350px;
+    height: 400px;
+    background: #d4fbcb;
+    border-radius: 5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.verification-box-inner h1{
+    position: absolute;
+    top: 0;
+    margin: 5%;
+    
+}
+.verification-box-inner p {
+    width: 75%;
+    text-align: center;
+}
+.verification-box-inner input {
+    width: 50%;
+    height: 40px;
+    margin: 10px 0;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #c9c9c9;
+    outline: none;
+    font-size: 150%;
+    text-align: center;
+    letter-spacing: 4pt;
+}
+.verification-box-inner .handleVerification {
+    position: absolute;
+    bottom: 5%;
+    right: 5%;
+}
+.verification-box-inner .cancelVerification {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+}
 .loginsignup{
     width: 100%;
     height: 80vh;

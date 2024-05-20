@@ -2,6 +2,12 @@ import React, { createContext, useState } from "react";
 export const ShopContext = createContext(null);
 const serverUri = "http://localhost:3000";
 
+const cleanProductName = (productName) => {
+    const supportedCharsRegex = /[^a-zA-Z0-9!,_.*'()\-]/g; // Match any character that is not in the supported set
+    const cleanedName = productName.replace(supportedCharsRegex, '-');
+    
+    return cleanedName;
+}
 const all_products = async ()=>{
     const response = await fetch(serverUri + "/api/shop/GetAllStock", {
         method: "GET",
@@ -11,7 +17,7 @@ const all_products = async ()=>{
     })
     const data = await response.json();
     const mappedProucts = data.map(product => {
-        let uriName = product.name.replace(/\s/g, '-');
+        let uriName = cleanProductName(product.name);
         let productUri = `${product.photoUri}${uriName}-${product.id}/`;
         
         let discountedPrice = Number(product.price) * (1 - (Number(product.discountPercentage)/100));
@@ -20,7 +26,7 @@ const all_products = async ()=>{
         return {
             id: product.id,
             name: product.name,
-            image: productUri + "1.jpeg",
+            image: productUri,
             old_price: product.price,
             
             // Ensures string displays in 4 digit 2dp format, rounded to nearest 5 cents. 

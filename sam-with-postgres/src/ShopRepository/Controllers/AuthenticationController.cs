@@ -1,5 +1,6 @@
 using System.Drawing.Printing;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -15,7 +16,8 @@ namespace ShopRepository.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthenticationController(IShopRepo repo, IConfiguration config, CognitoService cognito) : ControllerBase
+    public class AuthenticationController(IShopRepo repo, IConfiguration config, CognitoService cognito)
+        : ControllerBase
     {
         [HttpPost("CustomerLogin")]
         public async Task<IActionResult> Login([FromBody] CustomerInput customer)
@@ -36,19 +38,19 @@ namespace ShopRepository.Controllers
                 return Unauthorized(e.Message);
             }
         }
-        
+
         [Authorize(Policy = "CustomerOnly")]
         [HttpGet("ValidateCustomer")]
         public async Task<IActionResult> CheckLogin()
         {
-            
+
             var userSubClaim = User.Claims.FirstOrDefault(claim => claim.Type == "sub")?.Value;
             var accessToken = (User.Identity as ClaimsIdentity)?.BootstrapContext?.ToString();
-            
+
             var cognitoUser = await cognito.GetUser(userSubClaim, accessToken);
             if (cognitoUser == null) return Unauthorized("Cannot find user in cognito pool");
             if (!cognitoUser.Attributes.TryGetValue("email", out var email)) return Unauthorized("Malformed user");
-            
+
             // TODO GET CUSTOMER FROM REPO
             var customer = await repo.GetCustomerFromEmail(email);
             if (customer == null) return Unauthorized("User not found in database");
@@ -62,7 +64,7 @@ namespace ShopRepository.Controllers
             };
             return Ok(returnCustomer);
         }
-        
+
         [HttpPost("RegisterCustomer")]
         public async Task<IActionResult> Register([FromBody] CustomerInput customer)
         {
@@ -72,21 +74,41 @@ namespace ShopRepository.Controllers
             try
             {
                 var localSuccess = await repo.AddCustomer(customer);
-                if (!localSuccess) BadRequest("Failed to add use to local database");
-                
-                var success = await cognito.Register(customer.Email, customer.Pass, customer.Fname, customer.Lname);
-                if (!success) throw new Exception("Failed to register user in cognito");
-                
-                return Ok("User registered successfully");
+                if (!localSuccess) BadRequest("Failed to add user to local database");
+
+                var response = await cognito.Register(customer.Email, customer.Pass, customer.Fname, customer.Lname);
+                if (response.HttpStatusCode != HttpStatusCode.OK)
+                    throw new Exception($"Failed to register user in cognito: {response}");
+
+                return Ok(new { confirmed = response.UserConfirmed });
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 var cInDb = await repo.GetCustomerFromEmail(customer.Email);
-                if (cInDb != null) 
+                if (cInDb != null)
                     await repo.DeleteCustomer(cInDb.Id);
-                
-                return BadRequest("Sign up failed, please try again.");
+
+                return BadRequest($"Sign up failed, please try again. {e.Message}");
+            }
+        }
+
+        [HttpPost("ConfirmCustomer")]
+        public async Task<IActionResult> Confirm([FromBody] Dictionary<string, string> confirm)
+        {
+            var email = confirm["Email"];
+            var code = confirm["Code"];
+            try
+            {
+                var response = await cognito.ConfirmUser(email, code);
+                if (response.HttpStatusCode != HttpStatusCode.OK)
+                    throw new Exception($"Failed to confirm user in cognito: {response}");
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Confirmation failed, please try again. {e.Message}");
             }
         }
     }

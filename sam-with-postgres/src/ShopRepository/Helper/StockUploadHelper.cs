@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using ShopRepository.Data;
@@ -52,16 +53,13 @@ public class StockUploadHelper(IConfiguration configuration, IAmazonS3 amazonS3,
         return false;
     }
     
-    public static string CleanUploadName(string uploadName)
+    private static string CleanUploadName(string uploadName)
     {
         // Define unsupported characters
-        var unsupportedChars = new[] { '_', '/', '\\', ':', '*', '?', '"', '<', '>', '|', ' ' };
+       var regex = new Regex("[^a-zA-Z0-9!,_.*'()\\-]");
 
         // Replace each unsupported character with a hyphen
-        foreach (var unsupportedChar in unsupportedChars)
-        {
-            uploadName = uploadName.Replace(unsupportedChar, '-');
-        }
+        uploadName = regex.Replace(uploadName, "-");
 
         // Return the cleaned upload name
         return uploadName;

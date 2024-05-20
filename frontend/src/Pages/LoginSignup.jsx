@@ -16,6 +16,10 @@ const LoginSignup = () => {
         email: ""
     });
     const [agreedToTerms, setAgreedToTerms] = useState(false); // Track whether the terms checkbox is checked
+    // Manage verification code input 
+    const [showVerification, setShowVerification] = useState(false); // Track whether the verification code input should be shown
+    const [verificationCode, setVerificationCode] = useState(""); // Track the verification code for sign up
+    const [verificationError, setVerificationError] = useState(""); // Track any errors with the verification code 
 
     const changeHandler = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -133,26 +137,75 @@ const LoginSignup = () => {
         });
         if (response.ok) {
             // Signup successful, clear any existing auth token and log the user in.
-            console.log("Signup successful, logging user in now");
+            console.log("Signup successful");
             localStorage.removeItem("auth-token");
             localStorage.removeItem("refresh-token");
+            console.log("Checking email confirmation");
             
-            await login();
+            const userConfirmed = await response.json().then(data => data.confirmed);
+            if (userConfirmed) {
+                console.log("User confirmed, logging in")
+                await login();
+            }
+            // If the user is not confirmed, show the verification code input
+            else {
+                console.log("User not confirmed, showing verification code input");
+                setShowVerification(true);
+            }
+            
         }else{
             console.error("Signup failed");
             alert("Signup failed");
         }
     };
+    
+    const handleUserVerification = async () => {
+        console.log("Handling user verification");
+        const response = await fetch(serverUri + '/api/auth/ConfirmCustomer', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "Email": formData.email,
+                "Code": verificationCode
+            }),
+        });
+        if (response.ok) {
+            console.log("User verified, logging in");
+            await login();
+        }else{
+            console.error("User verification failed");
+            setVerificationError(`Verification code is incorrect ${response.statusText}`);
+        }
+    }
+    const handleCancelUserVerification = () => {
+        console.log("Verification cancelled");
+        setShowVerification(false);
+    }
 
     return (
         <div className="loginsignup">
+            {showVerification && (
+                <div className="verification-box">
+                    <div className="verification-box-inner">
+                        <h1>Verify Your Email</h1>
+                        <p>We have sent a 6 digit verification code to your email.<br/><br/> Please enter it below:</p>
+                        <input type="text" value={verificationCode}
+                               onChange={(e) => setVerificationCode(e.target.value)}/>
+                        {verificationError && <p className="error">{verificationError}</p>}
+                        <button className="handleVerification" onClick={handleUserVerification}>Confirm</button>
+                        <button className="cancelVerification" onClick={handleCancelUserVerification}>Cancel</button>
+                    </div>
+                </div>
+            )}
             <div className="loginsignup-container">
                 <h1>{state}</h1>
                 <div className="loginsignup-fields">
                     {state === "Sign Up" &&
                         <>
                             <input name="firstName" value={formData.firstName} onChange={changeHandler} type="text"
-                                placeholder="First name" />
+                                   placeholder="First name"/>
                             <input name="lastName" value={formData.lastName} onChange={changeHandler} type="text"
                                 placeholder="Last name" />
                         </>

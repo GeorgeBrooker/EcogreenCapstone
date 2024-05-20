@@ -108,7 +108,7 @@ public class CognitoService
         return authResponse.AuthenticationResult.AccessToken;
     }
     
-    public async Task<bool> Register(string email, string password, string fname, string lname)
+    public async Task<SignUpResponse> Register(string email, string password, string fname, string lname)
     {
         Console.WriteLine("CognitoRegister function");
         var signUpRequest = new SignUpRequest
@@ -146,13 +146,45 @@ public class CognitoService
         if (signUpResponse.HttpStatusCode != HttpStatusCode.OK)
         {
             Console.WriteLine($"Registration failed with status code: {signUpResponse.HttpStatusCode}");
-            return false;
+            return signUpResponse;
         }
-
-        return true;
+        
+        // User is now registered, add them to the 'Customers' group by default
+        var groupAddRequest = new AdminAddUserToGroupRequest
+        {
+            UserPoolId = _userPool.PoolID,
+            Username = email,
+            GroupName = "Customers"
+        };
+        
+        var groupAdditionResponse = await _cognitoClient.AdminAddUserToGroupAsync(groupAddRequest);
+        if (groupAdditionResponse.HttpStatusCode != HttpStatusCode.OK)
+            Console.WriteLine($"Group addition failed with status code: {groupAdditionResponse.HttpStatusCode}");
+        
+        // Return original signup response
+        return signUpResponse;
     }
     
-    public string CalculateSecretHash(string userPoolClientId, string userPoolClientSecret, string userName)
+    public async Task<ConfirmSignUpResponse> ConfirmUser(string email, string code)
+    {
+        var confirmRequest = new ConfirmSignUpRequest
+        {
+            ClientId = _userPool.ClientID,
+            Username = email,
+            ConfirmationCode = code,
+            SecretHash = CalculateSecretHash(_userPool.ClientID, _clientSecret, email)
+        };
+        
+        var confirmResponse = await _cognitoClient.ConfirmSignUpAsync(confirmRequest);
+        if (confirmResponse.HttpStatusCode != HttpStatusCode.OK)
+        {
+            Console.WriteLine($"Confirmation failed with status code: {confirmResponse.HttpStatusCode}");
+        }
+
+        return confirmResponse;
+    }
+    
+    private static string CalculateSecretHash(string userPoolClientId, string userPoolClientSecret, string userName)
     {
         var dataString = userName + userPoolClientId;
 
