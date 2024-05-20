@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using Amazon.DynamoDBv2.DataModel;
+﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Microsoft.AspNetCore.Identity;
 using ShopRepository.Dtos;
@@ -9,8 +7,7 @@ using ShopRepository.Models;
 namespace ShopRepository.Data;
 
 public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IShopRepo
-{ 
-
+{
 //
 // ORDER METHODS
 //
@@ -178,8 +175,8 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
 
         if (result) logger.LogInformation("Order successfully deleted");
         return result;
-    } 
-    
+    }
+
 //
 // CUSTOMER METHODS
 // 
@@ -290,17 +287,19 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
     {
         var customer = await GetCustomerFromEmail(email);
         var pwHasher = new PasswordHasher<Customer>();
-        
-        if (customer == null || pwHasher.VerifyHashedPassword(customer, customer.Password, password) == PasswordVerificationResult.Failed)
+
+        if (customer == null || pwHasher.VerifyHashedPassword(customer, customer.Password, password) ==
+            PasswordVerificationResult.Failed)
             return null;
-        
+
         return customer;
     }
 
     public async Task<IEnumerable<Order>?> GetCustomerOrders(Guid id)
     {
         try
-        {   // GSI's are not always consistent all the time. We should be careful how we use results returned from GSI queries.
+        {
+            // GSI's are not always consistent all the time. We should be careful how we use results returned from GSI queries.
             var orderSearch = dbContext.FromQueryAsync<Order>(
                 new QueryOperationConfig
                 {
@@ -418,6 +417,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
             return null;
         }
     }
+
     public async Task<IEnumerable<Address>> GetCustomerAddresses(Guid customerId)
     {
         var addresses = new List<Address>();
@@ -437,6 +437,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
 
         return addresses;
     }
+
     public async Task<bool> AddCustomerAddress(Address address)
     {
         try
@@ -452,6 +453,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
 
         return true;
     }
+
     public async Task<bool> UpdateCustomerAddress(Address? address)
     {
         if (address == null) return false;
@@ -469,6 +471,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
 
         return true;
     }
+
     public async Task<bool> DeleteCustomerAddress(Address address)
     {
         bool result;
@@ -564,7 +567,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
             return null;
         }
     }
-    
+
     public async Task<Guid?> AddStock(StockInput nStock)
     {
         try
@@ -588,7 +591,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
                 Price = nStock.Price,
                 DiscountPercentage = nStock.DiscountPercentage
             };
-            
+
             await dbContext.SaveAsync(stock);
             logger.LogInformation("Stock has been added");
             return stock.Id;
@@ -603,7 +606,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
     public async Task<bool> UpdateStock(Stock? stock)
     {
         if (stock == null) return false;
-        
+
         try
         {
             await dbContext.SaveAsync(stock);

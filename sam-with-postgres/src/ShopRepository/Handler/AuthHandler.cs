@@ -21,7 +21,7 @@ public class AuthHandler(
         var authHeader = Request.Headers["Authorization"].FirstOrDefault();
         string? accessToken = null;
         string? refreshToken = null;
-        
+
         // Extract the access and refresh tokens from the Authorization header
         if (authHeader != null)
         {
@@ -37,8 +37,10 @@ public class AuthHandler(
                 }
             }
         }
-        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken)) return AuthenticateResult.Fail("Invalid token");
-        
+
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            return AuthenticateResult.Fail("Invalid token");
+
         // Validate the access token
         var isValid = await cognitoService.ValidateToken(accessToken);
         if (!isValid)
@@ -46,19 +48,19 @@ public class AuthHandler(
             // If the token is not valid, try to refresh it
             var newAccessToken = await cognitoService.RefreshSession(refreshToken);
             if (string.IsNullOrEmpty(newAccessToken)) return AuthenticateResult.Fail("Invalid token");
-            
+
             accessToken = newAccessToken;
         }
-        
+
         // Create the claims and principal
         var claims = GetTokenClaims(accessToken);
         var identity = new ClaimsIdentity(claims, Scheme.Name) { BootstrapContext = accessToken };
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
-                    
+
         return AuthenticateResult.Success(ticket);
     }
-    
+
     private IEnumerable<Claim> GetTokenClaims(string accessToken)
     {
         var handler = new JwtSecurityTokenHandler();

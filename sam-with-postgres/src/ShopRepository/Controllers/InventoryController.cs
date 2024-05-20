@@ -51,7 +51,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
     {
         if (await repo.GetCustomerFromEmail(nCustomer.Email) != null)
             return BadRequest("Customer with that email already exists.");
-        
+
         if (await repo.AddCustomer(nCustomer))
             return Ok(nCustomer);
 
@@ -166,7 +166,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
         await repo.DeleteOrder(id);
         return Ok();
     }
-    
+
 //
 // *STOCK*
 //
@@ -188,40 +188,26 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
     {
         return Ok(await repo.GetStockFromStripe(stripeId));
     }
-    
+
     // POST
     [HttpPost("AddStock")]
     public async Task<ActionResult<bool>> AddStock([FromBody] StockInput stock)
     {
         return Ok(await repo.AddStock(stock));
     }
-    
+
     // PUT
     [HttpPut("UpdateStock")]
     public async Task<ActionResult<bool>> UpdateStock([FromBody] StockInput stock)
     {
         if (stock.StripeId == null)
             return BadRequest("Cannot update implicitly via stripeId when input stock has no stripeId");
-        
+
         var retrievedStock = await repo.GetStockFromStripe(stock.StripeId);
-        
-        if (retrievedStock == null) 
+
+        if (retrievedStock == null)
             return BadRequest($"Stock could not be found with StripeId={stock.StripeId}");
-        
-        retrievedStock.Name = stock.Name;
-        retrievedStock.StripeId = stock.StripeId;
-        retrievedStock.TotalStock = stock.TotalStock;
-        retrievedStock.PhotoUri = stock.PhotoUri;
-        
-        return Ok(await repo.UpdateStock(retrievedStock));
-    }
-    
-    [HttpPut("UpdateStock/{stockId:guid}")]
-    public async Task<ActionResult<bool>> UpdateStock(Guid stockId, [FromBody] StockInput stock)
-    {
-        var retrievedStock = await repo.GetStock(stockId);
-        if (retrievedStock == null) return BadRequest($"Stock could not be found with GUID={stockId}");
-        
+
         retrievedStock.Name = stock.Name;
         retrievedStock.StripeId = stock.StripeId;
         retrievedStock.TotalStock = stock.TotalStock;
@@ -229,7 +215,21 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
 
         return Ok(await repo.UpdateStock(retrievedStock));
     }
-    
+
+    [HttpPut("UpdateStock/{stockId:guid}")]
+    public async Task<ActionResult<bool>> UpdateStock(Guid stockId, [FromBody] StockInput stock)
+    {
+        var retrievedStock = await repo.GetStock(stockId);
+        if (retrievedStock == null) return BadRequest($"Stock could not be found with GUID={stockId}");
+
+        retrievedStock.Name = stock.Name;
+        retrievedStock.StripeId = stock.StripeId;
+        retrievedStock.TotalStock = stock.TotalStock;
+        retrievedStock.PhotoUri = stock.PhotoUri;
+
+        return Ok(await repo.UpdateStock(retrievedStock));
+    }
+
     // DELETE
     [HttpDelete("DeleteStock/{id:guid}")]
     public async Task<ActionResult<bool>> DeleteStock(Guid id)
@@ -243,6 +243,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
         await repo.DeleteStock(id);
         return Ok();
     }
+
 //
 // *StockRequests*
 //
@@ -252,14 +253,14 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
     {
         return Ok(await repo.GetStockRequest(orderId, stockId));
     }
-    
+
     // POST
-    
+
     // TESTING ONLY. StockRequest SHOULD ONLY BE CREATED BY BACKEND BUSINESS LOGIC, NOT FRONTEND REQUESTS.
     // FOR THIS REASON NO DTO IS PROVIDED
     [HttpPost("AddStockRequest")]
     public async Task<ActionResult<bool>> AddStockRequest(
-        [FromQuery] Guid orderId, 
+        [FromQuery] Guid orderId,
         [FromQuery] Guid stockId,
         [FromQuery] int quantity)
     {
@@ -272,7 +273,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
 
         return Ok(await repo.AddStockRequest(stockRequest));
     }
-    
+
     // PUT
     [HttpPost("UpdateStockRequest")]
     public async Task<ActionResult<bool>> UpdateStockRequest(
@@ -282,7 +283,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
     {
         if (orderId == null || stockId == null || quantity == null)
             return BadRequest("All attributes must be specified to update a stockRequest");
-        
+
         var stockRq = await repo.GetStockRequest((Guid)orderId, (Guid)stockId);
         if (stockRq == null)
             return NotFound($"StockRequest for stock id={stockId} in order id={orderId} could not be found");
@@ -291,9 +292,8 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
         await repo.UpdateStockRequest(stockRq);
 
         return true;
-        
     }
-    
+
     // Delete
     [HttpDelete("DeleteStockRequest/{orderId:guid}/{stockId:guid}")]
     public async Task<ActionResult<bool>> DeleteStockRequest(Guid orderId, Guid stockId)
@@ -308,6 +308,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
         await repo.DeleteStockRequest(retreivedStockRq);
         return Ok();
     }
+
 //
 // STOCK PHOTOS
 //
@@ -318,7 +319,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
         var files = Request.Form.Keys;
         var images = new byte[files.Count][];
 
-        int i = 0;
+        var i = 0;
         foreach (var key in files)
         {
             images[i] = Convert.FromBase64String(form[key]!);
@@ -326,8 +327,8 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
         }
 
         var result = await stockUploader.UploadImages(images, stockId);
-        
-        if (result) 
+
+        if (result)
             return Ok();
 
         return BadRequest("Image upload failed");

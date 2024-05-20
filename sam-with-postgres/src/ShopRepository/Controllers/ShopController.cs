@@ -57,7 +57,7 @@ public class ShopController(IShopRepo repo) : ControllerBase
     {
         if (await repo.GetCustomerFromEmail(nCustomer.Email) != null)
             return BadRequest("Customer with that email already exists.");
-        
+
         if (await repo.AddCustomer(nCustomer))
             return Ok(nCustomer);
 
@@ -174,7 +174,7 @@ public class ShopController(IShopRepo repo) : ControllerBase
         await repo.DeleteOrder(id);
         return Ok();
     }
-    
+
 //
 // *STOCK*
 //
@@ -196,43 +196,26 @@ public class ShopController(IShopRepo repo) : ControllerBase
     {
         return Ok(await repo.GetStockFromStripe(stripeId));
     }
-    
+
     // POST
     [HttpPost("AddStock")]
     public async Task<ActionResult<bool>> AddStock([FromBody] StockInput stock)
     {
         return Ok(await repo.AddStock(stock));
     }
-    
+
     // PUT
     [HttpPut("UpdateStock")]
     public async Task<ActionResult<bool>> UpdateStock([FromBody] StockInput stock)
     {
         if (stock.StripeId == null)
             return BadRequest("Cannot update implicitly via stripeId when input stock has no stripeId");
-        
+
         var retrievedStock = await repo.GetStockFromStripe(stock.StripeId);
-        
-        if (retrievedStock == null) 
+
+        if (retrievedStock == null)
             return BadRequest($"Stock could not be found with StripeId={stock.StripeId}");
-        
-        retrievedStock.Name = stock.Name;
-        retrievedStock.StripeId = stock.StripeId;
-        retrievedStock.TotalStock = stock.TotalStock;
-        retrievedStock.PhotoUri = stock.PhotoUri;
-        retrievedStock.Description = stock.Description;
-        retrievedStock.Price = stock.Price;
-        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
-        
-        return Ok(await repo.UpdateStock(retrievedStock));
-    }
-    
-    [HttpPut("UpdateStock/{stockId:guid}")]
-    public async Task<ActionResult<bool>> UpdateStock(Guid stockId, [FromBody] StockInput stock)
-    {
-        var retrievedStock = await repo.GetStock(stockId);
-        if (retrievedStock == null) return BadRequest($"Stock could not be found with GUID={stockId}");
-        
+
         retrievedStock.Name = stock.Name;
         retrievedStock.StripeId = stock.StripeId;
         retrievedStock.TotalStock = stock.TotalStock;
@@ -243,7 +226,24 @@ public class ShopController(IShopRepo repo) : ControllerBase
 
         return Ok(await repo.UpdateStock(retrievedStock));
     }
-    
+
+    [HttpPut("UpdateStock/{stockId:guid}")]
+    public async Task<ActionResult<bool>> UpdateStock(Guid stockId, [FromBody] StockInput stock)
+    {
+        var retrievedStock = await repo.GetStock(stockId);
+        if (retrievedStock == null) return BadRequest($"Stock could not be found with GUID={stockId}");
+
+        retrievedStock.Name = stock.Name;
+        retrievedStock.StripeId = stock.StripeId;
+        retrievedStock.TotalStock = stock.TotalStock;
+        retrievedStock.PhotoUri = stock.PhotoUri;
+        retrievedStock.Description = stock.Description;
+        retrievedStock.Price = stock.Price;
+        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
+
+        return Ok(await repo.UpdateStock(retrievedStock));
+    }
+
     // DELETE
     [HttpDelete("DeleteStock/{id:guid}")]
     public async Task<ActionResult<bool>> DeleteStock(Guid id)
@@ -257,7 +257,7 @@ public class ShopController(IShopRepo repo) : ControllerBase
         await repo.DeleteStock(id);
         return Ok();
     }
-    
+
 //
 // *StockRequests*
 //
@@ -267,14 +267,14 @@ public class ShopController(IShopRepo repo) : ControllerBase
     {
         return Ok(await repo.GetStockRequest(orderId, stockId));
     }
-    
+
     // POST
-    
+
     // TESTING ONLY. StockRequest SHOULD ONLY BE CREATED BY BACKEND BUSINESS LOGIC, NOT FRONTEND REQUESTS.
     // FOR THIS REASON NO DTO IS PROVIDED
     [HttpPost("AddStockRequest")]
     public async Task<ActionResult<bool>> AddStockRequest(
-        [FromQuery] Guid orderId, 
+        [FromQuery] Guid orderId,
         [FromQuery] Guid stockId,
         [FromQuery] int quantity)
     {
@@ -287,7 +287,7 @@ public class ShopController(IShopRepo repo) : ControllerBase
 
         return Ok(await repo.AddStockRequest(stockRequest));
     }
-    
+
     // PUT
     [HttpPost("UpdateStockRequest")]
     public async Task<ActionResult<bool>> UpdateStockRequest(
@@ -297,7 +297,7 @@ public class ShopController(IShopRepo repo) : ControllerBase
     {
         if (orderId == null || stockId == null || quantity == null)
             return BadRequest("All attributes must be specified to update a stockRequest");
-        
+
         var stockRq = await repo.GetStockRequest((Guid)orderId, (Guid)stockId);
         if (stockRq == null)
             return NotFound($"StockRequest for stock id={stockId} in order id={orderId} could not be found");
@@ -306,9 +306,8 @@ public class ShopController(IShopRepo repo) : ControllerBase
         await repo.UpdateStockRequest(stockRq);
 
         return true;
-        
     }
-    
+
     // Delete
     [HttpDelete("DeleteStockRequest/{orderId:guid}/{stockId:guid}")]
     public async Task<ActionResult<bool>> DeleteStockRequest(Guid orderId, Guid stockId)
@@ -323,24 +322,24 @@ public class ShopController(IShopRepo repo) : ControllerBase
         await repo.DeleteStockRequest(retreivedStockRq);
         return Ok();
     }
-    
+
     //
     // CUSTOMER ADDRESSES
     //
-    
+
     // GET
     [HttpGet("GetCustomerAddresses/{customerId:guid}")]
     public async Task<ActionResult<IEnumerable<Address>>> GetCustomerAddresses(Guid customerId)
     {
         return Ok(await repo.GetCustomerAddresses(customerId));
     }
-    
+
     [HttpGet("GetCustomerAddress/{customerId:guid}/{addressName}")]
     public async Task<ActionResult<Address>> GetCustomerAddress(Guid customerId, string addressName)
     {
         return Ok(await repo.GetCustomerAddress(customerId, addressName));
     }
-    
+
     // POST
     [HttpPost("AddCustomerAddress")]
     public async Task<ActionResult<bool>> AddCustomerAddress([FromBody] Address address)
@@ -349,14 +348,14 @@ public class ShopController(IShopRepo repo) : ControllerBase
         if (addressExists != null) return BadRequest("Address already exists.");
         return Ok(await repo.AddCustomerAddress(address));
     }
-    
+
     // PUT
     [HttpPut("UpdateCustomerAddress")]
     public async Task<ActionResult<bool>> UpdateCustomerAddress([FromBody] AddressInput nAddress)
     {
         var address = await repo.GetCustomerAddress(nAddress.CustomerId, nAddress.AddressName);
         if (address == null) return BadRequest("Address does not exist.");
-        
+
         // Map the input to the existing address
         address.CustomerId = nAddress.CustomerId;
         address.AddressName = nAddress.AddressName;
@@ -367,17 +366,17 @@ public class ShopController(IShopRepo repo) : ControllerBase
         address.Country = nAddress.Country;
         address.PhoneNumber = nAddress.PhoneNumber;
         address.Email = nAddress.Email;
-        
+
         return Ok(await repo.UpdateCustomerAddress(address));
     }
-    
+
     // DELETE
     [HttpDelete("DeleteCustomerAddress/{customerId:guid}/{addressName}")]
     public async Task<ActionResult<bool>> DeleteCustomerAddress(Guid customerId, string addressName)
     {
         var address = await repo.GetCustomerAddress(customerId, addressName);
         if (address == null) return BadRequest("Address does not exist.");
-        
+
         return Ok(await repo.DeleteCustomerAddress(address));
     }
 }

@@ -8,6 +8,9 @@ public class StockInput
     public int DiscountPercentage { get; set; } = 0;
     public string? StripeId { get; set; }
     public int? TotalStock { get; set; }
-    public string PhotoUri { get; set; } = "https://kashish-web-asset-bucket.s3.ap-southeast-2.amazonaws.com/stock-photos/";
+
+    public string PhotoUri { get; set; } =
+        "https://kashish-web-asset-bucket.s3.ap-southeast-2.amazonaws.com/stock-photos/";
+
     public required bool CreateWithoutStripeLink { get; init; } = false;
 }

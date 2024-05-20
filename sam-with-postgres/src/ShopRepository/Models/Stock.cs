@@ -13,5 +13,4 @@ public class Stock
     [DynamoDBProperty] public string Description { get; set; } = "";
     [DynamoDBProperty] public decimal Price { get; set; } = 50;
     [DynamoDBProperty] public int DiscountPercentage { get; set; }
-    
 }
