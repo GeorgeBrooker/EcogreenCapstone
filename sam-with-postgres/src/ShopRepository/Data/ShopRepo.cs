@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using Amazon.DynamoDBv2.DataModel;
+﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Microsoft.AspNetCore.Identity;
 using ShopRepository.Dtos;
@@ -9,8 +7,7 @@ using ShopRepository.Models;
 namespace ShopRepository.Data;
 
 public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IShopRepo
-{ 
-
+{
 //
 // ORDER METHODS
 //
@@ -79,21 +76,21 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
     }
 
-    public async Task<Order?> GetOrderFromPaymentId(string paymentIntentId)
+    public async Task<Order?> GetOrderFromStripe(string checkoutSessionId)
     {
         try
         {
             var paymentIdSearch = dbContext.FromQueryAsync<Order>(
                 new QueryOperationConfig
                 {
-                    IndexName = "OrderPaymentIndex",
+                    IndexName = "OrderStripeIndex",
                     Select = SelectValues.AllProjectedAttributes,
                     KeyExpression = new Expression
                     {
                         ExpressionStatement = "#stripe = :v_stripe",
-                        ExpressionAttributeNames = new Dictionary<string, string> { { "#stripe", "PaymentIntentId" } },
+                        ExpressionAttributeNames = new Dictionary<string, string> { { "#stripe", "StripeCheckoutSession" } },
                         ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry>
-                            { { ":v_stripe", new Primitive { Value = paymentIntentId } } }
+                            { { ":v_stripe", new Primitive { Value = checkoutSessionId } } }
                     }
                 });
 
@@ -102,38 +99,40 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Failed to find order from paymentId.");
+            logger.LogError(e, "Failed to find order from stripe checkout id.");
             return null;
         }
     }
 
-    public async Task<bool> AddOrder(OrderInput nOrder)
+    public async Task<Guid?> AddOrder(OrderInput nOrder)
     {
         try
         {
-            if (await GetOrderFromPaymentId(nOrder.PaymentId) != null)
-                throw new Exception($"An order with paymentId={nOrder.PaymentId} already exists.");
+            if (nOrder.StripeCheckoutSession != null && await GetOrderFromStripe(nOrder.StripeCheckoutSession) != null)
+                throw new Exception($"An order with checkoutID={nOrder.StripeCheckoutSession} already exists.");
 
             var order = new Order
             {
                 Id = Guid.NewGuid(),
-                PaymentIntentId = nOrder.PaymentId,
+                StripeCheckoutSession = nOrder.StripeCheckoutSession,
                 CustomerId = nOrder.CustomerId,
                 DeliveryLabelUid = nOrder.DeliveryLabel,
                 TrackingNumber = nOrder.Tracking,
-                PackageReference = nOrder.PackageRef
+                PackageReference = nOrder.PackageRef,
+                CustomerAddress = nOrder.CustomerAddress,
+                OrderStatus = nOrder.OrderStatus,
+                CreatedAt = DateTime.UtcNow
             };
 
             await dbContext.SaveAsync(order);
             logger.LogInformation("Order added");
+            return order.Id;
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to add order to database");
-            return false;
+            return null;
         }
-
-        return true;
     }
 
     public async Task<bool> UpdateOrder(Order? order)
@@ -175,8 +174,8 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
 
         if (result) logger.LogInformation("Order successfully deleted");
         return result;
-    } 
-    
+    }
+
 //
 // CUSTOMER METHODS
 // 
@@ -283,47 +282,23 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
     }
 
-    public async Task<Customer?> GetCustomerFromCookie(HttpRequest request, string secretKey)
-    {
-        if (!request.Cookies.TryGetValue("CustomerId", out var customerIdString) ||
-            !request.Cookies.TryGetValue("CustomerHash", out var customerHash))
-        {
-            return null;
-        }
-
-        if (!Guid.TryParse(customerIdString, out var customerId))
-        {
-            return null;
-        }
-
-        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
-        var customerIdBytes = Encoding.UTF8.GetBytes(customerId.ToString());
-        var hash = hmac.ComputeHash(customerIdBytes);
-        var hashString = Convert.ToBase64String(hash);
-
-        if (hashString != customerHash)
-        {
-            return null;
-        }
-
-        return await GetCustomer(customerId);
-    }
-
     public async Task<Customer?> ValidLogin(string email, string password)
     {
         var customer = await GetCustomerFromEmail(email);
         var pwHasher = new PasswordHasher<Customer>();
-        
-        if (customer == null || pwHasher.VerifyHashedPassword(customer, customer.Password, password) == PasswordVerificationResult.Failed)
+
+        if (customer == null || pwHasher.VerifyHashedPassword(customer, customer.Password, password) ==
+            PasswordVerificationResult.Failed)
             return null;
-        
+
         return customer;
     }
 
     public async Task<IEnumerable<Order>?> GetCustomerOrders(Guid id)
     {
         try
-        {   // GSI's are not always consistent all the time. We should be careful how we use results returned from GSI queries.
+        {
+            // GSI's are not always consistent all the time. We should be careful how we use results returned from GSI queries.
             var orderSearch = dbContext.FromQueryAsync<Order>(
                 new QueryOperationConfig
                 {
@@ -422,7 +397,97 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
             result = false;
         }
 
-        if (result) logger.LogInformation("Book successfully deleted");
+        if (result) logger.LogInformation("Customer successfully deleted");
+        return result;
+    }
+
+//
+// CUSTOMER ADDRESS METHODS
+//
+    public async Task<Address?> GetCustomerAddress(Guid customerId, string addressName)
+    {
+        try
+        {
+            return await dbContext.LoadAsync<Address>(customerId, addressName);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to find address in database.");
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<Address>> GetCustomerAddresses(Guid customerId)
+    {
+        var addresses = new List<Address>();
+        try
+        {
+            var addressQuery = dbContext.QueryAsync<Address>(customerId);
+            do
+            {
+                addresses.AddRange(await addressQuery.GetNextSetAsync());
+            } while (!addressQuery.IsDone);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to get customer addresses.");
+            return new List<Address>();
+        }
+
+        return addresses;
+    }
+
+    public async Task<bool> AddCustomerAddress(Address address)
+    {
+        try
+        {
+            await dbContext.SaveAsync(address);
+            logger.LogInformation("Address added to database.");
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to add address to database.");
+            return false;
+        }
+
+        return true;
+    }
+
+    public async Task<bool> UpdateCustomerAddress(Address? address)
+    {
+        if (address == null) return false;
+
+        try
+        {
+            await dbContext.SaveAsync(address);
+            logger.LogInformation("Address was updated");
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to update address");
+            return false;
+        }
+
+        return true;
+    }
+
+    public async Task<bool> DeleteCustomerAddress(Address address)
+    {
+        bool result;
+
+        try
+        {
+            await dbContext.DeleteAsync(address);
+            // Check for delete success
+            var ghost = await dbContext.LoadAsync(address, new DynamoDBOperationConfig { ConsistentRead = true });
+            result = ghost == null;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to delete address");
+            result = false;
+        }
+
         return result;
     }
 
@@ -502,7 +567,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
     }
 
-    public async Task<bool> AddStock(StockInput nStock)
+    public async Task<Guid?> AddStock(StockInput nStock)
     {
         try
         {
@@ -520,25 +585,27 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
                 StripeId = nStock.StripeId,
                 Name = nStock.Name,
                 TotalStock = nStock.TotalStock,
-                PhotoUri = nStock.PhotoUri
+                PhotoUri = nStock.PhotoUri,
+                Description = nStock.Description,
+                Price = nStock.Price,
+                DiscountPercentage = nStock.DiscountPercentage
             };
-            
+
             await dbContext.SaveAsync(stock);
             logger.LogInformation("Stock has been added");
+            return stock.Id;
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to add stock to database");
-            return false;
+            return null;
         }
-
-        return true;
     }
 
     public async Task<bool> UpdateStock(Stock? stock)
     {
         if (stock == null) return false;
-        
+
         try
         {
             await dbContext.SaveAsync(stock);

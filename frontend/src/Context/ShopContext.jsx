@@ -2,6 +2,12 @@ import React, { createContext, useState } from "react";
 export const ShopContext = createContext(null);
 const serverUri = "http://localhost:3000";
 
+const cleanProductName = (productName) => {
+    const supportedCharsRegex = /[^a-zA-Z0-9!,_.*'()\-]/g; // Match any character that is not in the supported set
+    const cleanedName = productName.replace(supportedCharsRegex, '-');
+    
+    return cleanedName;
+}
 const all_products = async ()=>{
     const response = await fetch(serverUri + "/api/shop/GetAllStock", {
         method: "GET",
@@ -11,7 +17,7 @@ const all_products = async ()=>{
     })
     const data = await response.json();
     const mappedProucts = data.map(product => {
-        let uriName = product.name.replace(/\s/g, '-');
+        let uriName = cleanProductName(product.name);
         let productUri = `${product.photoUri}${uriName}-${product.id}/`;
         
         let discountedPrice = Number(product.price) * (1 - (Number(product.discountPercentage)/100));
@@ -20,7 +26,7 @@ const all_products = async ()=>{
         return {
             id: product.id,
             name: product.name,
-            image: productUri + "1.jpeg",
+            image: productUri,
             old_price: product.price,
             
             // Ensures string displays in 4 digit 2dp format, rounded to nearest 5 cents. 
@@ -149,7 +155,7 @@ const ShopContextProvider = (props)=> {
         return totalAmount;
     };
     
-    const getTotalCartItems =() =>{
+    const getTotalCartItems = ()=>{
             let totalItem = 0;
             for(const item in cartItems)
             {
@@ -160,9 +166,54 @@ const ShopContextProvider = (props)=> {
             }
             return totalItem;
         };
+
+    // TODO add logic to check for customer login, if not logged in prompt them to login or go though guest checkout. This obviously neccecitates adding guest checkout logic too.
+    const proceedToCheckout = async ()=>{
+        console.log("Proceed to checkout activated");
+        if (!sessionStorage.getItem('Id')) {alert("Please login to proceed to checkout"); return}
+        
+        // First create orderJson object
+        const orderInput = {
+            PaymentId: "AfakePaymentId", // Pretty sure I can remove this value now, or replace it with some other logic at least.
+            CustomerId: sessionStorage.getItem('Id'),
+            CustomerAddress: "AFakeAdress", // Get this value from the 3rd party hosted checkout page.
+            OrderStatus: "Pending",
+            PaymentType: "Stripe" // TODO add support for other payment types on checkout page.
+        }
+        
+        // Then create list of stockRequest objects
+        const lineItems = [];
+        for (const key in cartItems) {
+            if (cartItems[key] > 0) {
+                lineItems.push({
+                    ProductId: key,
+                    Quantity: cartItems[key]
+                })}
+        }
+        
+        //Then send the data to the server,
+        const response = await fetch(serverUri + '/api/shop/ProcessCheckout', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "Order": orderInput,
+                "StockRequests": lineItems
+            }),
+        });
+        console.log("Winner winner chicken dinner");
+        //Await response and then redirect to the checkout page
+        if (!response.ok) { // Handle errors here, we expect a 303 redirect to the payment page on success.
+            console.error("Failed to process checkout", response.status, response.statusText);
+            return
+        }
+        const data = await response.json();
+        console.log("Success! Redirecting to checkout page.")
+        window.location.href = data.redirectUrl;
+    };
     
-    
-    const contextValue = {serverUri, checkLogin, logout, updateCart, getTotalCartItems, getTotalCartAmount, all_product,cartItems,addToCart,removeFromCart};
+    const contextValue = {serverUri, checkLogin, logout, updateCart, getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart, proceedToCheckout};
 
     return (
         <ShopContext.Provider value={contextValue}>

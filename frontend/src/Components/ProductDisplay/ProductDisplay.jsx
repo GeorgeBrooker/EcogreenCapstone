@@ -4,6 +4,8 @@ import { ShopContext } from "../../Context/ShopContext";
 import star_icon from '../Assets/star_icon.png'
 import star_dull_icon from '../Assets/star_dull_icon.png'
 
+/* TODO make photo carousel switchable, format images to be the correct aspect ratio, Only show photos in the product carosel that actually exist*/
+/* Could probably make the product display use the same carousel as the uploader react-responsive-carosel*/
 const ProductDisplay = (props) =>{
     const {product} = props;
     const {addToCart} = useContext(ShopContext);
@@ -11,13 +13,13 @@ const ProductDisplay = (props) =>{
         <div className="productdisplay">
             <div className="productdisplay-left">
                 <div className="productdisplay-img-list">
-                    <img src={product.image} alt=''/>
-                    <img src={product.image} alt=''/>
-                    <img src={product.image} alt=''/>
-                    <img src={product.image} alt=''/>
+                    <img src={product.image + "1.jpeg"} alt=''/>
+                    <img src={product.image + "2.jpeg"} alt=''/>
+                    <img src={product.image + "3.jpeg"} alt=''/>
+                    <img src={product.image + "4.jpeg"} alt=''/>
                 </div>
                 <div className="productdisplay-img">
-                    <img className='productdisplay-main-img' src={product.image} alt='' />
+                    <img className='productdisplay-main-img' src={product.image + "1.jpeg"} alt='' />
                 </div>
 
             </div>
@@ -41,7 +43,7 @@ const ProductDisplay = (props) =>{
                     </div>
                 </div>
                 <div className="productdisplay-right-description">
-                    this is a dummy product
+                    {product.description}
                 </div>
                 <button onClick={()=>{addToCart(product.id)}}>ADD TO CART</button>
 

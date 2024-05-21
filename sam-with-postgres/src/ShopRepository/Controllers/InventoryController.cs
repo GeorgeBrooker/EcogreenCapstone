@@ -2,23 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
+using ShopRepository.Helper;
 using ShopRepository.Models;
-using ShopRepository.Services;
 
 namespace ShopRepository.Controllers;
 
-[Route("api/shop")]
+[Route("api/inventory")]
 [Produces("application/json")]
-public class ShopController(IShopRepo repo, StripeService stripeService, IConfiguration config, ILogger<ShopController> logger) : ControllerBase
+public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader) : ControllerBase
 {
-    // TODO Move the majority of this logic outside the shop controller and into the inventory controller.
-    // TestUp
-    [HttpGet]
-    public ActionResult GetAlive()
-    {
-        return Ok("You are now listening to the shop controller");
-    }
-
 //
 // *CUSTOMER*
 //
@@ -131,7 +123,7 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
     }
 
     // POST
-    // TODO This will need to be modified to sync with stripe. We may want to call this internally from a different endpoint.
+    // This will need to be modified to sync with stripe. We may want to call this internally from a different endpoint.
     [HttpPost("AddOrder")]
     public async Task<ActionResult<OrderInput>> AddOrder([FromBody] OrderInput nOrder)
     {
@@ -157,8 +149,6 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         updated.DeliveryLabelUid = order.DeliveryLabel;
         updated.TrackingNumber = order.Tracking;
         updated.PackageReference = order.PackageRef;
-        updated.CustomerAddress = order.CustomerAddress;
-        updated.OrderStatus = order.OrderStatus;
 
         await repo.UpdateOrder(updated);
         return Ok();
@@ -222,9 +212,6 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         retrievedStock.StripeId = stock.StripeId;
         retrievedStock.TotalStock = stock.TotalStock;
         retrievedStock.PhotoUri = stock.PhotoUri;
-        retrievedStock.Description = stock.Description;
-        retrievedStock.Price = stock.Price;
-        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
 
         return Ok(await repo.UpdateStock(retrievedStock));
     }
@@ -239,9 +226,6 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         retrievedStock.StripeId = stock.StripeId;
         retrievedStock.TotalStock = stock.TotalStock;
         retrievedStock.PhotoUri = stock.PhotoUri;
-        retrievedStock.Description = stock.Description;
-        retrievedStock.Price = stock.Price;
-        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
 
         return Ok(await repo.UpdateStock(retrievedStock));
     }
@@ -325,116 +309,28 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         return Ok();
     }
 
-    //
-    // CUSTOMER ADDRESSES
-    //
-
-    // GET
-    [HttpGet("GetCustomerAddresses/{customerId:guid}")]
-    public async Task<ActionResult<IEnumerable<Address>>> GetCustomerAddresses(Guid customerId)
-    {
-        return Ok(await repo.GetCustomerAddresses(customerId));
-    }
-
-    [HttpGet("GetCustomerAddress/{customerId:guid}/{addressName}")]
-    public async Task<ActionResult<Address>> GetCustomerAddress(Guid customerId, string addressName)
-    {
-        return Ok(await repo.GetCustomerAddress(customerId, addressName));
-    }
-
-    // POST
-    [HttpPost("AddCustomerAddress")]
-    public async Task<ActionResult<bool>> AddCustomerAddress([FromBody] Address address)
-    {
-        var addressExists = await repo.GetCustomerAddress(address.CustomerId, address.AddressName);
-        if (addressExists != null) return BadRequest("Address already exists.");
-        return Ok(await repo.AddCustomerAddress(address));
-    }
-
-    // PUT
-    [HttpPut("UpdateCustomerAddress")]
-    public async Task<ActionResult<bool>> UpdateCustomerAddress([FromBody] AddressInput nAddress)
-    {
-        var address = await repo.GetCustomerAddress(nAddress.CustomerId, nAddress.AddressName);
-        if (address == null) return BadRequest("Address does not exist.");
-
-        // Map the input to the existing address
-        address.CustomerId = nAddress.CustomerId;
-        address.AddressName = nAddress.AddressName;
-        address.StreetNumber = nAddress.StreetNumber;
-        address.Street = nAddress.Street;
-        address.City = nAddress.City;
-        address.PostCode = nAddress.PostCode;
-        address.Country = nAddress.Country;
-        address.PhoneNumber = nAddress.PhoneNumber;
-        address.Email = nAddress.Email;
-
-        return Ok(await repo.UpdateCustomerAddress(address));
-    }
-
-    // DELETE
-    [HttpDelete("DeleteCustomerAddress/{customerId:guid}/{addressName}")]
-    public async Task<ActionResult<bool>> DeleteCustomerAddress(Guid customerId, string addressName)
-    {
-        var address = await repo.GetCustomerAddress(customerId, addressName);
-        if (address == null) return BadRequest("Address does not exist.");
-
-        return Ok(await repo.DeleteCustomerAddress(address));
-    }
 //
-// Order processing
+// STOCK PHOTOS
 //
-
-    [HttpPost("ProcessCheckout")]
-    public async Task<ActionResult> ProcessCheckout([FromBody] CheckoutSessionInput checkoutSession)
+    [HttpPost("UploadPhotos/{stockId:guid}")]
+    public async Task<ActionResult<bool>> UploadPhotos(Guid stockId)
     {
-        // Get the redirect URL from the config, get the order and stock requests from the checkout session.
-        var redirectUrl = config["Payment:RedirectUrl"] ?? throw new InvalidOperationException("Config has no payment redirect URL");
-        var order = checkoutSession.Order;
-        var stockRequests = checkoutSession.StockRequests;
-        
-        // Add order and stock requests to the local database
-        var orderId = await repo.AddOrder(order);
-        if (orderId == null) return BadRequest("Failed to add order to the DB");
-        
-        foreach (var requestInput in stockRequests)
-        {
-            var stockRequest = new StockRequest
-            {
-                OrderId = (Guid)orderId,
-                ProductId = requestInput.ProductId,
-                Quantity = requestInput.Quantity
-            };
-            var stockRequestResult = await repo.AddStockRequest(stockRequest);
-            if (!stockRequestResult) return BadRequest($"Failed to add stock request to DB for product {requestInput.ProductId}");
-        }
-        
-        // Call relevant payment service based on order payment method
-        return order.PaymentType switch
-        {
-            PaymentProcessor.Stripe => await ProcessStripeOrder((Guid)orderId, redirectUrl),
-            PaymentProcessor.Paypal => BadRequest("Paypal payment processing not yet implemented"),
-            _ => BadRequest($"Order cannot be processed [Malformed PaymentType: {order.PaymentType}]")
-        };
-    }
-    
-    private async Task<ActionResult> ProcessStripeOrder(Guid orderId, string redirectUrl)
-    {
-        logger.LogInformation("ShopController is processing a stripe order. Creating checkout session...");
-        try
-        {
-            var checkoutSession = await stripeService.CreateCheckoutSession(orderId, redirectUrl);
-            if (!checkoutSession.Item1) throw new Exception($"Failed to create checkout session: {checkoutSession.Item2}");
+        var form = Request.Form;
+        var files = Request.Form.Keys;
+        var images = new byte[files.Count][];
 
-            logger.LogInformation($"Creation complete...Redirecting to checkout session");
-            
-            return Ok(new {redirectUrl = checkoutSession.Item2}); // Not using a native redirect here as it freaks out the frontend CORS.
-        }
-        catch (Exception e)
+        var i = 0;
+        foreach (var key in files)
         {
-            logger.LogError("Error processing stripe order");
-            return BadRequest(e.Message);
+            images[i] = Convert.FromBase64String(form[key]!);
+            i++;
         }
+
+        var result = await stockUploader.UploadImages(images, stockId);
+
+        if (result)
+            return Ok();
+
+        return BadRequest("Image upload failed");
     }
-    // TODO add method for processing paypal orders
 }

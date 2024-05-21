@@ -16,6 +16,10 @@ const LoginSignup = () => {
         email: ""
     });
     const [agreedToTerms, setAgreedToTerms] = useState(false); // Track whether the terms checkbox is checked
+    // Manage verification code input 
+    const [showVerification, setShowVerification] = useState(false); // Track whether the verification code input should be shown
+    const [verificationCode, setVerificationCode] = useState(""); // Track the verification code for sign up
+    const [verificationError, setVerificationError] = useState(""); // Track any errors with the verification code 
 
     const changeHandler = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,7 +47,10 @@ const LoginSignup = () => {
     };
 
     const login = async () => {
-        let token = localStorage.getItem('auth-token');
+        let token = localStorage.getItem('id-token');
+        let access_token = localStorage.getItem('auth-token');
+        let refresh_token = localStorage.getItem('refresh-token');
+        
         let customerInput = {
             "Fname": "None",
             "Lname": "None",
@@ -52,7 +59,7 @@ const LoginSignup = () => {
         };
         
         // Get token if no token is stored
-        if(!token) {
+        if(!access_token || !refresh_token || !token) {
             const response = await fetch(serverUri + '/api/auth/CustomerLogin', {
                 method: "POST",
                 headers: {
@@ -63,9 +70,14 @@ const LoginSignup = () => {
             if (response.ok) {
                 const data = await response.json();
                 token = data.token;
+                access_token = data.accessToken;
+                refresh_token = data.refreshToken;
                 
-                localStorage.setItem('auth-token', token);
-                console.log("Got login token: ", token);
+                localStorage.setItem('id-token', token);
+                localStorage.setItem('auth-token', access_token);
+                localStorage.setItem('refresh-token', refresh_token);
+                
+                console.log("Got login tokens:\n", token, "\n\n", access_token, "\n\n", refresh_token);
             }
         }
         
@@ -73,12 +85,14 @@ const LoginSignup = () => {
         const response = await fetch(serverUri + '/api/auth/ValidateCustomer', {
             method: "GET",
             headers: {
-                'Authorization': 'Bearer ' + token,
+                'Authorization': 'Bearer ' + btoa(localStorage.getItem('auth-token') + ':' + localStorage.getItem('refresh-token')),
             },
         });
         if (!response.ok) {
             console.error("Login failed for user with email: ", formData.email, " and password: ", formData.password);
             localStorage.removeItem('auth-token');
+            localStorage.removeItem('refresh-token');
+            localStorage.removeItem('id-token');
             alert("Login failed");
             return
         }
@@ -114,7 +128,7 @@ const LoginSignup = () => {
             "Pass": formData.password
         };
         
-        const response = await fetch(serverUri + '/api/shop/AddCustomer', {
+        const response = await fetch(serverUri + '/api/auth/RegisterCustomer', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -123,25 +137,75 @@ const LoginSignup = () => {
         });
         if (response.ok) {
             // Signup successful, clear any existing auth token and log the user in.
-            console.log("Signup successful, logging user in now");
+            console.log("Signup successful");
+            localStorage.removeItem("auth-token");
+            localStorage.removeItem("refresh-token");
+            console.log("Checking email confirmation");
             
-            localStorage.removeItem('auth-token');
-            await login();
+            const userConfirmed = await response.json().then(data => data.confirmed);
+            if (userConfirmed) {
+                console.log("User confirmed, logging in")
+                await login();
+            }
+            // If the user is not confirmed, show the verification code input
+            else {
+                console.log("User not confirmed, showing verification code input");
+                setShowVerification(true);
+            }
+            
         }else{
             console.error("Signup failed");
             alert("Signup failed");
         }
     };
+    
+    const handleUserVerification = async () => {
+        console.log("Handling user verification");
+        const response = await fetch(serverUri + '/api/auth/ConfirmCustomer', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "Email": formData.email,
+                "Code": verificationCode
+            }),
+        });
+        if (response.ok) {
+            console.log("User verified, logging in");
+            await login();
+        }else{
+            console.error("User verification failed");
+            setVerificationError(`Verification code is incorrect ${response.statusText}`);
+        }
+    }
+    const handleCancelUserVerification = () => {
+        console.log("Verification cancelled");
+        setShowVerification(false);
+    }
 
     return (
         <div className="loginsignup">
+            {showVerification && (
+                <div className="verification-box">
+                    <div className="verification-box-inner">
+                        <h1>Verify Your Email</h1>
+                        <p>We have sent a 6 digit verification code to your email.<br/><br/> Please enter it below:</p>
+                        <input type="text" value={verificationCode}
+                               onChange={(e) => setVerificationCode(e.target.value)}/>
+                        {verificationError && <p className="error">{verificationError}</p>}
+                        <button className="handleVerification" onClick={handleUserVerification}>Confirm</button>
+                        <button className="cancelVerification" onClick={handleCancelUserVerification}>Cancel</button>
+                    </div>
+                </div>
+            )}
             <div className="loginsignup-container">
                 <h1>{state}</h1>
                 <div className="loginsignup-fields">
                     {state === "Sign Up" &&
                         <>
                             <input name="firstName" value={formData.firstName} onChange={changeHandler} type="text"
-                                placeholder="First name" />
+                                   placeholder="First name"/>
                             <input name="lastName" value={formData.lastName} onChange={changeHandler} type="text"
                                 placeholder="Last name" />
                         </>

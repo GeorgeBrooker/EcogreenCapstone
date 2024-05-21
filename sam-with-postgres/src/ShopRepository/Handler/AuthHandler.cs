@@ -1,13 +1,10 @@
-using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-
-
+using ShopRepository.Services;
 
 namespace ShopRepository.Handler;
 
@@ -15,74 +12,61 @@ public class AuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    TimeProvider time,
-    IConfiguration config)
+    TimeProvider clock,
+    CognitoService cognitoService)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    private readonly TimeProvider _time = time;
-    private readonly ILogger _logger = logger.CreateLogger<AuthHandler>();
-    
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (config["Environment"] == "local") //Access-Control-Allow-Origin headers are only set in local environment
+        var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+        string? accessToken = null;
+        string? refreshToken = null;
+
+        // Extract the access and refresh tokens from the Authorization header
+        if (authHeader != null)
         {
-            Console.WriteLine("Running Locally");
-            Response.Headers.AccessControlAllowOrigin = "*";
-        }
-        
-        // Check for authorization header & token
-        var parseSuccess = AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out var authHeader);
-        if (!parseSuccess || string.IsNullOrEmpty(authHeader!.Parameter))
-        {
-            Response.Headers.WWWAuthenticate = "Bearer";
-            return Task.FromResult(AuthenticateResult.Fail("Authorization header not found"));
-        }
-        var token = authHeader.Parameter;
-        
-        // set up handler and validation parameters
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidIssuer = config["Jwt:Issuer"],
-            ValidAudience = config["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
-        };
-        
-        // Attempt to validate token
-        try
-        {
-            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
-            if (principal == null)
-                return Task.FromResult(AuthenticateResult.Fail("Invalid login token"));
-            
-            // Add Customer claim to claimsPrincipal if token has type "Customer
-            var jwtToken = validatedToken as JwtSecurityToken;
-            var typeClaim = jwtToken?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Typ);
-            if (typeClaim != null && principal.Identity is ClaimsIdentity)
+            var parts = authHeader.Split(' ');
+            if (parts.Length == 2 && parts[0] == "Bearer")
             {
-                var claimsIdentity = (ClaimsIdentity)principal.Identity;
-                // Check if the claim already exists
-                if (!claimsIdentity.HasClaim(c => c.Type == typeClaim.Type && c.Value == typeClaim.Value))
+                var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]));
+                var tokens = decoded.Split(':');
+                if (tokens.Length == 2)
                 {
-                    var claims = new List<Claim>(claimsIdentity.Claims) { typeClaim };
-                    var identity = new ClaimsIdentity(claims, Scheme.Name);
-                    principal = new ClaimsPrincipal(identity);
+                    accessToken = tokens[0];
+                    refreshToken = tokens[1];
                 }
             }
-            var ticket = new AuthenticationTicket(principal, Scheme.Name);
-            return Task.FromResult(AuthenticateResult.Success(ticket));
         }
-        catch (SecurityTokenExpiredException)
+
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            return AuthenticateResult.Fail("Invalid token");
+
+        // Validate the access token
+        var isValid = await cognitoService.ValidateToken(accessToken);
+        if (!isValid)
         {
-            return Task.FromResult(AuthenticateResult.Fail("Expired Token"));
+            // If the token is not valid, try to refresh it
+            var newAccessToken = await cognitoService.RefreshSession(refreshToken);
+            if (string.IsNullOrEmpty(newAccessToken)) return AuthenticateResult.Fail("Invalid token");
+
+            accessToken = newAccessToken;
         }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Authentication failed.");
-            return Task.FromResult(AuthenticateResult.Fail("Authentication failed."));
-        }
+
+        // Create the claims and principal
+        var claims = GetTokenClaims(accessToken);
+        var identity = new ClaimsIdentity(claims, Scheme.Name) { BootstrapContext = accessToken };
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, Scheme.Name);
+
+        return AuthenticateResult.Success(ticket);
+    }
+
+    private IEnumerable<Claim> GetTokenClaims(string accessToken)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.ReadToken(accessToken) as JwtSecurityToken;
+        var tokenClaims = token.Claims.ToList();
+
+        return tokenClaims;
     }
 }

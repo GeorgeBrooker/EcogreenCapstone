@@ -10,21 +10,22 @@ public interface IShopRepo
 {
     // Orders
     Task<Order?> GetOrder(Guid id);
-    Task<Order?> GetOrderFromPaymentId(string paymentIntentId);
+    Task<Order?> GetOrderFromStripe(string checkoutSessionId);
     Task<IEnumerable<Order>> GetAllOrders(int limit);
     Task<IEnumerable<StockRequest>> GetOrderStock(Guid orderId);
-    Task<bool> AddOrder(OrderInput order);
+    Task<Guid?> AddOrder(OrderInput order);
     Task<bool> UpdateOrder(Order order);
     Task<bool> DeleteOrder(Guid id);
 
     // Customers
     Task<Customer?> GetCustomerFromStripe(string customerId);
     Task<Customer?> GetCustomer(Guid id);
+
     Task<Customer?> GetCustomerFromEmail(string email);
+
     // Secret key is used to sign the cookie.
     // It should be a secret string that is not stored in the database or hard coded.
     // We will store this in AWS secrets manager during deployment.
-    Task<Customer?> GetCustomerFromCookie(HttpRequest request, string secretKey);
     Task<Customer?> ValidLogin(string email, string password);
     Task<IEnumerable<Order>?> GetCustomerOrders(Guid id);
     Task<IEnumerable<Customer>> GetAllCustomers(int limit);
@@ -32,11 +33,18 @@ public interface IShopRepo
     Task<bool> UpdateCustomer(Customer customer);
     Task<bool> DeleteCustomer(Guid customerId);
 
+    // Customer Addresses
+    Task<Address?> GetCustomerAddress(Guid customerId, string addressName);
+    Task<IEnumerable<Address>> GetCustomerAddresses(Guid customerId);
+    Task<bool> AddCustomerAddress(Address address);
+    Task<bool> UpdateCustomerAddress(Address address);
+    Task<bool> DeleteCustomerAddress(Address address);
+
     // Stock
     Task<Stock?> GetStockFromStripe(string stockId);
     Task<Stock?> GetStock(Guid id);
     Task<IEnumerable<Stock>> GetAllStock(int limit);
-    Task<bool> AddStock(StockInput stock);
+    Task<Guid?> AddStock(StockInput stock);
     Task<bool> UpdateStock(Stock? stock);
     Task<bool> DeleteStock(Guid id);
 
@@ -47,5 +55,4 @@ public interface IShopRepo
     Task<bool> AddStockRequest(StockRequest stock);
     Task<bool> UpdateStockRequest(StockRequest stock);
     Task<bool> DeleteStockRequest(StockRequest stock);
-    
 }
