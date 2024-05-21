@@ -4,7 +4,7 @@ namespace ShopRepository.Dtos;
 
 public class OrderInput
 {
-    public string PaymentId { get; set; }
+    public string? StripeCheckoutSession { get; set; }
     public Guid CustomerId { get; set; }
     public string CustomerAddress { get; set; }
     public string OrderStatus { get; set; } = "Pending";

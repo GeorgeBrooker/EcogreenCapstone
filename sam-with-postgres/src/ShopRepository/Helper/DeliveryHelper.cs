@@ -23,11 +23,11 @@ public static class DeliveryHelper
 
         // Use NZ Post API to generate a delivery label
         var deliveryLabel =
-            await _nzPostService.GenerateDeliveryLabelAsync(orderInput.PaymentId, orderInput.CustomerId.ToString());
+            await _nzPostService.GenerateDeliveryLabelAsync(orderInput.StripeCheckoutSession, orderInput.CustomerId.ToString());
 
         // Save delivery label to Order in DynamoDB
-        var order = await dbContext.LoadAsync<Order>(new Guid(orderInput.PaymentId));
-        if (order == null) throw new Exception($"Order with PaymentIntentId {orderInput.PaymentId} not found");
+        var order = await dbContext.LoadAsync<Order>(new Guid(orderInput.StripeCheckoutSession));
+        if (order == null) throw new Exception($"Order with PaymentIntentId {orderInput.StripeCheckoutSession} not found");
 
         order.DeliveryLabelUid = deliveryLabel;
         await dbContext.SaveAsync(order);

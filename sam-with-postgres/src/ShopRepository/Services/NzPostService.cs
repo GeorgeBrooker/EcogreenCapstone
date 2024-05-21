@@ -19,11 +19,12 @@ public class NzPostService
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
-    public async Task<string> GenerateDeliveryLabelAsync(string paymentId, string customerId)
+    // TODO review this works, the schema of orders has changed since this was written
+    public async Task<string> GenerateDeliveryLabelAsync(string checkoutSession, string customerId)
     {
         var request = new
         {
-            payment_id = paymentId,
+            checkout_session = checkoutSession,
             customer_id = customerId
         };
 

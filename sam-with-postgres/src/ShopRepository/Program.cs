@@ -21,12 +21,20 @@ builder.Logging
     .ClearProviders()
     .AddJsonConsole();
 
+// Load config from AWS Secrets Manager
+var secretClient = new AmazonSecretsManagerClient(RegionEndpoint.APSoutheast2);
+var secretValue = secretClient.GetSecretValueAsync(new GetSecretValueRequest { SecretId = "KashishWebAppConfigSecrets" }).Result.SecretString;
+if (secretValue != null)
+{
+    var secretJson = JsonSerializer.Deserialize<Dictionary<string, string>>(secretValue);
+    foreach (var kvp in secretJson!) builder.Configuration[kvp.Key] = kvp.Value;
+}
+
 // Local dev env config
 var local = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true";
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
 var dynamoConfig = new AmazonDynamoDBConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(region) };
 AmazonDynamoDBClient client;
-
 if (local)
 {
     Console.WriteLine("\nRUNNING WITH LOCAL DYNAMODB IN TEST MODE!\n");
@@ -34,47 +42,12 @@ if (local)
     dynamoConfig.AuthenticationRegion = "ap-southeast-2";
     var creds = new SessionAWSCredentials("fake", "key", "fake");
     client = new AmazonDynamoDBClient(creds, dynamoConfig);
-
-    // List of SAFE local secret examples. These are not sensitive and can be stored in the code.
-    var localSecrets = new Dictionary<string, string>
-    {
-        // Cognito details
-        { "Cognito:UserPoolId", "ap-southeast-2_RXmB1ATp1" },
-        { "Cognito:ClientId", "d06f48kk6k9kcp491mlkskkta" },
-        { "Cognito:Region", "ap-southeast-2" },
-        { "Cognito:ClientSecret", "189anlvjvs2hrjeantnv5dbiol5upt456n3toes8mv7lcu00andv" },
-
-        // Stripe details
-        { "Stripe:SecretKey", "sk_test_51P8grSEvcprk3hy6Npdx7cFlHVlY0fcPofWOTBBJVCj1ZUgmIU4p3paiOaUGyKUwqNoXOb95lJf6yJ8i0v86WQC700pFzxXcsZ" },
-        { "Stripe:PublishableKey", "pk_test_51P8grSEvcprk3hy6DsDZn4SPGvXabj0zqVSuNI23KXCqiQ6iltyQ09gLkD2bV5DXs72H8IyrwunHhcLzlAzM4XuN005qDYcTBS" },
-        
-        // Payment redirect URL (should redirect to a paymentpage that takes a success and canceled query param)
-        { "Payment:RedirectUrl", "http://localhost:4000" },
-
-        // S3 bucket
-        { "StockUploadBucket", "kashish-web-asset-bucket" },
-
-        // Environment
-        { "Environment", "local" }
-    };
-    foreach (var kvp in localSecrets) builder.Configuration[kvp.Key] = kvp.Value;
+    
+    builder.Configuration["Environment"] = "local";
 }
 else
-{
     client = new AmazonDynamoDBClient(dynamoConfig);
-    // Use secrets manager to get the API keys and other sensitive config data.
-    // We will have one secret containing all keys as KVPs for this app.
-    var secrets = new AmazonSecretsManagerClient(RegionEndpoint.APSoutheast2);
-    var response =
-        await secrets.GetSecretValueAsync(new GetSecretValueRequest { SecretId = "KashishWebbAppSecretARN" });
-    var secretValue = response.SecretString;
-    if (secretValue != null)
-    {
-        // Parse the secret value as JSON and add it to the configuration
-        var secretJson = JsonSerializer.Deserialize<Dictionary<string, string>>(secretValue);
-        foreach (var kvp in secretJson!) builder.Configuration[kvp.Key] = kvp.Value;
-    }
-}
+
 
 // Add AWS services to dependency injection
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
@@ -95,17 +68,16 @@ builder.Services.AddAuthorizationBuilder()
                 Console.WriteLine("\n\nMade it to the policy!\n\n");
                 Console.WriteLine(groups.Contains("Customers"));
 
-                return groups != null && (groups.Contains("Customers") || groups.Contains("Administrators"));
+                return groups.Contains("Customers") || groups.Contains("Administrators");
             }
         ));
 
-// Add services to the container.
+// Add controllers to the container.
 builder.Services
     .AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
-
-// Add DynamoDB Context and Repositories
+// Add Services
 builder.Services
     .AddSingleton<IAmazonDynamoDB>(client)
     .AddScoped<IDynamoDBContext, DynamoDBContext>()

@@ -10,7 +10,7 @@ public interface IShopRepo
 {
     // Orders
     Task<Order?> GetOrder(Guid id);
-    Task<Order?> GetOrderFromPaymentId(string paymentIntentId);
+    Task<Order?> GetOrderFromStripe(string checkoutSessionId);
     Task<IEnumerable<Order>> GetAllOrders(int limit);
     Task<IEnumerable<StockRequest>> GetOrderStock(Guid orderId);
     Task<Guid?> AddOrder(OrderInput order);

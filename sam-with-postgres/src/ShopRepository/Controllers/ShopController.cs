@@ -118,10 +118,10 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         return Ok(await repo.GetOrder(id));
     }
 
-    [HttpGet("GetOrderByPaymentId/{id}")]
+    [HttpGet("GetOrderByStripeCheckout/{id}")]
     public async Task<ActionResult<Order>> GetOrderByPaymentId(string id)
     {
-        return Ok(await repo.GetOrderFromPaymentId(id));
+        return Ok(await repo.GetOrderFromStripe(id));
     }
 
     [HttpGet("GetOrderStock/{id:guid}")]
@@ -152,7 +152,7 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         var updated = await repo.GetOrder(id);
         if (updated == null) throw new Exception($"Could not find existing order with id={id}. Update canceled.");
 
-        updated.PaymentIntentId = order.PaymentId;
+        updated.StripeCheckoutSession = order.StripeCheckoutSession;
         updated.CustomerId = order.CustomerId;
         updated.DeliveryLabelUid = order.DeliveryLabel;
         updated.TrackingNumber = order.Tracking;

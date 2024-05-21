@@ -76,21 +76,21 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
     }
 
-    public async Task<Order?> GetOrderFromPaymentId(string paymentIntentId)
+    public async Task<Order?> GetOrderFromStripe(string checkoutSessionId)
     {
         try
         {
             var paymentIdSearch = dbContext.FromQueryAsync<Order>(
                 new QueryOperationConfig
                 {
-                    IndexName = "OrderPaymentIndex",
+                    IndexName = "OrderStripeIndex",
                     Select = SelectValues.AllProjectedAttributes,
                     KeyExpression = new Expression
                     {
                         ExpressionStatement = "#stripe = :v_stripe",
-                        ExpressionAttributeNames = new Dictionary<string, string> { { "#stripe", "PaymentIntentId" } },
+                        ExpressionAttributeNames = new Dictionary<string, string> { { "#stripe", "StripeCheckoutSession" } },
                         ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry>
-                            { { ":v_stripe", new Primitive { Value = paymentIntentId } } }
+                            { { ":v_stripe", new Primitive { Value = checkoutSessionId } } }
                     }
                 });
 
@@ -99,7 +99,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Failed to find order from paymentId.");
+            logger.LogError(e, "Failed to find order from stripe checkout id.");
             return null;
         }
     }
@@ -108,13 +108,13 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
     {
         try
         {
-            if (await GetOrderFromPaymentId(nOrder.PaymentId) != null)
-                throw new Exception($"An order with paymentId={nOrder.PaymentId} already exists.");
+            if (nOrder.StripeCheckoutSession != null && await GetOrderFromStripe(nOrder.StripeCheckoutSession) != null)
+                throw new Exception($"An order with checkoutID={nOrder.StripeCheckoutSession} already exists.");
 
             var order = new Order
             {
                 Id = Guid.NewGuid(),
-                PaymentIntentId = nOrder.PaymentId,
+                StripeCheckoutSession = nOrder.StripeCheckoutSession,
                 CustomerId = nOrder.CustomerId,
                 DeliveryLabelUid = nOrder.DeliveryLabel,
                 TrackingNumber = nOrder.Tracking,
