@@ -78,6 +78,16 @@ const LoginSignup = () => {
                 localStorage.setItem('refresh-token', refresh_token);
                 
                 console.log("Got login tokens:\n", token, "\n\n", access_token, "\n\n", refresh_token);
+                
+            }
+            else if (response.status === 401) {
+                alert("Login failed: Incorrect email or password");
+                return
+            }
+            else {
+                console.error("Login failed for user with email: ", formData.email, " and password: ", formData.password);
+                alert("Login failed for an unknown reason");
+                return
             }
         }
         
