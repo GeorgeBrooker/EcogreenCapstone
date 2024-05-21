@@ -10,13 +10,13 @@ const Footer = () => {
                 <img src={footer_logo} alt="" />
                 <p>Ecogreen</p>
             </div>
-            <ul className="footer-links">
-                <li>Company</li>
-                <li>Products</li>
-                <li>Location</li>
-                <li>About</li>
-                <li>Contact</li>
-            </ul>
+            <div className="bottom-bar">
+                <div className="bottom-bar-content">
+                    <p>Address: 21A, Margate Road, Blockhouse Bay, Auckland 0600, New Zealand</p>
+                    <p>Mobile/WhatsApp: +64 22 648 2838</p>
+                    <p>Email: uttam@kashish.co.nz</p>
+                </div>
+            </div>
             <div className="footer-social-icon">
                 <div className="footer-icons-container">
                     <img src={instagram_icon} alt="" />
