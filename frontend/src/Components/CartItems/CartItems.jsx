@@ -5,8 +5,9 @@ import { ShopContext } from "../../Context/ShopContext";
 // import add_icon from '../Assets/add_icon.png';
 import QuantityStepper from "../QuantityStepper/QuantityStepper";
 
+//TODO move this kind of logic into the main Cart component this is just for testing
 const CartItems =()=>{
-    const {getTotalCartAmount, all_product, cartItems, removeFromCart,addToCart} = useContext(ShopContext)
+    const {getTotalCartAmount, all_product, cartItems, removeFromCart,addToCart, proceedToCheckout} = useContext(ShopContext)
     // const handleChange = (e, productId) => {
     //     const newValue = e.target.value;
     //     if (newValue === '' || isNaN(newValue)) {
@@ -34,7 +35,7 @@ const CartItems =()=>{
                 {
                     return <div key={e.id}>
                                 <div className="cartitems-format cartitems-format-main">
-                                    <img src={e.image} alt="" className="carticon-product-icon" />
+                                    <img src={e.image + "1.jpeg"} alt="" className="carticon-product-icon" />
                                     <p>{e.name}</p>
                                     <p>{e.new_price}</p>
                                     <div className="quantity-control">
@@ -74,7 +75,7 @@ const CartItems =()=>{
                             <h3>${getTotalCartAmount()}</h3>
                         </div>
                     </div>
-                    <button className="proceed-button">PROCEED TO CHECKOUT</button>
+                    <button className="proceed-button" onClick={proceedToCheckout}>PROCEED TO CHECKOUT</button>
                 </div>
                 <div className="cartitems-promocode">
                     <p>If you have a promo code, enter it here</p>

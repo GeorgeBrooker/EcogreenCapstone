@@ -14,7 +14,7 @@ const DescriptionBox = (productInput) => {
                     {product.description}
                 </p>
             </div>
-            <div className="descriptionbox-review" hidden="true">
+            <div className="descriptionbox-review" hidden={true}>
                 <p>Placeholder</p>
             </div>
         </div>

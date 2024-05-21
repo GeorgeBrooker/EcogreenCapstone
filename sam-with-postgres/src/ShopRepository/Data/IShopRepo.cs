@@ -13,7 +13,7 @@ public interface IShopRepo
     Task<Order?> GetOrderFromPaymentId(string paymentIntentId);
     Task<IEnumerable<Order>> GetAllOrders(int limit);
     Task<IEnumerable<StockRequest>> GetOrderStock(Guid orderId);
-    Task<bool> AddOrder(OrderInput order);
+    Task<Guid?> AddOrder(OrderInput order);
     Task<bool> UpdateOrder(Order order);
     Task<bool> DeleteOrder(Guid id);
 

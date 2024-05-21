@@ -43,8 +43,7 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
         var cognitoUser = await cognito.GetUser(userSubClaim, accessToken);
         if (cognitoUser == null) return Unauthorized("Cannot find user in cognito pool");
         if (!cognitoUser.Attributes.TryGetValue("email", out var email)) return Unauthorized("Malformed user");
-
-        // TODO GET CUSTOMER FROM REPO
+        
         var customer = await repo.GetCustomerFromEmail(email);
         if (customer == null) return Unauthorized("User not found in database");
 

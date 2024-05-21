@@ -127,7 +127,7 @@ public class InventoryController(IShopRepo repo, StockUploadHelper stockUploader
     [HttpPost("AddOrder")]
     public async Task<ActionResult<OrderInput>> AddOrder([FromBody] OrderInput nOrder)
     {
-        if (await repo.AddOrder(nOrder))
+        if (await repo.AddOrder(nOrder) != null)
             return Ok(nOrder);
 
         return BadRequest();

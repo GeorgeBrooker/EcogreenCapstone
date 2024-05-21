@@ -104,7 +104,7 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
     }
 
-    public async Task<bool> AddOrder(OrderInput nOrder)
+    public async Task<Guid?> AddOrder(OrderInput nOrder)
     {
         try
         {
@@ -126,14 +126,13 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
 
             await dbContext.SaveAsync(order);
             logger.LogInformation("Order added");
+            return order.Id;
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to add order to database");
-            return false;
+            return null;
         }
-
-        return true;
     }
 
     public async Task<bool> UpdateOrder(Order? order)

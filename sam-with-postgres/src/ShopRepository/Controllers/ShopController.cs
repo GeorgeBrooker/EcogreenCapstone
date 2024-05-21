@@ -3,13 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
 using ShopRepository.Models;
+using ShopRepository.Services;
 
 namespace ShopRepository.Controllers;
 
 [Route("api/shop")]
 [Produces("application/json")]
-public class ShopController(IShopRepo repo) : ControllerBase
+public class ShopController(IShopRepo repo, StripeService stripeService, IConfiguration config, ILogger<ShopController> logger) : ControllerBase
 {
+    // TODO Move the majority of this logic outside the shop controller and into the inventory controller.
     // TestUp
     [HttpGet]
     public ActionResult GetAlive()
@@ -129,11 +131,11 @@ public class ShopController(IShopRepo repo) : ControllerBase
     }
 
     // POST
-    // This will need to be modified to sync with stripe. We may want to call this internally from a different endpoint.
+    // TODO This will need to be modified to sync with stripe. We may want to call this internally from a different endpoint.
     [HttpPost("AddOrder")]
     public async Task<ActionResult<OrderInput>> AddOrder([FromBody] OrderInput nOrder)
     {
-        if (await repo.AddOrder(nOrder))
+        if (await repo.AddOrder(nOrder) != null)
             return Ok(nOrder);
 
         return BadRequest();
@@ -379,4 +381,60 @@ public class ShopController(IShopRepo repo) : ControllerBase
 
         return Ok(await repo.DeleteCustomerAddress(address));
     }
+//
+// Order processing
+//
+
+    [HttpPost("ProcessCheckout")]
+    public async Task<ActionResult> ProcessCheckout([FromBody] CheckoutSessionInput checkoutSession)
+    {
+        // Get the redirect URL from the config, get the order and stock requests from the checkout session.
+        var redirectUrl = config["Payment:RedirectUrl"] ?? throw new InvalidOperationException("Config has no payment redirect URL");
+        var order = checkoutSession.Order;
+        var stockRequests = checkoutSession.StockRequests;
+        
+        // Add order and stock requests to the local database
+        var orderId = await repo.AddOrder(order);
+        if (orderId == null) return BadRequest("Failed to add order to the DB");
+        
+        foreach (var requestInput in stockRequests)
+        {
+            var stockRequest = new StockRequest
+            {
+                OrderId = (Guid)orderId,
+                ProductId = requestInput.ProductId,
+                Quantity = requestInput.Quantity
+            };
+            var stockRequestResult = await repo.AddStockRequest(stockRequest);
+            if (!stockRequestResult) return BadRequest($"Failed to add stock request to DB for product {requestInput.ProductId}");
+        }
+        
+        // Call relevant payment service based on order payment method
+        return order.PaymentType switch
+        {
+            PaymentProcessor.Stripe => await ProcessStripeOrder((Guid)orderId, redirectUrl),
+            PaymentProcessor.Paypal => BadRequest("Paypal payment processing not yet implemented"),
+            _ => BadRequest($"Order cannot be processed [Malformed PaymentType: {order.PaymentType}]")
+        };
+    }
+    
+    private async Task<ActionResult> ProcessStripeOrder(Guid orderId, string redirectUrl)
+    {
+        logger.LogInformation("ShopController is processing a stripe order. Creating checkout session...");
+        try
+        {
+            var checkoutSession = await stripeService.CreateCheckoutSession(orderId, redirectUrl);
+            if (!checkoutSession.Item1) throw new Exception($"Failed to create checkout session: {checkoutSession.Item2}");
+
+            logger.LogInformation($"Creation complete...Redirecting to checkout session");
+            
+            return Ok(new {redirectUrl = checkoutSession.Item2}); // Not using a native redirect here as it freaks out the frontend CORS.
+        }
+        catch (Exception e)
+        {
+            logger.LogError("Error processing stripe order");
+            return BadRequest(e.Message);
+        }
+    }
+    // TODO add method for processing paypal orders
 }

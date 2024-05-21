@@ -38,16 +38,23 @@ if (local)
     // List of SAFE local secret examples. These are not sensitive and can be stored in the code.
     var localSecrets = new Dictionary<string, string>
     {
+        // Cognito details
         { "Cognito:UserPoolId", "ap-southeast-2_RXmB1ATp1" },
         { "Cognito:ClientId", "d06f48kk6k9kcp491mlkskkta" },
         { "Cognito:Region", "ap-southeast-2" },
         { "Cognito:ClientSecret", "189anlvjvs2hrjeantnv5dbiol5upt456n3toes8mv7lcu00andv" },
 
-        { "Stripe:SecretKey", "your-local-stripe-key" },
-        { "Stripe:PublishableKey", "your-local-stripe-pub-key" },
+        // Stripe details
+        { "Stripe:SecretKey", "sk_test_51P8grSEvcprk3hy6Npdx7cFlHVlY0fcPofWOTBBJVCj1ZUgmIU4p3paiOaUGyKUwqNoXOb95lJf6yJ8i0v86WQC700pFzxXcsZ" },
+        { "Stripe:PublishableKey", "pk_test_51P8grSEvcprk3hy6DsDZn4SPGvXabj0zqVSuNI23KXCqiQ6iltyQ09gLkD2bV5DXs72H8IyrwunHhcLzlAzM4XuN005qDYcTBS" },
+        
+        // Payment redirect URL (should redirect to a paymentpage that takes a success and canceled query param)
+        { "Payment:RedirectUrl", "http://localhost:4000" },
 
+        // S3 bucket
         { "StockUploadBucket", "kashish-web-asset-bucket" },
 
+        // Environment
         { "Environment", "local" }
     };
     foreach (var kvp in localSecrets) builder.Configuration[kvp.Key] = kvp.Value;
@@ -105,7 +112,8 @@ builder.Services
     .AddScoped<IShopRepo, ShopRepo>()
     .AddScoped<CognitoService>()
     .AddScoped<AuthHandler>()
-    .AddScoped<StockUploadHelper>();
+    .AddScoped<StockUploadHelper>()
+    .AddScoped<StripeService>();
 
 // Add AWS Lambda support. When running the application as an AWS Serverless application, Kestrel is replaced
 // with a Lambda function contained in the Amazon.Lambda.AspNetCoreServer package, which marshals the request into the ASP.NET Core hosting framework.
