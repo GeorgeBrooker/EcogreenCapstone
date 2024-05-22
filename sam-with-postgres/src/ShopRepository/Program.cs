@@ -30,6 +30,17 @@ if (secretValue != null)
     foreach (var kvp in secretJson!) builder.Configuration[kvp.Key] = kvp.Value;
 }
 
+
+// Configure HttpClient for NZ Post
+builder.Services.AddHttpClient("NZPostClient", client =>
+{
+    client.BaseAddress = new Uri("https://api.uat.nzpost.co.nz/"); //UAT environment
+    client.DefaultRequestHeaders.Add("Accept", "application/json"); 
+});
+
+// Register NZPostService
+builder.Services.AddSingleton<NZPostService>();
+
 // Local dev env config
 var local = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true";
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
