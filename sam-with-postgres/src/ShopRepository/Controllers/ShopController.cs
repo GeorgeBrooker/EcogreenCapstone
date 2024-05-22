@@ -203,7 +203,25 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
     [HttpPost("AddStock")]
     public async Task<ActionResult<bool>> AddStock([FromBody] StockInput stock)
     {
-        return Ok(await repo.AddStock(stock));
+        try
+        {
+            var stockId = await repo.AddStock(stock) ?? throw new Exception("Failed to add stock to database");
+            if (stock.CreateWithoutStripeLink) 
+                return Ok(stockId); // Don't add to stripe if the flag is set.
+            
+            var stripeUpload = await stripeService.PersistStockToStripe(stockId);
+            if (!stripeUpload)
+            {
+                await repo.DeleteStock(stockId);
+                throw new Exception("Failed to upload stock to stripe");
+            }
+
+            return Ok(stockId);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     // PUT

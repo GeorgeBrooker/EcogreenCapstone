@@ -51,7 +51,7 @@ public class StockUploadHelper(IConfiguration configuration, IAmazonS3 amazonS3,
         return false;
     }
 
-    private static string CleanUploadName(string uploadName)
+    public static string CleanUploadName(string uploadName)
     {
         // Define unsupported characters
         var regex = new Regex("[^a-zA-Z0-9!,_.*'()\\-]");

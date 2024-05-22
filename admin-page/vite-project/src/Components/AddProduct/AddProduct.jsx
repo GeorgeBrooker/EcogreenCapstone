@@ -40,7 +40,7 @@ const AddProduct = () =>{
             "Price": productDetails.price,
             "DiscountPercentage": productDetails.discount,
             "TotalStock": productDetails.quantity,
-            "CreateWithoutStripeLink": true
+            "CreateWithoutStripeLink": false
         };
         // First add stock to local DB, only after succesfull local addition should we try and persist to S3
         // (this is to avoid orphaned images in S3 which are more annoying to clean up than local DB entries)

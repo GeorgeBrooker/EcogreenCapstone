@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using ShopRepository.Data;
+using ShopRepository.Helper;
+using ShopRepository.Models;
 using Stripe;
 using Stripe.Checkout;
 
@@ -125,5 +127,49 @@ public class StripeService
     public async Task<ActionResult> HandleCheckoutExpired(Event stripeEvent)
     {
         throw new NotImplementedException();
+    }
+    
+    //
+    // Stripe Stock service methods
+    //
+    
+    public async Task<bool> PersistStockToStripe(Guid stockId)
+    {
+        try
+        {
+            var stock = await _repo.GetStock(stockId) ??
+                        throw new Exception($"Stock not found in database for stockID {stockId}");
+            _logger.LogInformation("Persisting stock to stripe: {0}", stock.Name);
+
+            var imageUri = stock.PhotoUri + StockUploadHelper.CleanUploadName(stock.Name) + "-" + stock.Id + "/1.jpeg";
+            _logger.LogInformation($"Price: {(long) Math.Round(stock.Price * 100, 0)}");
+            var options = new ProductCreateOptions
+            {
+                Name = stock.Name,
+                Description = stock.Description,
+                DefaultPriceData = new ProductDefaultPriceDataOptions
+                {
+                    Currency = "nzd",
+                    UnitAmount = (long) Math.Round(stock.Price * 100, 0)
+                },
+                Images = [imageUri]
+            };
+            
+            _logger.LogInformation("Product create options set. Creating product in stripe.");
+            var service = new ProductService();
+            var product = await service.CreateAsync(options);
+            if (product == null) throw new Exception("Failed to create product in stripe");
+            _logger.LogInformation("Product created in stripe. Updating stock with stripeID.");
+            stock.StripeId = product.Id;
+            var updated = await _repo.UpdateStock(stock);
+            if (!updated) throw new Exception("Failed to update stock with stripeID");
+            
+            return true;
+        }
+        catch(Exception e)
+        {
+            _logger.LogError("Error in PersistStockToStripe: {0}", e.Message);
+            return false;
+        }
     }
 }
