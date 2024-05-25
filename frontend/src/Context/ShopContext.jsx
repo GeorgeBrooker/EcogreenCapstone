@@ -1,7 +1,7 @@
 import React, { createContext, useState } from "react";
 export const ShopContext = createContext(null);
 const serverUri = process.env.NODE_ENV === 'production' 
-    ? "https://sz2jaar6r0.execute-api.ap-southeast-2.amazonaws.com" 
+    ? "https://nn8hvsrhhk.execute-api.ap-southeast-2.amazonaws.com" 
     : "http://localhost:3000";
 
 const cleanProductName = (productName) => {

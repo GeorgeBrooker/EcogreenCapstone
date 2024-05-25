@@ -74,6 +74,11 @@ builder.Services.AddAuthorizationBuilder()
 
 // Add cors policies 
 var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(",") ?? throw new Exception("AllowedOrigins not set in config");
+Console.WriteLine("Configured Allowed Origins:");
+foreach (var origin in allowedOrigins)
+{
+    Console.WriteLine(origin);
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policyBuilder =>
@@ -81,14 +86,16 @@ builder.Services.AddCors(options =>
         policyBuilder
             .AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .WithExposedHeaders("Access-Control-Allow-Origin");
     });
     options.AddPolicy("AllowProdRequests", policyBuilder =>
     {
         policyBuilder
-            .WithOrigins(allowedOrigins) // Comma separated list of allowed origins
+            .WithOrigins(allowedOrigins)
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .WithExposedHeaders("Access-Control-Allow-Origin");
     });
 });
 
