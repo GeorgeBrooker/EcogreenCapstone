@@ -54,6 +54,7 @@ Resources:
                 - cognito-idp:AdminGetUser
                 - cognito-idp:AdminUpdateUserAttributes
                 - cognito-idp:AdminCreateUser
+                - cognito-idp:AdminAddUserToGroup
               Resource: "arn:aws:cognito-idp:ap-southeast-2:603012407640:userpool/ap-southeast-2_RXmB1ATp1"
 
       Environment:
@@ -68,7 +69,6 @@ Resources:
           SECRET_COOKIE_KEY: yadayadayadathisisanicelongsecretkeythatwillbereplacedbeforeprod
           
           LOCAL_DB: http://host.docker.internal:8000
-          RUN_LOCAL: false
 
       Events: # Events are what calls the function. In this case we generate an AWS HttpApi gateway. 
         RootApiGateway:

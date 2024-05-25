@@ -34,7 +34,7 @@ if (secretValue != null)
 
 // Check for local environment and set up DynamoDB and Configuration accordingly
 AmazonDynamoDBClient client;
-var local = Environment.GetEnvironmentVariable("RUN_LOCAL") == "true";
+var local = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true";
 if (local)
 {
     Console.WriteLine("\nRUNNING WITH LOCAL DYNAMODB IN TEST MODE!\n");
