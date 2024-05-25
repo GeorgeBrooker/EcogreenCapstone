@@ -22,6 +22,7 @@ builder.Logging
     .AddJsonConsole();
 
 // Load config from AWS Secrets Manager
+var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
 var secretClient = new AmazonSecretsManagerClient(RegionEndpoint.APSoutheast2);
 var secretValue = secretClient.GetSecretValueAsync(new GetSecretValueRequest { SecretId = "KashishWebAppConfigSecrets" }).Result.SecretString;
 if (secretValue != null)
@@ -30,30 +31,29 @@ if (secretValue != null)
     foreach (var kvp in secretJson!) builder.Configuration[kvp.Key] = kvp.Value;
 }
 
-// Local dev env config
-var local = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true";
-var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
-var dynamoConfig = new AmazonDynamoDBConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(region) };
+
+// Check for local environment and set up DynamoDB and Configuration accordingly
 AmazonDynamoDBClient client;
+var local = Environment.GetEnvironmentVariable("RUN_LOCAL") == "true";
 if (local)
 {
     Console.WriteLine("\nRUNNING WITH LOCAL DYNAMODB IN TEST MODE!\n");
-    dynamoConfig.ServiceURL = Environment.GetEnvironmentVariable("LOCAL_DB");
-    dynamoConfig.AuthenticationRegion = "ap-southeast-2";
+    var dynamoConfig = new AmazonDynamoDBConfig
+    {
+        RegionEndpoint = RegionEndpoint.GetBySystemName(region),
+        ServiceURL = Environment.GetEnvironmentVariable("LOCAL_DB"),
+        AuthenticationRegion = "ap-southeast-2"
+    };
     var creds = new SessionAWSCredentials("fake", "key", "fake");
     client = new AmazonDynamoDBClient(creds, dynamoConfig);
     
     builder.Configuration["Environment"] = "local";
 }
 else
-    client = new AmazonDynamoDBClient(dynamoConfig);
-
-
-// Add AWS services to dependency injection
-builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
-builder.Services
-    .AddAWSService<IAmazonCognitoIdentityProvider>()
-    .AddAWSService<IAmazonS3>();
+{
+    client = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
+    builder.Configuration["Environment"] = "prod";
+}
 
 
 // Add Authentication and Authorization policies
@@ -72,6 +72,26 @@ builder.Services.AddAuthorizationBuilder()
             }
         ));
 
+// Add cors policies 
+var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(",") ?? throw new Exception("AllowedOrigins not set in config");
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policyBuilder =>
+    {
+        policyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+    options.AddPolicy("AllowProdRequests", policyBuilder =>
+    {
+        policyBuilder
+            .WithOrigins(allowedOrigins) // Comma separated list of allowed origins
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 // Add controllers to the container.
 builder.Services
     .AddControllers()
@@ -85,30 +105,16 @@ builder.Services
     .AddScoped<CognitoService>()
     .AddScoped<AuthHandler>()
     .AddScoped<StockUploadHelper>()
-    .AddScoped<StripeService>();
+    .AddScoped<StripeService>()
+    .AddDefaultAWSOptions(builder.Configuration.GetAWSOptions())
+    .AddAWSService<IAmazonCognitoIdentityProvider>()
+    .AddAWSService<IAmazonS3>()
+    .AddAWSLambdaHosting(LambdaEventSource.HttpApi); // Add AWS Lambda hosting support
 
-// Add AWS Lambda support. When running the application as an AWS Serverless application, Kestrel is replaced
-// with a Lambda function contained in the Amazon.Lambda.AspNetCoreServer package, which marshals the request into the ASP.NET Core hosting framework.
-builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
 
-// CORS POLICY FOR LOCAL TESTING. IN PROD CORS IS CONFIGURED THROUGH API GATEWAY
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins", policyBuilder =>
-    {
-        policyBuilder
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-    });
-});
-
+// Build app and register the middleware
 var app = builder.Build();
-
-// Only allow CORS for local testing
-if (local)
-    app.UseCors("AllowAllOrigins");
-
+app.UseCors(local ? "AllowAllOrigins" : "AllowProdRequests"); // Set cors policy based on app environment
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

@@ -36,7 +36,7 @@ function Detail() {
   useEffect(() => {
     const userId = sessionStorage.getItem('Id');
     const userUrl = `http://127.0.0.1:3000/api/shop/GetCustomerByID/${userId}`;
-    const purchasesUrl = `http://127.0.0.1:3000/api/shop/GetCustomerOrders/bb8150ef-f138-4590-8452-4fee498f50e7`;/*test id in here*/
+    const purchasesUrl = `http://127.0.0.1:3000/api/shop/GetCustomerOrders/${userId}`;/*test id in here*/
 
     Promise.all([
         fetch(userUrl),
@@ -56,7 +56,8 @@ function Detail() {
         setPurchases(purchasesData.map(purchase => ({
           trackingNumber: purchase.trackingNumber,
           id: purchase.id,
-          packageReference: purchase.packageReference
+          packageReference: purchase.packageReference,
+          date: purchase.createdAt
         })));  
         setLoading(false);
       }).catch(error => {

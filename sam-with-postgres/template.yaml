@@ -27,7 +27,7 @@ Resources:
       Handler: ShopRepository
       Runtime: dotnet8
 
-      Policies: # App permissions. Specifically giving our function permission to create,request,update,&delete items in the following DB tables
+      Policies: # App permissions. Specifically giving our function permission to access AWS resources.
         - DynamoDBCrudPolicy:
             TableName: !Ref customerTable
         - DynamoDBCrudPolicy:
@@ -36,6 +36,25 @@ Resources:
             TableName: !Ref stockTable
         - DynamoDBCrudPolicy:
             TableName: !Ref stockRequestsTable
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: "arn:aws:secretsmanager:ap-southeast-2:603012407640:secret:KashishWebAppConfigSecrets-9qY89s"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:DeleteObject
+                - s3:ListBucket
+              Resource: "arn:aws:s3:::kashish-web-asset-bucket"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminUpdateUserAttributes
+                - cognito-idp:AdminCreateUser
+              Resource: "arn:aws:cognito-idp:ap-southeast-2:603012407640:userpool/ap-southeast-2_RXmB1ATp1"
 
       Environment:
         Variables:
@@ -49,13 +68,12 @@ Resources:
           SECRET_COOKIE_KEY: yadayadayadathisisanicelongsecretkeythatwillbereplacedbeforeprod
           
           LOCAL_DB: http://host.docker.internal:8000
+          RUN_LOCAL: false
 
       Events: # Events are what calls the function. In this case we generate an AWS HttpApi gateway. 
         RootApiGateway:
           Type: HttpApi
           Properties:
-            binaryMediaTypes: # What media types we can accept. In this case we accept all to allow for file uploads.
-              - '*/*'
             Path: /{path+} # What endpoints this API is mapped too. {path+} maps all endpoints in our application.
             Method: ANY
             Auth:
