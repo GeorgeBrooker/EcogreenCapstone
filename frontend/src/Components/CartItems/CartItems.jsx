@@ -90,7 +90,7 @@ const CartItems =()=>{
                         </div>
                         </div>
                         <div className="proceed-div">
-                            <button className="proceed-button" onClick={proceedToCheckout}>PROCEED TO CHECKOUT</button>
+                            <button className="proceed-button" onClick={proceedToCheckout}>Proceed to Checkout</button>
                         </div>
                     
                 </div>
