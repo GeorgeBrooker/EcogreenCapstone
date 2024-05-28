@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import './CartItems.css'
 import { ShopContext } from "../../Context/ShopContext";
 // import remove_icon from '../Assets/remove_icon.png';
@@ -8,16 +8,8 @@ import QuantityStepper from "../QuantityStepper/QuantityStepper";
 //TODO move this kind of logic into the main Cart component this is just for testing
 const CartItems =()=>{
     const {getTotalCartAmount, all_product, cartItems, removeFromCart,addToCart, proceedToCheckout} = useContext(ShopContext)
-    // const handleChange = (e, productId) => {
-    //     const newValue = e.target.value;
-    //     if (newValue === '' || isNaN(newValue)) {
-    //         return;
-    //     }
-    //     const newQuantity = parseInt(newValue, 10);
-    //     if (newQuantity >= 0) {
-    //         updateCart(productId, newQuantity); 
-    //     }
-    // };
+    const [paymentType, setPaymentType] = useState("");
+    const [deliveryType, setDeliveryType] = useState("");
 
     return(
         <div className="cartitems">
@@ -39,10 +31,6 @@ const CartItems =()=>{
                                     <p>{e.name}</p>
                                     <p>{e.new_price}</p>
                                     <div className="quantity-control">
-                                    {/* <img className='cartitems-modi-icon' src={add_icon} onClick={()=>{addToCart(e.id)}} alt=""   />
-                                    <button className="cartitems-quantity">{cartItems[e.id]}</button>
-                                    <input className="cartitems-quantity" type='text' min='1'  value={cartItems[e.id]} onChange={(event) => handleChange(event, e.id)} />
-                                    <img className='cartitems-modi-icon' src={remove_icon} onClick={()=>{removeFromCart(e.id)}} alt=""   /> */}
                                         <QuantityStepper
                                             quantity={cartItems[e.id]}
                                             onIncrease={() => addToCart(e.id)}
@@ -75,17 +63,40 @@ const CartItems =()=>{
                             <h3>${getTotalCartAmount()}</h3>
                         </div>
                     </div>
-                    <button className="proceed-button" onClick={proceedToCheckout}>PROCEED TO CHECKOUT</button>
+                    <div className="dropdowns">
+                        <div className="payment-div">
+                        <label htmlFor="paymentType">Payment Type:</label>
+                        <select
+                            id="paymentType"
+                            value={paymentType}
+                            onChange={(e) => setPaymentType(e.target.value)}
+                        >
+                            <option value="" disabled>Select payment type</option>
+                            <option value="creditCard">Credit Card</option>
+                            <option value="paypal">PayPal</option>
+                        </select>
+                        </div>
+                        <div className="delivery-div">
+                        <label htmlFor="deliveryType">Delivery Type:</label>
+                        <select
+                            id="deliveryType"
+                            value={deliveryType}
+                            onChange={(e) => setDeliveryType(e.target.value)}
+                        >
+                            <option value="" disabled>Select delivery type</option>
+                            <option value="standard">Standard Delivery</option>
+                            <option value="express">Express Delivery</option>
+                        </select>
+                        </div>
+                        </div>
+                        <div className="proceed-div">
+                            <button className="proceed-button" onClick={proceedToCheckout}>PROCEED TO CHECKOUT</button>
+                        </div>
+                    
                 </div>
-                <div className="cartitems-promocode">
-                    <p>If you have a promo code, enter it here</p>
-                    <div className="cartitems-promobox">
-                        <input type="text" placeholder="promo code"/>
-                        <button>Submit</button>
-                    </div>
-                </div>
+
             </div>
         </div>
-    )
+    );
 }
 export default CartItems

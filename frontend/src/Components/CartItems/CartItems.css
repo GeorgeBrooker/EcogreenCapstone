@@ -62,8 +62,14 @@
     justify-content: space-between;
     padding: 15px 0px;
 }
+.proceed-div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .proceed-button{
     background-color: #24831a;
+    width: 600px;
     color: white;
     border: none;
     padding: 15px 30px;
@@ -72,39 +78,21 @@
     border-radius: 75px;
     transition: background-color 0.3s;
 }
-.cartitems-promocode{
-    flex: 1;
-    font-size: 16px;
-    font-weight: 500;
-}
-.cartitems-promocode p{
-    print-color-adjust: #555;
-}
-.cartitems-promobox{
+
+.dropdowns{
     display: flex;
-    width: 504px;
-    margin-top: 15px;
-    
-    height: 58px;
-    gap: 5px;
+    flex-direction: row;
+    justify-content: center;
+    gap: 40px;
+    font-size: x-large;
 }
-.cartitems-promobox input{
-    text-align: center;
-    border-radius: 75px;
-    outline: none;
-    background: transparent;
-    font-size: 16px;
-    width: 330px;
-    height: 50px;
-    background-color: #ebebeb;
+.payment-div{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
 }
-.cartitems-promobox button{
-    width: 170px;
-    height: 58px;
-    font-size: 1em;
-    background: #24831a;
-    color: white;
-    border-radius: 75px;
-    transition: background-color 0.3s;
-    cursor: pointer;
+.delivery-div{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
 }

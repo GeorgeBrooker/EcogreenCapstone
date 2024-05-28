@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { ShopContext } from '../../Context/ShopContext';
 
 const Navbar = () => {
-    const [menu, setMenu] = useState("/home");
+    const [menu, setMenu] = useState("home");
     const { getTotalCartItems } = useContext(ShopContext);
  
     const isLoggedIn = localStorage.getItem('auth-token');

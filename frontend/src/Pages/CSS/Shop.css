@@ -1,6 +1,6 @@
 .shop {
     height: 100vh;
-    /* background: linear-gradient(180deg, #009900, #e1ffea22 100%); */
+    padding-top: 50px;
 }
 .shop-indexSort{
     display: flex;
