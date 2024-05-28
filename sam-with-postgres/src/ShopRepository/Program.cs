@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Amazon;
 using Amazon.CognitoIdentityProvider;
 using Amazon.DynamoDBv2;
@@ -31,7 +31,6 @@ if (secretValue != null)
     foreach (var kvp in secretJson!) builder.Configuration[kvp.Key] = kvp.Value;
 }
 
-
 // Check for local environment and set up DynamoDB and Configuration accordingly
 AmazonDynamoDBClient client;
 var local = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true";
@@ -55,6 +54,13 @@ else
     builder.Configuration["Environment"] = "prod";
 }
 
+// Configure HttpClient for NZ Post and Register the NZPost service
+builder.Services.AddHttpClient("NZPostClient", client =>
+{
+    client.BaseAddress = new Uri("https://api.uat.nzpost.co.nz/"); //UAT environment
+    client.DefaultRequestHeaders.Add("Accept", "application/json"); 
+});
+builder.Services.AddSingleton<NZPostService>();
 
 // Add Authentication and Authorization policies
 builder.Services.AddAuthentication("CustomCognitoAuth")

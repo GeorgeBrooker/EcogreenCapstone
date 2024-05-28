@@ -1,60 +1,60 @@
+using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
-namespace ShopRepository.Services;
-
-public class NzPostService
+namespace ShopRepository.Services
 {
-    private readonly string _apiBaseUrl = "https://api.nzpost.co.nz/";
-    private readonly string _apiKey = "YOUR_NZ_POST_API_KEY"; // 替换为你的 API 密钥
-    private readonly HttpClient _httpClient;
-
-    public NzPostService()
+    public class NZPostService
     {
-        _httpClient = new HttpClient
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _config;
+        private readonly ILogger<NZPostService> _logger;
+        
+        public NZPostService(HttpClient httpClient, IConfiguration config, ILogger<NZPostService> logger)
         {
-            BaseAddress = new Uri(_apiBaseUrl)
-        };
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-    }
+            _httpClient = httpClient;
+            _config = config;
+            _logger = logger;
+            InitializeHttpClient();
+        }
 
-    // TODO review this works, the schema of orders has changed since this was written
-    public async Task<string> GenerateDeliveryLabelAsync(string checkoutSession, string customerId)
-    {
-        var request = new
+        private void InitializeHttpClient()
         {
-            checkout_session = checkoutSession,
-            customer_id = customerId
-        };
+            var clientId = _config["NZPost:ClientId"] ?? throw new Exception("NZPost Client ID not found in config");
+            var clientSecret = _config["NZPost:ClientSecret"] ?? throw new Exception("NZPost Client Secret not found in config");
+            var accessTokenEndpoint = _config["NZPost:AccessTokenEndpoint"] ?? throw new Exception("NZPost Access Token Endpoint not found in config");
+            _httpClient.BaseAddress = new Uri(_config["NZPost:ApiBaseUrl"] ?? throw new Exception("NZPost API Base URL not found in config"));
+            
+            // Configure default request headers if necessary
+            _httpClient.DefaultRequestHeaders.Accept.Clear();
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
 
-        var response = await _httpClient.PostAsJsonAsync("path/to/generate-label", request);
-        response.EnsureSuccessStatusCode();
-        var responseBody = await response.Content.ReadAsStringAsync();
-        var deliveryLabel = JsonConvert.DeserializeObject<string>(responseBody);
-        return deliveryLabel;
-    }
-
-    public async Task<string> TrackOrderAsync(string trackingId)
-    {
-        var response = await _httpClient.GetAsync($"path/to/track/{trackingId}");
-        response.EnsureSuccessStatusCode();
-        var responseBody = await response.Content.ReadAsStringAsync();
-        var trackingInfo = JsonConvert.DeserializeObject<string>(responseBody);
-        return trackingInfo;
-    }
-
-    public async Task<DateTime> EstimateDeliveryDateAsync(string shippingMethod)
-    {
-        var request = new
+        public async Task<string> GetAccessTokenAsync()
         {
-            shipping_method = shippingMethod
-        };
+            var response = await _httpClient.PostAsync(_config["NZPost:AccessTokenEndpoint"], new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                new KeyValuePair<string, string>("client_id", _config["NZPost:ClientId"]),
+                new KeyValuePair<string, string>("client_secret", _config["NZPost:ClientSecret"])
+            }));
 
-        var response = await _httpClient.PostAsJsonAsync("path/to/estimate-delivery", request);
-        response.EnsureSuccessStatusCode();
-        var responseBody = await response.Content.ReadAsStringAsync();
-        var estimatedDeliveryDate = JsonConvert.DeserializeObject<DateTime>(responseBody);
-        return estimatedDeliveryDate;
+            response.EnsureSuccessStatusCode();
+            var tokenJson = await response.Content.ReadAsStringAsync();
+            var token = JsonSerializer.Deserialize<Dictionary<string, string>>(tokenJson);
+            return token["access_token"];
+        }
+
+        public async Task<string> GetParcelAddressAsync(string accessToken, string parcelId)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.GetAsync($"parceladdress/2.0/{parcelId}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
     }
 }
