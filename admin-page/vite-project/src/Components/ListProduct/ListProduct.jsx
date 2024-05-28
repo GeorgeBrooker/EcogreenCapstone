@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import './ListProduct.css';
 import cross_icon from "../../assets/remove_.png";
-const serverUri = "http://localhost:3000";
+import {serverUri} from "../../App.jsx";
 
 const ListProduct = () => {
     const [allProducts, setAllProducts] = useState([]);

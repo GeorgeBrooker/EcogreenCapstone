@@ -1,25 +1,35 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import './ProductDisplay.css'
 import { ShopContext } from "../../Context/ShopContext";
 import star_icon from '../Assets/star_icon.png'
 import star_dull_icon from '../Assets/star_dull_icon.png'
+import { Link } from 'react-router-dom';
 
-/* TODO make photo carousel switchable, format images to be the correct aspect ratio, Only show photos in the product carosel that actually exist*/
-/* Could probably make the product display use the same carousel as the uploader react-responsive-carosel*/
 const ProductDisplay = (props) =>{
     const {product} = props;
     const {addToCart} = useContext(ShopContext);
+    const [mainImage, setMainImage] = useState(product.image + "1.jpeg");
+
+
+    const handleImageClick = (image) => {
+        setMainImage(image);
+    };
+
+    const getImageClass = (image) => {
+        return image === mainImage ? 'productdisplay-img-item selected' : 'productdisplay-img-item';
+    };
+
     return(
         <div className="productdisplay">
             <div className="productdisplay-left">
                 <div className="productdisplay-img-list">
-                    <img src={product.image + "1.jpeg"} alt=''/>
-                    <img src={product.image + "2.jpeg"} alt=''/>
-                    <img src={product.image + "3.jpeg"} alt=''/>
-                    <img src={product.image + "4.jpeg"} alt=''/>
+                    <img className={getImageClass(product.image + "1.jpeg")} src={product.image + "1.jpeg"} alt=''onClick={() => handleImageClick(product.image + "1.jpeg")}/>
+                    <img className={getImageClass(product.image + "2.jpeg")} src={product.image + "2.jpeg"} alt=''onClick={() => handleImageClick(product.image + "2.jpeg")}/>
+                    <img className={getImageClass(product.image + "3.jpeg")} src={product.image + "3.jpeg"} alt=''onClick={() => handleImageClick(product.image + "3.jpeg")}/>
+                    <img className={getImageClass(product.image + "4.jpeg")} src={product.image + "4.jpeg"} alt=''onClick={() => handleImageClick(product.image + "4.jpeg")}/>
                 </div>
                 <div className="productdisplay-img">
-                    <img className='productdisplay-main-img' src={product.image + "1.jpeg"} alt='' />
+                    <img className='productdisplay-main-img' src={mainImage} alt='' />
                 </div>
 
             </div>
@@ -45,8 +55,10 @@ const ProductDisplay = (props) =>{
                 <div className="productdisplay-right-description">
                     {product.description}
                 </div>
-                <button onClick={()=>{addToCart(product.id)}}>ADD TO CART</button>
-
+                <div className="buttons-box">
+                <button onClick={()=>{addToCart(product.id)}}>Add to Cart</button>
+                <Link to="/shop"><button>Back to Shop</button></Link>
+                </div>
             </div>
         </div>
     )

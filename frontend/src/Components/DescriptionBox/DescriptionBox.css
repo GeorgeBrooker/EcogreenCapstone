@@ -13,10 +13,12 @@
     width: 171px;
     height: 70px;
     border: 1px solid #d0d0d0;
+    cursor: pointer;
 }
 .descriptionbox-nav-box.fade{
     background: #fbfbfb;
     color: #555;
+    cursor: pointer;
 }
 .descriptionbox-description{
     display: flex;
@@ -26,3 +28,4 @@
     padding: 48px;
     padding-bottom: 70px;
 }
+

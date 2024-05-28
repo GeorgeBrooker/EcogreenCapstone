@@ -1,33 +1,9 @@
- 
-
- 
-/*const Detail = () => {
-  const user = {
-    name: 'John Doe',
-    email: 'john@example.com',
-    address: '1234 Sunset Blvd'
-  };
-
-  const purchases = [
-    { date: '2021-01-01', itemName: 'Apple MacBook Pro', amount: 1200 },
-    { date: '2021-02-15', itemName: 'Logitech Mouse', amount: 25 }
-  ];
-
-  return (
-    <div className="App">
-      <UserDetails user={user} purchases={purchases} />
-    </div>
-  );
-};
-
-export default Detail;*/
-
- 
-
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import UserDetails from '../Components/Usedetail/Usedetail';
+import { ShopContext } from '../Context/ShopContext';
 
 function Detail() {
+  const {serverUri} = useContext(ShopContext);
   const [user, setUser] = useState(null);
   const [purchases, setPurchases] = useState([]); // Initialize as an empty array
   const [error, setError] = useState(null);
@@ -35,8 +11,8 @@ function Detail() {
 
   useEffect(() => {
     const userId = sessionStorage.getItem('Id');
-    const userUrl = `http://127.0.0.1:3000/api/shop/GetCustomerByID/${userId}`;
-    const purchasesUrl = `http://127.0.0.1:3000/api/shop/GetCustomerOrders/bb8150ef-f138-4590-8452-4fee498f50e7`;/*test id in here*/
+    const userUrl = serverUri + `/api/shop/GetCustomerByID/${userId}`;
+    const purchasesUrl = serverUri + `/api/shop/GetCustomerOrders/${userId}`;
 
     Promise.all([
         fetch(userUrl),
@@ -56,7 +32,8 @@ function Detail() {
         setPurchases(purchasesData.map(purchase => ({
           trackingNumber: purchase.trackingNumber,
           id: purchase.id,
-          packageReference: purchase.packageReference
+          packageReference: purchase.packageReference,
+          date: purchase.createdAt
         })));  
         setLoading(false);
       }).catch(error => {

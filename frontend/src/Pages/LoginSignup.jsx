@@ -1,5 +1,3 @@
-/* eslint-disable no-use-before-define */
- 
 import React, {useContext, useState} from "react"
 import { ShopContext } from '../Context/ShopContext'
 import './CSS/LoginSignup.css'
