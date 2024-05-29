@@ -53,12 +53,7 @@ const ModifyProduct = ({ productId, onClose, onSave }) => {
     };
 
     const saveChanges = async () => {
-        const dataToSend = {
-            ...productDetails,
-            quantity: productDetails.quantity  // 确保这里正确地设置了数量
-        };
-        console.log("Sending update data:", dataToSend);  // 调试输出
-        await onSave(productId, dataToSend);
+        await onSave(productId, productDetails);
         onClose();
     };
 
