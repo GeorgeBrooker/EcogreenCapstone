@@ -1,24 +1,27 @@
 import React from "react"
-import './Footer.css'
-import footer_logo from '../Assets/logo.png'
-import instagram_icon from '../Assets/insta.png'
+import './ContactFooter.css'
 
-const Footer = () => {
+import footer_logo from '../Assets/logo.png'
+ 
+
+const ContactFooter = () => {
     return (
-        <div className="footer">
-            <div className="footer-logo">
+        <div className=" Contactfooter">
+            <div className=" Contactfooter-logo">
                  
-                <p>Ecogreen</p>
+              
             </div>
+            <div className="Contactbottom-bar">
+                <div className="Contactbottom-bar-content">
                     <p>Address: 21A, Margate Road, Blockhouse Bay, Auckland 0600, New Zealand</p>
                     <p>Mobile/WhatsApp: +64 22 648 2838</p>
                     <p>Email: uttam@kashish.co.nz</p>
-            <div className="footer-social-icon">
-                <div className="footer-icons-container">
-                    <img src={instagram_icon} alt="" />
                 </div>
             </div>
-            <div className="footer-copyright">
+            <div className="Contactfooter-social-icon">
+                 
+            </div>
+            <div className="Contactfooter-copyright">
                 <hr />
                 <p>Copyright @2024 - All Right Reserved</p>
             </div>
@@ -26,4 +29,4 @@ const Footer = () => {
     )
 }
 
-export default Footer
+export default ContactFooter

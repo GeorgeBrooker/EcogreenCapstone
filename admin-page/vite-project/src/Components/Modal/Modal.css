@@ -8,8 +8,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* 高层级以确保覆盖其他内容 */
-    overflow-y: auto; /* 启用垂直滚动条 */
+    z-index: 1000;  
+    overflow-y: auto;  
 }
 
 .modal-content {

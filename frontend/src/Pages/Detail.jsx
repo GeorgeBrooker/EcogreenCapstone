@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useContext} from 'react';
 import UserDetails from '../Components/Usedetail/Usedetail';
 import { ShopContext } from '../Context/ShopContext';
+import Footer from '../Components/Footer/Footer';
 
 function Detail() {
   const {serverUri} = useContext(ShopContext);
@@ -48,7 +49,9 @@ function Detail() {
   return (
     <div className="App">
       <UserDetails user={user} purchases={purchases} />
+      <Footer />
     </div>
+     
   )
 }
 

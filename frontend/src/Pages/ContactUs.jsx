@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './CSS/ContactUs.css';
+import ContactFooter from'../Components/ContactFooter/ContactFooter'
+ 
 
 function ContactUs() {
   const [formData, setFormData] = useState({
@@ -59,7 +61,9 @@ function ContactUs() {
         <button type="submit">Send</button>
       </form>
     </div>
+    <ContactFooter />
     </div>
+    
   );
 }
 

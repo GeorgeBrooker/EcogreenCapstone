@@ -3,6 +3,7 @@ import { ShopContext } from "../Context/ShopContext"
 import dropdown_icon from '../Components/Assets/dropdown_icon.png'
 import Item from '../Components/Item/Item'
 import './CSS/Shop.css'
+import Footer from "../Components/Footer/Footer"
 
 const Shop = (props) => {
     const {all_product} = useContext(ShopContext);
@@ -24,6 +25,7 @@ const Shop = (props) => {
             <div className="shop-loadmore">
                 Explore More
             </div>
+            <Footer />
         </div>
     )
 }

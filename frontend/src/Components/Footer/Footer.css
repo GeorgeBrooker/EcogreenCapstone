@@ -3,8 +3,11 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 50px;
+    margin-top: 200px;
+    
     background-color: #d4fbcb;
+  
+  
 }
 .footer-logo{
     margin-top: 30px;
@@ -56,3 +59,4 @@
     height: 3px;
     background: #37474F;
 }
+
