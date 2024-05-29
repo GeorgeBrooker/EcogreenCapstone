@@ -49,12 +49,58 @@ namespace ShopRepository.Services
             return token["access_token"];
         }
 
-        public async Task<string> GetParcelAddressAsync(string accessToken, string parcelId)
+        public async Task<string> GetAddressDetailAsync(string accessToken, string addressId)
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var response = await _httpClient.GetAsync($"parceladdress/2.0/{parcelId}");
+            var response = await _httpClient.GetAsync($"parceladdress/2.0/domestic/addresses/{addressId}");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
+
+        public async Task<string> GetAddressDetailByDpIdAsync(string accessToken, string dpId)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.GetAsync($"parceladdress/2.0/domestic/addresses/dpid/{dpId}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> GetAllDomesticAddressesAsync(string accessToken)
+    {
+        return await GetApiDataAsync(accessToken, "parceladdress/2.0/domestic/addresses");
+    }
+
+    public async Task<string> GetAllSuburbsAsync(string accessToken)
+    {
+        return await GetApiDataAsync(accessToken, "parceladdress/2.0/domestic/suburbs");
+    }
+
+    public async Task<string> GetPcdLocationsAsync(string accessToken)
+    {
+        return await GetApiDataAsync(accessToken, "parceladdress/2.0/domestic/pcdlocations");
+    }
+
+    public async Task<string> GetAllInternationalAddressesAsync(string accessToken)
+    {
+        return await GetApiDataAsync(accessToken, "parceladdress/2.0/international/addresses");
+    }
+
+    public async Task<string> GetInternationalAddressDetailAsync(string accessToken, string addressId)
+    {
+        return await GetApiDataAsync(accessToken, $"parceladdress/2.0/international/addresses/{addressId}");
+    }
+
+    public async Task<string> GetAustraliaAddressDetailAsync(string accessToken, string addressId)
+    {
+        return await GetApiDataAsync(accessToken, $"parceladdress/2.0/australia/addresses/{addressId}");
+    }
+
+    private async Task<string> GetApiDataAsync(string accessToken, string endpoint)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        var response = await _httpClient.GetAsync(endpoint);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
     }
 }
