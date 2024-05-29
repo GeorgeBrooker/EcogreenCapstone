@@ -10,6 +10,9 @@ import Home from './Pages/Home';
 import ContactUs from './Pages/ContactUs';
 import Footer from './Components/Footer/Footer';
 import Detail from './Pages/Detail'
+import OrderSuccess from './Pages/OrderSuccess';
+import OrderFail from './Pages/OrderFail';
+
 
 function App() {
   return (
@@ -27,6 +30,8 @@ function App() {
         <Route path='/cart' element={<Cart />}/>
         <Route path='/login' element={<LoginSignup />}/>
         <Route  path='/detail' element={<Detail />}/>
+        <Route path='/ordersuccess' element={<OrderSuccess />}/>
+        <Route path='/orderfail' element={<OrderFail />}/>
       </Routes>
       <Footer />
       </BrowserRouter>

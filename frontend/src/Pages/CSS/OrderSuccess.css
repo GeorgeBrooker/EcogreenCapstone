@@ -1,0 +1,15 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 60vh;
+}
+.infobox{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    
+    margin-top: 20vh;
+    height: 20vh;
+}
