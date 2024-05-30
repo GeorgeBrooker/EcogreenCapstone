@@ -378,6 +378,26 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
 
         return true;
     }
+    
+    public async Task<bool> UpdateCustomerPassword(string email, string password)
+    {
+        var customer = await GetCustomerFromEmail(email);
+        if (customer == null) return false;
+
+        try
+        {
+            customer.Password = new PasswordHasher<Customer>().HashPassword(customer, password);
+            await dbContext.SaveAsync(customer);
+            logger.LogInformation("Customer password was updated");
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to update customer password");
+            return false;
+        }
+
+        return true;
+    }
 
     public async Task<bool> DeleteCustomer(Guid customerId)
     {

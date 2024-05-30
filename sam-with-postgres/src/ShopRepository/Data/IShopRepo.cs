@@ -31,6 +31,7 @@ public interface IShopRepo
     Task<IEnumerable<Customer>> GetAllCustomers(int limit);
     Task<bool> AddCustomer(CustomerInput customer);
     Task<bool> UpdateCustomer(Customer customer);
+    Task<bool> UpdateCustomerPassword(string email, string password);
     Task<bool> DeleteCustomer(Guid customerId);
 
     // Customer Addresses
