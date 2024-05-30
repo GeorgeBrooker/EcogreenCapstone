@@ -86,3 +86,53 @@
     animation: burn 5s linear;
 }
 
+@media(max-width:1280px){
+    .hero-left{
+        padding-left: 100px;
+    }
+    .hero-left h2{
+        font-size: 60px;
+    }
+    .hero-hand-icon img{
+        width: 80px;
+    }
+}
+@media(max-width:800px){
+    .hero-left{
+        padding-left: 30px;
+    }
+    .hero-left h2{
+        font-size: 40px;
+    }
+    .hero-left p{
+        font-size: 15px;
+    }
+    .hero-hand-icon img{
+        width: 50px;
+    }
+    .hero-latest-btn{
+        width: 210px;
+        font-size: 15px;
+    }
+    .hero-latest-btn img{
+        width: 40px;
+    }
+}
+@media(max-width:600px){
+    .hero-left h2{
+        font-size: 20px;
+    }
+    .hero-left p{
+        font-size: 11px;
+    }
+    .coconut-burn{
+        transform: scale(0.6);
+    }
+    .hero-latest-btn{
+        width: 110px;
+        font-size: 11px;
+    }
+    .hero-latest-btn img{
+        width: 20px;
+    }
+}
