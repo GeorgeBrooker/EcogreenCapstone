@@ -8,7 +8,7 @@ import Cart from './Pages/Cart';
 import LoginSignup from './Pages/LoginSignup';
 import Home from './Pages/Home';
 import ContactUs from './Pages/ContactUs';
-import Footer from './Components/Footer/Footer';
+ 
 import Detail from './Pages/Detail'
 import OrderSuccess from './Pages/OrderSuccess';
 import OrderFail from './Pages/OrderFail';
@@ -33,7 +33,7 @@ function App() {
         <Route path='/ordersuccess' element={<OrderSuccess />}/>
         <Route path='/orderfail' element={<OrderFail />}/>
       </Routes>
-      <Footer />
+  
       </BrowserRouter>
     </div>
   );
