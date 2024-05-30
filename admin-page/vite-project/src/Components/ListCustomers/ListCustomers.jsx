@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import './ListCustomers.css';
-import {serverUri} from "../../App.jsx";
+import { serverUri } from  "../../App.jsx";
 
 const ListCustomers = () => {
     const [allCustomers, setCustomers] = useState([]);

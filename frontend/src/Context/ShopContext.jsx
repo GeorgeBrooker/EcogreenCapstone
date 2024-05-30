@@ -1,9 +1,9 @@
 import React, { createContext, useState } from "react";
 export const ShopContext = createContext(null);
-const serverUri = process.env.NODE_ENV === 'production' 
-    ? "https://nn8hvsrhhk.execute-api.ap-southeast-2.amazonaws.com" 
-    : "http://localhost:3000";
-// const serverUri = "http://127.0.0.1:3000";
+//const serverUri = process.env.NODE_ENV === 'production' 
+//    ? "https://nn8hvsrhhk.execute-api.ap-southeast-2.amazonaws.com" 
+//    : "http://localhost:3000";
+const serverUri ="http://127.0.0.1:3000";
 const cleanProductName = (productName) => {
     const supportedCharsRegex = /[^a-zA-Z0-9!,_.*'()]/g; // Match any character that is not in the supported set
     const cleanedName = productName.replace(supportedCharsRegex, '-');

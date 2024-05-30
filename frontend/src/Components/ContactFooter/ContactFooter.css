@@ -1,0 +1,53 @@
+.Contactfooter {
+    width: 100%;
+    background-color:#d4fbcb;
+    
+    color: black;
+    text-align: center;
+    padding: 10px 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.Contactfooter-logo img {
+    height: 50px; 
+}
+
+.Contactfooter-logo p {
+    margin-top: 5px;
+}
+
+.Contactbottom-bar {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.Contactbottom-bar-content p {
+    margin: 0 15px;  
+}
+
+.Contactfooter-social-icon {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.Contactfooter-icons-container img {
+    height: 40px;  
+    margin: 0 10px;
+}
+
+.Contactfooter-copyright {
+    margin-top: 4px;
+    opacity: 0.6;
+}
+
+hr {
+    margin-top: 10px;
+    border: 0;
+    height: 1px;
+    background-color: #777;
+}
