@@ -1,13 +1,19 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import './Navbar.css';
 import logo from '../Assets/logo.png';
 import cart_icon from '../Assets/cart_icon1.png';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../../Context/ShopContext';
+import drop_down_icon from '../Assets/drop_down_icon.png'
 
 const Navbar = () => {
     const [menu, setMenu] = useState("home");
     const { getTotalCartItems } = useContext(ShopContext);
+    const menuRef = useRef();
+    const dropdown = (e) => {
+        menuRef.current.classList.toggle('nav-menu-visible');
+        e.target.classList.toggle('open');
+    }
  
     const isLoggedIn = localStorage.getItem('auth-token');
 
@@ -16,7 +22,8 @@ const Navbar = () => {
             <div className='nav-logo'>
                 <img src={logo} alt='Logo' />
             </div>
-            <ul className="nav-menu">
+            <img className='nav-dropdown' onClick={dropdown} src={drop_down_icon} alt="" />
+            <ul ref={menuRef} className="nav-menu">
                 <li onClick={() => { setMenu("home") }}><Link style={{ textDecoration: 'none' }} to='/home'>Home</Link>{menu === "home" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("shop") }}><Link style={{ textDecoration: 'none' }} to='/shop'>Shop</Link>{menu === "shop" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("contactUs") }}><Link style={{ textDecoration: 'none' }} to='/contactUs'>Contact Us</Link>{menu === "contactUs" ? <hr /> : <></>}</li>

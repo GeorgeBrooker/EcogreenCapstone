@@ -12,9 +12,7 @@ const Footer = () => {
             </div>
             <div className="bottom-bar">
                 <div className="bottom-bar-content">
-                    <p>Address: 21A, Margate Road, Blockhouse Bay, Auckland 0600, New Zealand</p>
-                    <p>Mobile/WhatsApp: +64 22 648 2838</p>
-                    <p>Email: uttam@kashish.co.nz</p>
+                    <p>Kashish Enterprises Limited</p>
                 </div>
             </div>
             <div className="footer-social-icon">
