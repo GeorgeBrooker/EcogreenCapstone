@@ -1,7 +1,7 @@
 import React, {useContext, useState} from "react"
 import { ShopContext } from '../Context/ShopContext'
 import './CSS/LoginSignup.css'
-import Footer from "../Components/Footer/Footer"
+// import Footer from "../Components/Footer/Footer"
 
 const LoginSignup = () => {
     const {serverUri} = useContext(ShopContext);
@@ -235,7 +235,7 @@ const LoginSignup = () => {
                     <p className="loginsignup-login">Need an account? <span onClick={() => {setState("Sign Up")}}>Sign up here</span></p>
                 }
             </div>
-            <Footer />
+            {/* <Footer /> */}
         </div>
     )
 }

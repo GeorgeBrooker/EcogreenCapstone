@@ -4,6 +4,7 @@ import { ShopContext } from "../../Context/ShopContext";
 // import remove_icon from '../Assets/remove_icon.png';
 // import add_icon from '../Assets/add_icon.png';
 import QuantityStepper from "../QuantityStepper/QuantityStepper";
+import AddressForm from "../AddressForm/AddressForm";
 
 //TODO move this kind of logic into the main Cart component this is just for testing
 const CartItems =()=>{
@@ -44,6 +45,7 @@ const CartItems =()=>{
                 }
                 return null;
             })}
+            <div className="address-form"><AddressForm/></div>
             <div className="cartitems-down">
                 <div className="cartitems-total">
                     <h1>Cart Totals</h1>
@@ -63,6 +65,7 @@ const CartItems =()=>{
                             <h3>${getTotalCartAmount()}</h3>
                         </div>
                     </div>
+                    
                     <div className="dropdowns">
                         <div className="payment-div">
                         <label htmlFor="paymentType">Payment Type:</label>
@@ -84,11 +87,12 @@ const CartItems =()=>{
                             onChange={(e) => setDeliveryType(e.target.value)}
                         >
                             <option value="" disabled>Select delivery type</option>
-                            <option value="standard">Standard Delivery</option>
-                            <option value="express">Express Delivery</option>
+                            <option value="standard">NZ Post</option>
+                            {/* <option value="express">Express Delivery</option> */}
                         </select>
                         </div>
-                        </div>
+                    </div>
+                        
                         <div className="proceed-div">
                             <button className="proceed-button" onClick={proceedToCheckout}>Proceed to Checkout</button>
                         </div>
