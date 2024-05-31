@@ -4,6 +4,7 @@ import Modal from '../Modal/Modal';
 import AddProduct from "../AddProduct/AddProduct";
 import ModifyProduct from "../ModifyProduct/ModifyProduct";
 import { serverUri } from "../../App.jsx";
+import ConfirmationModal from "../Confirmmodal/Confirmmodal";
 
 const ListProduct = () => {
     const [allProducts, setAllProducts] = useState([]);
@@ -11,6 +12,7 @@ const ListProduct = () => {
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [showModifyProductModal, setShowModifyProductModal] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false); 
     
 
     useEffect(() => {
@@ -49,7 +51,10 @@ const ListProduct = () => {
         }
         if (failedDeletes.length === 0) {
             setAllProducts(allProducts.filter(product => !selectedProducts.has(product.id)));
+            
             setSelectedProducts(new Set());
+            setShowConfirmModal(false);
+            
         } else {
             alert(`Failed to delete products with IDs: ${failedDeletes.join(', ')}`);
         }
@@ -98,7 +103,8 @@ const ListProduct = () => {
         <div className="list-product">
             <h1 className="title">All Products List</h1>
             <button onClick={() => setShowAddProductModal(true)} className="add-product-button">Add Product</button>
-            <button onClick={deleteSelectedProducts} className="delete-selected-button">Delete Selected</button>
+            <button onClick={() => setShowConfirmModal(true)} className="delete-selected-button">Delete Selected</button>
+
             
             <Modal isOpen={showAddProductModal} onClose={() => setShowAddProductModal(false)}>
                 <AddProduct />
@@ -108,6 +114,12 @@ const ListProduct = () => {
             <Modal isOpen={showModifyProductModal} onClose={() => setShowModifyProductModal(false)}>
                 <ModifyProduct productId={selectedProductId} onClose={() => setShowModifyProductModal(false)} onSave={handleSaveChanges} />
             </Modal>
+
+            <ConfirmationModal
+                isOpen={showConfirmModal}
+                onClose={() => setShowConfirmModal(false)}
+                onConfirm={deleteSelectedProducts}
+            />
             
             <div className="listproduct-format-main">
                 <p>Product</p>
@@ -155,6 +167,7 @@ const ListProduct = () => {
                     );
                 })}
             </div>
+            
         </div>
     );
 };
