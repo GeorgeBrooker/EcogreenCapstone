@@ -1,13 +1,13 @@
-import React from "react";
 import './Sidebar.css'
+import React, {useState} from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink
 import add_product_icon from '../../assets/cart_icon1.png'
 import list_product_icon from '../../assets/select.png'
 import list_customers_icon from '../../assets/login.png'
 import list_order_icon from '../../assets/package.png'
 
-const Sidebar = () => {
-  return (
+export const Sidebar = () => {
+    return(
     <div className="sidebar">
         <NavLink to='/addproduct' activeClassName="active" style={{ textDecoration: "none" }}>
             <div className="sidebar-item">
@@ -34,7 +34,7 @@ const Sidebar = () => {
             </div>
         </NavLink>
     </div>
-  );
-}
+    );
+} 
 
 export default Sidebar;

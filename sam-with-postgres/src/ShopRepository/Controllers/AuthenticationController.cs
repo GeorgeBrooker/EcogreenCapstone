@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Claims;
+using Amazon.CognitoIdentityProvider.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
@@ -18,7 +19,8 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
     {
         try
         {
-            var session = await cognito.Login(customer.Email, customer.Pass);
+            var session = await cognito.Login(customer.Email, customer.Pass) ??
+                          throw new Exception("Failed to login user, please try again.");
             return Ok(new
             {
                 customer.Email,
@@ -26,6 +28,14 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
                 session.AccessToken,
                 session.RefreshToken
             });
+        }
+        catch (UserNotConfirmedException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode((int)HttpStatusCode.TooManyRequests, "Too many requests, please try again later");
         }
         catch (Exception e)
         {
@@ -55,6 +65,54 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
             Id = customer.Id.ToString()
         };
         return Ok(returnCustomer);
+    }
+    
+    [HttpPost("ResetPassword")]
+    public async Task<IActionResult> ResetPassword([FromBody] Dictionary<string, string> resetPassword)
+    {
+        var email = resetPassword["Email"];
+        try
+        {
+            var response = await cognito.ResetPassword(email);
+            if (response.HttpStatusCode != HttpStatusCode.OK)
+                throw new Exception($"Failed to reset password in cognito: {response}");
+
+            return Ok(response);
+        }
+        catch (Exception e)
+        {
+            return BadRequest($"Reset password failed, please try again. {e.Message}");
+        }
+    }
+
+    [HttpPost("ConfirmResetPassword")]
+    public async Task<IActionResult> ConfirmResetPassword([FromBody] Dictionary<string, string> resetPasswordConf)
+    {
+        try
+        {
+            var email = resetPasswordConf["Email"];
+            var code = resetPasswordConf["Code"];
+            var pass = resetPasswordConf["Pass"];
+            
+            var customer = await repo.GetCustomerFromEmail(email) ?? throw new Exception("Customer not found in database");
+            var oldPass = customer.Password;
+            
+            var response = await cognito.ConfirmResetPassword(email, pass, code);
+            if (response.HttpStatusCode != HttpStatusCode.OK)
+                throw new Exception($"Failed to reset password in auth manager: {response}");
+            
+            var dbUpdate = await repo.UpdateCustomerPassword(email, pass);
+            if (!dbUpdate)
+            {
+                throw new Exception(
+                    "Password reset in auth manager but failed to confirm in the database. To keep records consistent, please reset again. If the problem persists, contact support.");
+            }
+            return Ok("Password reset successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest($"Failed to reset password. {e.Message}");
+        }
     }
 
     [HttpPost("RegisterCustomer")]

@@ -13,4 +13,5 @@ public class StockInput
         "https://kashish-web-asset-bucket.s3.ap-southeast-2.amazonaws.com/stock-photos/";
 
     public bool CreateWithoutStripeLink { get; set; } // Check for this on creation but not update.
+    public bool Active { get; set; } = true;
 }

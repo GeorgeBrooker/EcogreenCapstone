@@ -3,9 +3,13 @@ import PropTypes from 'prop-types';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { serverUri } from "../../App.jsx";
+import {Button} from "@mui/material";
+import {CircularProgress} from "@mui/material";
  
 
 const ModifyProduct = ({ productId, onClose, onSave }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const all_products = JSON.parse(localStorage.getItem("allProducts"));
     const [uploadCandidates, setUploadCandidates] = useState([]);
     const [showCarousel, setShowCarousel] = useState(false);
     const [activeSlide, setActiveSlide] = useState(0);
@@ -19,8 +23,7 @@ const ModifyProduct = ({ productId, onClose, onSave }) => {
 
     useEffect(() => {
         const fetchProductDetails = async () => {
-            const response = await fetch(`${serverUri}/api/shop/GetStock/${productId}`);
-            const data = await response.json();
+            const data = all_products.find((product) => product.id === productId);
             setProductDetails({
                 name: data.name,
                 description: data.description,
@@ -53,7 +56,9 @@ const ModifyProduct = ({ productId, onClose, onSave }) => {
     };
 
     const saveChanges = async () => {
+        setIsLoading(true);
         await onSave(productId, productDetails);
+        setIsLoading(false);
         onClose();
     };
 
@@ -98,7 +103,9 @@ const ModifyProduct = ({ productId, onClose, onSave }) => {
                     </Carousel>
                 )}
             </div>
-            <button onClick={saveChanges} className="addproduct-btn">Save Changes</button>
+            <Button variant="contained" disabled={isLoading} onClick={saveChanges} className="addproduct-btn" style={{fontSize: "15px", fontWeight: "bold"}}>
+                {isLoading ? <CircularProgress size={24} /> : 'Save Changes'}
+            </Button>
             
         </div>
     );

@@ -1,7 +1,7 @@
 import React, {useContext, useState} from "react"
 import { ShopContext } from '../Context/ShopContext'
 import './CSS/LoginSignup.css'
-import Footer from "../Components/Footer/Footer"
+// import Footer from "../Components/Footer/Footer"
 
 const LoginSignup = () => {
     const {serverUri} = useContext(ShopContext);
@@ -58,39 +58,43 @@ const LoginSignup = () => {
         };
         
         // Get token if no token is stored
-        if(!access_token || !refresh_token || !token) {
-            const response = await fetch(serverUri + '/api/auth/CustomerLogin', {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(customerInput),
-            });
-            if (response.ok) {
-                const data = await response.json();
-                token = data.token;
-                access_token = data.accessToken;
-                refresh_token = data.refreshToken;
-                
-                localStorage.setItem('id-token', token);
-                localStorage.setItem('auth-token', access_token);
-                localStorage.setItem('refresh-token', refresh_token);
-                
-                console.log("Got login tokens:\n", token, "\n\n", access_token, "\n\n", refresh_token);
-                
-            }
-            else if (response.status === 401) {
-                alert("Login failed: Incorrect email or password");
-                return
-            }
-            else {
-                console.error("Login failed for user with email: ", formData.email, " and password: ", formData.password);
-                alert("Login failed for an unknown reason");
-                return
-            }
+        if(access_token && refresh_token && token) {
+            return validateLoginTokens();
         }
         
-        // Validate token
+        const response = await fetch(serverUri + '/api/auth/CustomerLogin', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(customerInput),
+        });
+        if (response.ok) {
+            const data = await response.json();
+
+            localStorage.setItem('id-token', data.token);
+            localStorage.setItem('auth-token', data.accessToken);
+            localStorage.setItem('refresh-token', data.refreshToken);
+
+            console.log("Got login tokens:\n", data.token, "\n\n", data.accessToken, "\n\n", data.refreshToken);
+            validateLoginTokens();
+        }
+        else if (response.status === 400) {
+            alert(await response.text());
+            setShowVerification(true);
+        }
+        else if (response.status === 429) {
+            alert("Login failed: Too many email verification requests, please try again later.");
+        }
+        else if (response.status === 401) {
+            alert("Login failed: Incorrect email or password");
+        }
+        else {
+            alert("Login failed for unknown reason with email: ", formData.email,);
+        }
+    };
+
+    const validateLoginTokens = async () => {
         const response = await fetch(serverUri + '/api/auth/ValidateCustomer', {
             method: "GET",
             headers: {
@@ -105,14 +109,14 @@ const LoginSignup = () => {
             alert("Login failed");
             return
         }
-        
+
         // Store user session in session storage
         const userSession = await response.json();
         sessionStorage.setItem('Email', userSession.email);
         sessionStorage.setItem('Fname', userSession.fname);
         sessionStorage.setItem('Lname', userSession.lname);
         sessionStorage.setItem('Id', userSession.id);
-         
+
         console.log(
             `login successful, user information stored in session storage
             \nEmail=${sessionStorage.getItem("Email")}
@@ -120,12 +124,11 @@ const LoginSignup = () => {
             \nLname=${sessionStorage.getItem("Lname")}
             \nId=${sessionStorage.getItem("Id")}`
         );
-        
+
         // Handle successful login
         alert("Login successful!");
         window.location.replace('/home')
-    };
-
+    }
     const signup = async () => {
         if (!isFormValid()) return; // Validate form fields and terms agreement before proceeding
 
@@ -185,7 +188,7 @@ const LoginSignup = () => {
             await login();
         }else{
             console.error("User verification failed");
-            setVerificationError(`Verification code is incorrect ${response.statusText}`);
+            setVerificationError(`Verification code is incorrect, please retry ${response.statusText}`);
         }
     }
     const handleCancelUserVerification = () => {
@@ -235,7 +238,7 @@ const LoginSignup = () => {
                     <p className="loginsignup-login">Need an account? <span onClick={() => {setState("Sign Up")}}>Sign up here</span></p>
                 }
             </div>
-            <Footer />
+            {/* <Footer /> */}
         </div>
     )
 }

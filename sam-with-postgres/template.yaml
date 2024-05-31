@@ -7,7 +7,7 @@ Description: >
 Globals:
   # Globals for AWS::Serverless::Function types
   Function:
-    Timeout: 30
+    Timeout: 35
     MemorySize: 1024
     
   # Globals for AWS::Serverless::HttpApi types

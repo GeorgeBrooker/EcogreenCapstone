@@ -1,5 +1,10 @@
 .admin{
     display: flex;
+    height: calc(100vh - 65px);
+}
+.page-content{
+    width: 100%;
+    margin: 20px;
 }
 @media (max-width:800px) {
     .admin{

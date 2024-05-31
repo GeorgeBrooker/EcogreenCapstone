@@ -33,18 +33,17 @@ public class CognitoService
             await _cognitoClient.GetUserAsync(request);
             return true;
         }
-        catch (NotAuthorizedException)
+        catch (NotAuthorizedException e)
         {
             Console.WriteLine("Token is not authorized");
             return false;
         }
-        catch (Exception)
+        catch (Exception e)
         {
             Console.WriteLine("Something else is wrong with the token");
             return false;
         }
     }
-
     public async Task<CognitoUser?> GetUser(string? id, string? accessToken)
     {
         CognitoUser? user = null;
@@ -66,29 +65,90 @@ public class CognitoService
         return user;
     }
 
-    public async Task<CognitoUserSession> Login(string email, string password)
+    public async Task<CognitoUserSession?> Login(string email, string password)
     {
-        var user = _userPool.GetUser(email);
-        var authRequest = new InitiateSrpAuthRequest
+        try
         {
-            Password = password
-        };
+            var user = _userPool.GetUser(email);
+            var authRequest = new InitiateSrpAuthRequest
+            {
+                Password = password
+            };
 
-        var authResponse = await user.StartWithSrpAuthAsync(authRequest).ConfigureAwait(false);
+            var authResponse = await user.StartWithSrpAuthAsync(authRequest).ConfigureAwait(false);
 
-        if (authResponse.AuthenticationResult != null)
-        {
-            var authResult = authResponse.AuthenticationResult;
-            return new CognitoUserSession(
-                authResult.IdToken,
-                authResult.AccessToken,
-                authResult.RefreshToken,
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddSeconds(authResult.ExpiresIn)
-            );
+            if (authResponse.AuthenticationResult != null)
+            {
+                var authResult = authResponse.AuthenticationResult;
+                return new CognitoUserSession(
+                    authResult.IdToken,
+                    authResult.AccessToken,
+                    authResult.RefreshToken,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddSeconds(authResult.ExpiresIn)
+                );
+            }
         }
+        catch (UserNotConfirmedException)
+        {
+            await ResendConfirmationCode(email);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Login failed: {e.Message}");
+        }
+        return null;
+    }
+    
+    public async Task<ForgotPasswordResponse> ResetPassword(string email)
+    {
+        var forgotPasswordRequest = new ForgotPasswordRequest
+        {
+            ClientId = _userPool.ClientID,
+            Username = email,
+            SecretHash = CalculateSecretHash(_userPool.ClientID, _clientSecret, email)
+        };
+        
+        var ct = new CancellationTokenSource();
+        ct.CancelAfter(TimeSpan.FromSeconds(30));
+        var forgotPasswordResponse = await _cognitoClient.ForgotPasswordAsync(forgotPasswordRequest, ct.Token);
 
-        throw new Exception("Invalid username or password");
+        return forgotPasswordResponse;
+    }
+
+    public async Task<ConfirmForgotPasswordResponse> ConfirmResetPassword(string email, string newPassword, string code)
+    {
+        var confirmRequest = new ConfirmForgotPasswordRequest
+        {
+            ClientId = _userPool.ClientID,
+            Username = email,
+            Password = newPassword,
+            ConfirmationCode = code,
+            SecretHash = CalculateSecretHash(_userPool.ClientID, _clientSecret, email)
+        };
+        
+        var confirmResponse = await _cognitoClient.ConfirmForgotPasswordAsync(confirmRequest);
+        
+        return confirmResponse;
+    }
+    
+    private async Task ResendConfirmationCode(string email)
+    {
+        var resendRequest = new ResendConfirmationCodeRequest
+        {
+            ClientId = _userPool.ClientID,
+            Username = email,
+            SecretHash = CalculateSecretHash(_userPool.ClientID, _clientSecret, email)
+        };
+        
+        var ct = new CancellationTokenSource();
+        ct.CancelAfter(TimeSpan.FromSeconds(30));
+        var resendResponse = await _cognitoClient.ResendConfirmationCodeAsync(resendRequest, ct.Token);
+        
+        if (resendResponse.HttpStatusCode != HttpStatusCode.OK)
+            throw new Exception("User not confirmed but failed to resend confirmation code");
+        
+        throw new UserNotConfirmedException("User not confirmed, confirmation code resent");
     }
 
     public async Task<string> RefreshSession(string refreshToken, string? deviceKey = null)
@@ -178,7 +238,7 @@ public class CognitoService
 
         return confirmResponse;
     }
-
+    
     private static string CalculateSecretHash(string userPoolClientId, string userPoolClientSecret, string userName)
     {
         var dataString = userName + userPoolClientId;

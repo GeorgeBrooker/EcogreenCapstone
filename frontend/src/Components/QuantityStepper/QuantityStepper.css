@@ -20,3 +20,27 @@
 .quantity-stepper button{
     background: #24831a;
 }
+@media(max-width:1280px){
+    .quantity-stepper{
+        transform: scale(0.8);
+    }
+    
+}
+@media(max-width:1024px){
+    .quantity-stepper{
+        transform: scale(0.7);
+    }
+    
+}
+@media(max-width:800px){
+    .quantity-stepper{
+        transform: scale(0.6);
+    }
+    
+}
+@media(max-width:400px){
+    .quantity-stepper{
+        transform: scale(0.5);
+    }
+    
+}

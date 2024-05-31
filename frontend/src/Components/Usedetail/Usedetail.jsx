@@ -1,22 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Popup from '../Popup/Popup';  
 import './Usedetail.css'; 
 import use_logo from '../Assets/login.png'
 import { Link } from 'react-router-dom';
+import { ShopContext } from '../../Context/ShopContext.jsx';
 
 const Usedetail = ({ user, purchases }) => {
+  const { serverUri } = useContext(ShopContext);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); 
 
 
+  // Password reset logic
   const [isPasswordResetOpen, setIsPasswordResetOpen] = useState(false);
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
-
+  const [passForm, setPassForm] = useState({
+    verifyCode: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
+  const passFormHandler = (e) => {
+    setPassForm({...passForm, [e.target.name]: e.target.value}); 
+  };
 
 
   if (!user) return <div>Loading user data...</div>;
@@ -34,70 +40,57 @@ const Usedetail = ({ user, purchases }) => {
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
-
-
-
-
-  const handleOpenPasswordReset = () => {
-    setIsPasswordResetOpen(true);
+  
+  const handleOpenPasswordReset = async () => {
+    const response = await fetch(serverUri + "/api/auth/ResetPassword", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ Email : user.email }),
+    });
+    
+    if (response.ok) {
+      alert("Password reset email sent! enter the code below to reset your password.");
+      setIsPasswordResetOpen(true);
+    }
+    else {
+      const error = await response.json();
+      alert("Failed to send password reset email." + error);
+    }
+    
   };
 
   const handleClosePasswordReset = () => {
     setIsPasswordResetOpen(false);
-    setOldPassword('');
-    setNewPassword('');
-    setConfirmNewPassword('');
-    setPasswordError('');
+    setPassForm({
+        verifyCode: '',
+        newPassword: '',
+        confirmNewPassword: '',
+        });
   };
 
   const handlePasswordChange = async () => {
-    if (newPassword !== confirmNewPassword) {
+    // Validate input
+    if (passForm.newPassword !== passForm.confirmNewPassword) {
       setPasswordError('New passwords do not match.');
       return;
     }
-
-    // Here we should verify the old password with backend server.
-    if (oldPassword !== "old password") {
-      setPasswordError('Old password is incorrect.');
-      return;
-    }
-    try {
-      // Verify old password with backend
-      const verifyResponse = await fetch('/verifyPassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: user.email, oldPassword }),
-      });
-      
-      const verifyData = await verifyResponse.json();
-
-      if (!verifyData.success) {
-        setPasswordError('Old password is incorrect.');
+    
+    // Update password
+    const updateResponse = await fetch(serverUri + "/api/auth/ConfirmResetPassword", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ Email: user.email, Pass : passForm.newPassword, Code: passForm.verifyCode }),
+    });
+    if (!updateResponse.ok) {
+        setPasswordError(await updateResponse.text());
         return;
-      }
-
-      // If old password is correct, update to new password
-      const updateResponse = await fetch('/updatePassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: user.email, newPassword }),
-      });
-
-      const updateData = await updateResponse.json();
-
-      if (updateData.success) {
-        setPasswordSuccess('Password changed successfully!');
-        handleClosePasswordReset();
-      } else {
-        setPasswordError('Failed to change password. Please try again.');
-      }
-    } catch (error) {
-      setPasswordError('An error occurred. Please try again.');
     }
+    alert("Password updated successfully!");
+    handleClosePasswordReset();
   };
 
 
@@ -147,27 +140,27 @@ const Usedetail = ({ user, purchases }) => {
           <div className="password-reset">
             
             <div>
-              <label>Old Password: </label>
-              <input
-                type="password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
+              <label>Verification Code:</label>
+              <input name = "verifyCode"
+                type="text"
+                value={passForm.verifyCode}
+                onChange={passFormHandler}
               />
             </div>
             <div>
-              <label>New Password: </label>
-              <input
+              <label>New Password:</label>
+              <input name= "newPassword"
                 type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                value={passForm.newPassword}
+                onChange={passFormHandler}
               />
             </div>
             <div>
               <label>Confirm New Password: </label>
-              <input
+              <input name = "confirmNewPassword"
                 type="password"
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                value={passForm.confirmNewPassword}
+                onChange={passFormHandler}
               />
             </div>
             {passwordError && <div className="error">{passwordError}</div>}

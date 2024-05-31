@@ -80,3 +80,43 @@
   flex-direction: row;
   gap: 20px;
 }
+@media(max-width:1650px){
+  .productdisplay{
+    transform: scale(0.9);
+    margin: 0px;
+  }
+}
+@media(max-width:1240px){
+  .productdisplay{
+    transform: scale(0.7);
+    margin: 0px;
+    height: 60vh;
+  }
+}
+@media(max-width:1140px){
+  .productdisplay{
+    transform: scale(0.6);
+    margin: 0px;
+    height: 50vh;
+  }
+}
+@media(max-width:1043px){
+  .productdisplay{
+    transform: scale(0.5);
+    margin: 0px;
+    height: 45vh;
+  }
+}
+@media(max-width:920px){
+  .productdisplay{
+    transform: scale(0.4);
+    margin: 0px;
+    height: 40vh;
+  }
+}
+@media(max-width:780px){
+  .productdisplay{
+    transform: scale(0.3);
+    margin: 0px;
+  }
+}

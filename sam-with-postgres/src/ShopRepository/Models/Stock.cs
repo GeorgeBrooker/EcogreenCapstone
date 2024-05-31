@@ -13,4 +13,21 @@ public class Stock
     [DynamoDBProperty] public string Description { get; set; } = "";
     [DynamoDBProperty] public decimal Price { get; set; } = 50;
     [DynamoDBProperty] public int DiscountPercentage { get; set; }
+    
+    [DynamoDBProperty] public bool Active { get; set; } = true;
+    
+    public Stock DeepCopy()
+    {
+        return new Stock
+        {
+            Id = Id,
+            Name = Name,
+            StripeId = StripeId,
+            TotalStock = TotalStock,
+            PhotoUri = PhotoUri,
+            Description = Description,
+            Price = Price,
+            DiscountPercentage = DiscountPercentage
+        };
+    }
 }

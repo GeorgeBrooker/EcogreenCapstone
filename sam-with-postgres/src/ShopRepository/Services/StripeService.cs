@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using ShopRepository.Data;
+using ShopRepository.Dtos;
 using ShopRepository.Helper;
 using ShopRepository.Models;
 using Stripe;
@@ -142,7 +143,11 @@ public class StripeService
             _logger.LogInformation("Persisting stock to stripe: {0}", stock.Name);
 
             var imageUri = stock.PhotoUri + StockUploadHelper.CleanUploadName(stock.Name) + "-" + stock.Id + "/1.jpeg";
-            _logger.LogInformation($"Price: {(long) Math.Round(stock.Price * 100, 0)}");
+            
+            if (stock.DiscountPercentage > 100) throw new Exception("Discount percentage cannot be greater than 100");
+            var price = CalculateNetPrice(stock);
+            
+            _logger.LogInformation($"Price: {price}");
             var options = new ProductCreateOptions
             {
                 Name = stock.Name,
@@ -150,16 +155,18 @@ public class StripeService
                 DefaultPriceData = new ProductDefaultPriceDataOptions
                 {
                     Currency = "nzd",
-                    UnitAmount = (long) Math.Round(stock.Price * 100, 0)
+                    UnitAmount = price
                 },
                 Images = [imageUri]
             };
-            
             _logger.LogInformation("Product create options set. Creating product in stripe.");
+            
             var service = new ProductService();
             var product = await service.CreateAsync(options);
             if (product == null) throw new Exception("Failed to create product in stripe");
+            
             _logger.LogInformation("Product created in stripe. Updating stock with stripeID.");
+            
             stock.StripeId = product.Id;
             var updated = await _repo.UpdateStock(stock);
             if (!updated) throw new Exception("Failed to update stock with stripeID");
@@ -169,6 +176,93 @@ public class StripeService
         catch(Exception e)
         {
             _logger.LogError("Error in PersistStockToStripe: {0}", e.Message);
+            return false;
+        }
+    }
+    public async Task<bool> UpdateStripeStock(Stock stock)
+    {
+        try
+        {
+            // Get product and from stripe (including current default price object)
+            var stockService = new ProductService();
+            var priceService = new PriceService();
+            var stripeId = stock.StripeId ?? throw new Exception("Stock has no stripeID");
+            
+            var product = await stockService.GetAsync(stripeId) ?? throw new Exception("Product not found in stripe");
+            var productPrice = await priceService.GetAsync(product.DefaultPriceId) ?? throw new Exception("Product price not found in stripe");
+
+            var price = CalculateNetPrice(stock);
+            var stripePrice = productPrice.UnitAmount;
+
+            // Update product in stripe if necessary
+            var updated = false;
+            if (product.Name != stock.Name && stock.Name != null)
+            {
+                product.Name = stock.Name;
+                updated = true;
+            }
+            if (product.Description != stock.Description && stock.Description != null)
+            {
+                product.Description = stock.Description;
+                updated = true;
+            }
+            if (price != stripePrice && stock.Price != null)
+            {
+                var priceCreateResult = await priceService.CreateAsync(new PriceCreateOptions
+                {
+                    Product = stripeId,
+                    UnitAmount = price,
+                    Currency = "nzd"
+                });
+                if (priceCreateResult == null) throw new StripeException("Failed to create price in stripe");
+
+                product.DefaultPriceId = priceCreateResult.Id;
+                updated = true;
+            }
+            if (product.Images[0] != stock.PhotoUri && stock.PhotoUri != null)
+            {
+                product.Images[0] = stock.PhotoUri;
+                updated = true;
+            }
+            if (product.Active != stock.Active)
+            {
+                product.Active = stock.Active;
+                updated = true;
+            }
+            if (!updated) return true;
+
+            await stockService.UpdateAsync(stripeId, new ProductUpdateOptions
+            {
+                Name = product.Name,
+                Description = product.Description,
+                DefaultPrice = product.DefaultPriceId,
+                Images = product.Images,
+                Active = product.Active
+            });
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Error in UpdateStripeStock: {0}", e.Message);
+            return false;
+        }
+    }
+    private long CalculateNetPrice(Stock stock)
+    {
+        return (long)Math.Round(stock.Price * (100 - stock.DiscountPercentage), 0);
+    }
+    public async Task<bool> DeleteStripeStock(Stock stock)
+    {
+        var stripeId = stock.StripeId ?? throw new Exception("Stock has no stripeID");
+        var stockService = new ProductService();
+        try
+        {
+            await stockService.DeleteAsync(stripeId);
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Error in DeleteStripeStock: {0}", e.Message);
             return false;
         }
     }
