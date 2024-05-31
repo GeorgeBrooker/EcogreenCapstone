@@ -11,21 +11,26 @@
     "deploy": "npm run build && aws s3 sync dist/ s3://kashish-admin-page-host --delete && echo 'Deploy successful' || echo 'Deploy failed'"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.19",
+    "@mui/material": "^5.15.19",
+    "dotenv": "^16.4.5",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.10.2",
     "react-dom": "^18.2.0",
     "react-responsive-carousel": "^3.2.23",
-    "dotenv": "^16.4.5",
     "react-router-dom": "^6.23.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
+    "aws-sdk": "^2.1031.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
-    "vite": "^5.2.0",
-    "aws-sdk": "^2.1031.0"
+    "vite": "^5.2.0"
   }
 }

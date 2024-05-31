@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Security;
+using Amazon.DynamoDBv2.Model;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
 using ShopRepository.Models;
 using ShopRepository.Services;
+using Stripe.Entitlements;
 
 namespace ShopRepository.Controllers;
 
@@ -182,11 +185,18 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
 //
     // GET
     [HttpGet("GetAllStock")]
-    public async Task<ActionResult<IEnumerable<Stock>>> GetAllStock([FromQuery] int limit = 20)
+    public async Task<ActionResult<IEnumerable<Stock>>> GetAllStock([FromQuery] int limit = 1000)
     {
+        var stock = await repo.GetAllStock(limit);
         return Ok(await repo.GetAllStock(limit));
     }
-
+    [HttpGet("GetStockForSale")]
+    public async Task<ActionResult<IEnumerable<Stock>>> GetALlStockForSale([FromQuery] int limit = 1000)
+    {
+        var stock = await repo.GetAllStock(limit);
+        return Ok(stock.Where(s => s.Active));
+    }
+    
     [HttpGet("GetStock/{id:guid}")]
     public async Task<ActionResult<Stock>> GetStock(Guid id)
     {
@@ -232,19 +242,10 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
             return BadRequest("Cannot update implicitly via stripeId when input stock has no stripeId");
 
         var retrievedStock = await repo.GetStockFromStripe(stock.StripeId);
-
         if (retrievedStock == null)
             return BadRequest($"Stock could not be found with StripeId={stock.StripeId}");
 
-        retrievedStock.Name = stock.Name;
-        retrievedStock.StripeId = stock.StripeId;
-        retrievedStock.TotalStock = stock.TotalStock;
-        retrievedStock.PhotoUri = stock.PhotoUri;
-        retrievedStock.Description = stock.Description;
-        retrievedStock.Price = stock.Price;
-        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
-
-        return Ok(await repo.UpdateStock(retrievedStock));
+        return await UpdateStockHelper(retrievedStock, stock);
     }
 
     [HttpPut("UpdateStock/{stockId:guid}")]
@@ -253,31 +254,118 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         var retrievedStock = await repo.GetStock(stockId);
         if (retrievedStock == null) return BadRequest($"Stock could not be found with GUID={stockId}");
 
-        retrievedStock.Name = stock.Name;
-        retrievedStock.StripeId = stock.StripeId;
-        retrievedStock.TotalStock = stock.TotalStock;
-        retrievedStock.PhotoUri = stock.PhotoUri;
-        retrievedStock.Description = stock.Description;
-        retrievedStock.Price = stock.Price;
-        retrievedStock.DiscountPercentage = stock.DiscountPercentage;
-
-        return Ok(await repo.UpdateStock(retrievedStock));
+        return await UpdateStockHelper(retrievedStock, stock);
     }
+    
+    // Helper method for updating stock in the database and stripe simultaneously with rollback on failure in either.
+    private async Task<ActionResult<bool>> UpdateStockHelper(Stock stock, StockInput stockInput)
+    {
+        var backup = stock.DeepCopy(); // Backup the stock in case of rollback 
+        
+        //Once bound a stripeID should not be changed, this is why we don't update it here.
+        stock.Name = stockInput.Name;
+        stock.TotalStock = stockInput.TotalStock; 
+        stock.PhotoUri = stockInput.PhotoUri;
+        stock.Description = stockInput.Description;
+        stock.Price = stockInput.Price;
+        stock.DiscountPercentage = stockInput.DiscountPercentage;
+        stock.Active = stockInput.Active;
+        try
+        { 
+            var updateResult = await repo.UpdateStock(stock);
+            if (!updateResult) throw new Exception("Failed to update stock in database");
 
-    // DELETE
+            var stripeUpdate = await stripeService.UpdateStripeStock(stock);
+            if (!stripeUpdate) throw new Exception("Failed to update stock in stripe");
+
+            return Ok("Stock updated successfully");
+        } // Rollback changes if either the database or stripe fails to update
+        catch (Exception e)
+        {
+            logger.LogInformation("Failed to update stock. Rolling back changes...");
+            var rollback = await repo.UpdateStock(backup);
+            
+            if (!rollback)
+            {
+                logger.LogError("Failed to rollback changes. Manual intervention required.");
+                return BadRequest($"Failed to update stock and rollback failed. Manual intervention required. Error {e.Message}");
+            }
+            
+            logger.LogInformation("Rollback complete");
+            return BadRequest("Failed to update stock, rollback completed successfully, Please try again.");
+        }
+    }
+    // DELETE / ARCHIVE
     [HttpDelete("DeleteStock/{id:guid}")]
     public async Task<ActionResult<bool>> DeleteStock(Guid id)
     {
-        if (Guid.Empty == id) return ValidationProblem("StockId in request is not a valid Id.");
+        Stock? backupStock = null;
+        try
+        {
+            if (Guid.Empty == id) return ValidationProblem("StockId in request is not a valid Id.");
 
-        var retrievedStock = await repo.GetStock(id);
-        if (retrievedStock == null)
-            return NotFound($"No stock exists with stockId={id}");
-
-        await repo.DeleteStock(id);
-        return Ok();
+            var retrievedStock = await repo.GetStock(id) ?? throw new ResourceNotFoundException($"No stock exists with stockId={id}");
+            backupStock = retrievedStock.DeepCopy();
+        
+            var dbDelete = await repo.DeleteStock(id);
+            if (!dbDelete) throw new Exception("Failed to delete stock from database.");
+        
+            var stripeDelete = await stripeService.DeleteStripeStock(retrievedStock);
+            if (!stripeDelete) throw new Exception("Failed to delete stock from stripe. NOTE: once stock has been used in a transaction it cannot be deleted, archive the stock instead.");
+            
+            return Ok();
+        }
+        catch (ResourceNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            if (backupStock == null) return BadRequest($"Failed to delete stock. Error {e.Message}");
+            var restore = await repo.RestoreStock(backupStock);
+            return BadRequest(
+                !restore ? $"Failed to delete stock and rollback failed. Manual intervention required. Error {e.Message}" 
+                : $"Failed to delete stock, rollback completed successfully. Please try again. Error {e.Message}"
+                );
+        }
     }
 
+    [HttpPut("SetStockArchiveState/{id:guid}")]
+    public async Task<ActionResult<bool>> SetStockArchiveState(Guid id, [FromBody] Dictionary<string, bool> stateChange)
+    {
+        var newState = stateChange["active"];
+        logger.LogInformation(newState ? $"Archiving stock with id={id}" : $"Restoring stock with id={id}");
+        var stock = await repo.GetStock(id);
+        if (stock == null) return NotFound($"No stock exists with id={id}");
+        
+        var backup = stock.DeepCopy();
+        stock.Active = newState;
+        
+        try
+        { 
+            var updateResult = await repo.UpdateStock(stock);
+            if (!updateResult) throw new Exception("Failed to update stock in database");
+
+            var stripeUpdate = await stripeService.UpdateStripeStock(stock);
+            if (!stripeUpdate) throw new Exception("Failed to update stock in stripe");
+
+            return Ok("Stock updated successfully");
+        } // Rollback changes if either the database or stripe fails to update
+        catch (Exception e)
+        {
+            logger.LogInformation("Failed to update stock. Rolling back changes...");
+            var rollback = await repo.UpdateStock(backup);
+            
+            if (!rollback)
+            {
+                logger.LogError("Failed to rollback changes. Manual intervention required.");
+                return BadRequest($"Failed to update stock and rollback failed. Manual intervention required. Error {e.Message}");
+            }
+            
+            logger.LogInformation("Rollback complete");
+            return BadRequest("Failed to update stock, rollback completed successfully, Please try again.");
+        }
+    }
 //
 // *StockRequests*
 //

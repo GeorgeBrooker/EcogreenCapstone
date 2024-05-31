@@ -1,11 +1,15 @@
+.ham-menu{
+    position: sticky;
+    height: 100%;
+}
 .sidebar{
+    padding-top: 20px;
     display: flex;
     flex-direction: column;
-    padding-top: 30px;
     gap:20px;
     width: 100%;
     max-width: 250px;
-    height: 100vh;
+    height: calc(100% - 20px);
     background: white;
 }
 .sidebar-item{

@@ -11,7 +11,7 @@ const cleanProductName = (productName) => {
     return cleanedName;
 }
 const all_products = async ()=>{
-    const response = await fetch(serverUri + "/api/shop/GetAllStock", {
+    const response = await fetch(serverUri + "/api/shop/GetStockForSale", {
         method: "GET",
         headers: {
             'accept': 'application/json'

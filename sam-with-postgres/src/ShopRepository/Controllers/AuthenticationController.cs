@@ -99,12 +99,13 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
             
             var response = await cognito.ConfirmResetPassword(email, pass, code);
             if (response.HttpStatusCode != HttpStatusCode.OK)
-                throw new Exception($"Failed to reset password in cognito: {response}");
+                throw new Exception($"Failed to reset password in auth manager: {response}");
             
             var dbUpdate = await repo.UpdateCustomerPassword(email, pass);
             if (!dbUpdate)
             {
-                throw new Exception("Failed to add new password to database.");
+                throw new Exception(
+                    "Password reset in auth manager but failed to confirm in the database. To keep records consistent, please reset again. If the problem persists, contact support.");
             }
             return Ok("Password reset successfully");
         }

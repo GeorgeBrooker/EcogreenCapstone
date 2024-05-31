@@ -3,23 +3,45 @@ import './ListProduct.css';
 import Modal from '../Modal/Modal';
 import AddProduct from "../AddProduct/AddProduct";
 import ModifyProduct from "../ModifyProduct/ModifyProduct";
-import { serverUri } from "../../App.jsx";
+import { serverUri, theme } from "../../App.jsx";
+import {Button, ThemeProvider, CircularProgress, Switch, FormControlLabel} from "@mui/material";
 
 const ListProduct = () => {
-    const [allProducts, setAllProducts] = useState([]);
-    const [selectedProducts, setSelectedProducts] = useState(new Set());
-    const [showAddProductModal, setShowAddProductModal] = useState(false);
-    const [showModifyProductModal, setShowModifyProductModal] = useState(false);
-    const [selectedProductId, setSelectedProductId] = useState(null);
+    const [showArchivedProducts, setShowArchivedProducts] = useState(false); // Show archived products or not
+    const [archivedProducts, setArchivedProducts] = useState([]); // Archived products
+    const [activeProducts, setActiveProducts] = useState([]); // Active products
+    const [selectedProducts, setSelectedProducts] = useState(new Set()); // Selected products
+    const [showAddProductModal, setShowAddProductModal] = useState(false); // Show add product modal or not
+    const [showModifyProductModal, setShowModifyProductModal] = useState(false); // Show modify product modal or not
+    const [selectedProductId, setSelectedProductId] = useState(null); // Selected product id
+    // loading spinner states
+    const [archiveExecuting, setArchiveExecuting] = useState(false);
+    const [productUpdating, setProductUpdating] = useState(false);
     
+    const testSpin = () => {
+        setTestSpining(true);
+        setTimeout(() => {
+            setTestSpining(false);
+        }, 2000);
+    };
+    
+    const fetchProductInfo = async () => {
+        setProductUpdating(true)
+        const response = await fetch(`${serverUri}/api/shop/GetAllStock`);
+        const data = await response.json();
+        localStorage.setItem("allProducts", JSON.stringify(data));// Cache product data locally, refetch on modification
+        
+        // Separate active and archived products for display purposes
+        const activeProducts = data.filter(product => product.active);
+        const archivedProducts = data.filter(product => !product.active);
+        
+        setActiveProducts(activeProducts);
+        setArchivedProducts(archivedProducts);
+        setProductUpdating(false);
+    };
 
     useEffect(() => {
-        const fetchInfo = async () => {
-            const response = await fetch(`${serverUri}/api/shop/GetAllStock`);
-            const data = await response.json();
-            setAllProducts(data);
-        };
-        fetchInfo();
+        fetchProductInfo();
     }, []);
 
     const toggleProductSelection = (id) => {
@@ -31,28 +53,40 @@ const ListProduct = () => {
         }
         setSelectedProducts(newSelection);
     };
-
-    const deleteSelectedProducts = async () => {
-        const failedDeletes = [];
+    
+    const archiveHandler = async () => {
+        setArchiveExecuting(true); // show spinner
+        
+        const failedUpdates = [];
         for (let id of selectedProducts) {
             try {
-                const response = await fetch(`${serverUri}/api/shop/DeleteStock/${id}`, {
-                    method: 'DELETE'
+                const response = await fetch(`${serverUri}/api/shop/SetStockArchiveState/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ active: showArchivedProducts }),
                 });
                 if (!response.ok) {
-                    throw new Error(`Failed to delete product with ID ${id}`);
+                    failedUpdates.push(id + " : " + await response.text());
+                    throw new Error(id);
+                }
+                else {
+                    fetchProductInfo();
+                    alert("Archive state changed successfully");
                 }
             } catch (error) {
-                console.error('Error deleting product:', error);
-                failedDeletes.push(id);
+                console.error('Error changing archive state of product:', error);
             }
         }
-        if (failedDeletes.length === 0) {
-            setAllProducts(allProducts.filter(product => !selectedProducts.has(product.id)));
+        
+        if (failedUpdates.length === 0) {
+            setActiveProducts(activeProducts.filter(product => !selectedProducts.has(product.id)));
             setSelectedProducts(new Set());
         } else {
-            alert(`Failed to delete products with IDs: ${failedDeletes.join(', ')}`);
+            alert(`Failed to change archive state of products with Errors:\n\n${failedUpdates.join('\n\n')}`);
         }
+        setArchiveExecuting(false); // hide spinner
     };
 
     const handleEditProduct = (productId) => {
@@ -81,81 +115,159 @@ const ListProduct = () => {
         });
         if (response.ok) {
             const updatedProduct = await response.json();
-            setAllProducts(prevProducts => prevProducts.map(product => {
+            setActiveProducts(prevProducts => prevProducts.map(product => {
                 return product.id === id ? { ...product, ...updatedProduct } : product;
             }));
             alert("Modification successful");
-            window.location.reload()
             console.log("Updated product data:", transformedData);
              
         } else {
             alert("Modification failed");
         }
+        fetchProductInfo();
         setShowModifyProductModal(false);
     };
 
     return (
-        <div className="list-product">
-            <h1 className="title">All Products List</h1>
-            <button onClick={() => setShowAddProductModal(true)} className="add-product-button">Add Product</button>
-            <button onClick={deleteSelectedProducts} className="delete-selected-button">Delete Selected</button>
+        <ThemeProvider theme={theme}>
             
-            <Modal isOpen={showAddProductModal} onClose={() => setShowAddProductModal(false)}>
-                <AddProduct />
-            </Modal>
-            
-
-            <Modal isOpen={showModifyProductModal} onClose={() => setShowModifyProductModal(false)}>
-                <ModifyProduct productId={selectedProductId} onClose={() => setShowModifyProductModal(false)} onSave={handleSaveChanges} />
-            </Modal>
-            
-            <div className="listproduct-format-main">
-                <p>Product</p>
-                <p>Title</p>
-                <p>Old Price</p>
-                <p>New Price</p>
-                <p>Stock</p>
-                
-                <p>Remove</p>
-            </div>
-            
-            <div className="listproduct-allproducts">
-                {allProducts.map((product, index) => {
-                    const uriName = product.name.replace(/\s/g, '-');
-                    const productUri = `${product.photoUri}${uriName}-${product.id}1.jpeg`;
-                    const discountedPrice = Number(product.price) * (1 - (Number(product.discountPercentage) / 100));
-
-                    const handleProductClick = (event, productId) => {
-                         
-                        if (event.target.type !== 'checkbox') {
-                            handleEditProduct(productId);
-                        }
-                    };
-                    
-            
-
-                    return (
-                        <div key={index} className="listproduct-format" onClick={(e) => handleProductClick(e, product.id)}>
-                            <img src={productUri} alt="" className="listproduct-product-icon" />
-                            <p>{product.name}</p>
-                            <p>${product.price}</p>
-                            <p>${discountedPrice}</p>
-                            <p>{product.totalStock}</p>
-                       
-                            <input 
-                                type="checkbox" 
-                                className="listproduct-checkbox"
-                                checked={selectedProducts.has(product.id)}
-                                onChange={(e) => {
-                                    e.stopPropagation();
-                                    toggleProductSelection(product.id);
-                                }}
+            <div className={"page-headers"}>
+                <h1 className="title">{showArchivedProducts ? 'Archived Products' : 'Active Products'}</h1>
+                <div className={"button-container"}>
+                    <FormControlLabel
+                        style={{marginRight: 'auto'}}
+                        className={"show-archived-products-switch"}
+                        control={
+                            <Switch
+                                checked={showArchivedProducts}
+                                onChange={() => setShowArchivedProducts(!showArchivedProducts)}
+                                name="showArchivedProducts"
+                                color="primary"
                             />
-                        </div>
-                    );
-                })}
+                        }
+                        label={showArchivedProducts ? 'Hide Archived Products' : 'Show Archived Products'}
+                    />
+                    <Button style={{marginRight: '10px'}} onClick={() => setShowAddProductModal(true)} variant={"contained"}
+                            className="add-product-button">Add Product</Button>
+
+                    <Button className="delete-selected-button" onClick={() => archiveHandler()} variant="contained"
+                            disabled={archiveExecuting} color={"error"}>
+                        {archiveExecuting ?
+                            <CircularProgress size={20} color="inherit"/>
+                            :
+                            (showArchivedProducts ? 'Unarchive' : 'Archive')
+                        }
+                    </Button>
+                </div>
             </div>
-        </div>
+            <div className="list-product">
+                
+                <Modal isOpen={showAddProductModal} onClose={() => setShowAddProductModal(false)}>
+                    <AddProduct/>
+                </Modal>
+                
+                <Modal isOpen={showModifyProductModal} onClose={() => setShowModifyProductModal(false)}>
+                    <ModifyProduct productId={selectedProductId} onClose={() => setShowModifyProductModal(false)}
+                                   onSave={handleSaveChanges}/>
+                </Modal>
+                
+                <div className="listproduct-format listproduct-header">
+                    <p className={"col-1"}>Product</p>
+                    <p className={"col-2"}>Title</p>
+                    <p className={"col-3"}>Old Price</p>
+                    <p className={"col-4"}>New Price</p>
+                    <p className={"col-5"}>Stock</p>
+                    <p className={"col-6"}>{showArchivedProducts ? "Unarchive" : "Archive"}</p>
+                </div>
+                
+                {productUpdating && <div style={{ 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh'
+                }}>
+                    <CircularProgress/>
+                    <span>Loading...</span>
+                </div>}
+
+                {!showArchivedProducts && !productUpdating ? (
+                    <div className="listproduct-allproducts">
+                        {activeProducts.map((product, index) => {
+                            const uriName = product.name.replace(/\s/g, '-');
+                            const productUri = `${product.photoUri}${uriName}-${product.id}/1.jpeg`;
+                            const discountedPrice = Number(product.price) * (1 - (Number(product.discountPercentage) / 100));
+    
+                            const handleProductClick = (event, productId) => {
+    
+                                if (event.target.type !== 'checkbox') {
+                                    handleEditProduct(productId);
+                                }
+                            };
+                            
+                            return (
+                                <div key={index} className="listproduct-format listproduct-item"
+                                     onClick={(e) => handleProductClick(e, product.id)}>
+                                    <img src={productUri} alt="" className="listproduct-product-icon col-1"/>
+                                    <p className={"col-2"}>{product.name}</p>
+                                    <p className={"col-3"}>${product.price}</p>
+                                    <p className={"col-4"}>${discountedPrice}</p>
+                                    <p className={"col-5"}>{product.totalStock}</p>
+    
+                                    <input
+                                        type="checkbox"
+                                        className="listproduct-checkbox col-6"
+                                        checked={selectedProducts.has(product.id)}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            toggleProductSelection(product.id);
+                                        }}
+                                    />
+                                </div>
+                            );
+                        })}
+                        {(activeProducts.length === 0 && !productUpdating) && <p className="no-products-message">No products available</p>}
+                    </div>
+                    ) : null}
+                {!productUpdating && showArchivedProducts ? (
+                    <div className="listproduct-allproducts">
+                        {archivedProducts.map((product, index) => {
+                            const uriName = product.name.replace(/\s/g, '-');
+                            const productUri = `${product.photoUri}${uriName}-${product.id}/1.jpeg`;
+                            const discountedPrice = Number(product.price) * (1 - (Number(product.discountPercentage) / 100));
+    
+                            const handleProductClick = (event, productId) => {
+    
+                                if (event.target.type !== 'checkbox') {
+                                    handleEditProduct(productId);
+                                }
+                            };
+                            return (
+                                <div key={index} className="listproduct-format"
+                                     onClick={(e) => handleProductClick(e, product.id)}>
+                                    <img src={productUri} alt="" className="listproduct-product-icon col-1"/>
+                                    <p className={"col-2"}>{product.name}</p>
+                                    <p className={"col-3"}>${product.price}</p>
+                                    <p className={"col-4"}>${discountedPrice}</p>
+                                    <p className={"col-5"}>{product.totalStock}</p>
+    
+                                    <input
+                                        type="checkbox"
+                                        className="listproduct-checkbox col-6"
+                                        checked={selectedProducts.has(product.id)}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            toggleProductSelection(product.id);
+                                        }}
+                                    />
+                                </div>
+                            );
+                        })}
+                        {(archivedProducts.length === 0 && !productUpdating) && <p className="no-products-message">No archived products</p>}
+                    </div>
+                ) : null}
+            </div>
+        </ThemeProvider>
     );
 };
 

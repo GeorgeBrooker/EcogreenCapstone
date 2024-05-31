@@ -46,6 +46,7 @@ public interface IShopRepo
     Task<Stock?> GetStock(Guid id);
     Task<IEnumerable<Stock>> GetAllStock(int limit);
     Task<Guid?> AddStock(StockInput stock);
+    Task<bool> RestoreStock(Stock backup); // This is used to restore stock on rollback.
     Task<bool> UpdateStock(Stock? stock);
     Task<bool> DeleteStock(Guid id);
 

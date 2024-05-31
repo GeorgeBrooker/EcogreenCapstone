@@ -2,8 +2,6 @@
     box-sizing: border-box;
     width: 100%;
     max-width: 800px;
-    padding: 30px 50px ;
-    margin: 20px 30px;
     border-radius: 6px;
     background: white;
 }
@@ -50,13 +48,13 @@
     font-weight: bold;
     border-radius: 15%;
     cursor: pointer;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
     transition: transform 0.1s ease;
     z-index: 4;
 }
 .imageupload-delete:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+    transform: scale(1.05);
+    box-shadow: 0 0 7px rgba(0, 0, 0, 0.3);
     background-color: darkred;
 }
 .addproduct-imagefield {
@@ -78,6 +76,9 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     
 }
 .addproduct-imageuploader:hover{
@@ -87,6 +88,13 @@
     width: 100%;
     color: #7b7b7b ;
     font-size: 16px;
+    overflow: hidden;
+    text-overflow: fade;
+}
+.addproduct-itemfield p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .carousel.carousel-slider .control-arrow {
     height: 50%;
@@ -105,8 +113,12 @@
 }
 .addproduct-price{
     display: flex;
-    gap: 40px;
+    gap: normal;
+    justify-content: space-between;
 
+}
+.addproduct-price .addproduct-itemfield{
+    width: 25%;
 }
 .addproduct-thumnail-img{
     height: 120px;
@@ -128,11 +140,7 @@
     font-weight: 500;
 
 }
-@media(max_width:800px) {
-    .add-product{
-        width: auto;
-        padding:30px;
-        margin: 20px;
-    }
+
+@media (max-width: ) {
     
 }

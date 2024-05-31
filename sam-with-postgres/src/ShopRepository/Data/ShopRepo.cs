@@ -587,6 +587,19 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
         }
     }
 
+    public async Task<bool> RestoreStock(Stock stock)
+    {
+        try
+        {
+            await dbContext.SaveAsync(stock);
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"Failed to restore stock {e.Message}");
+            return false;
+        }
+        return true;
+    }
     public async Task<Guid?> AddStock(StockInput nStock)
     {
         try
