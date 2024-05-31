@@ -3,7 +3,7 @@ import './AddressForm.css';
 
 const AddressForm = () => {
     const [formData, setFormData] = useState({
-        country: "",
+        country: "New Zealand",
         street: "",
         suburb: "",
         city: "",
@@ -33,14 +33,17 @@ const AddressForm = () => {
                 <h2>Delivery Address:</h2>
                 <div className="form-group">
                     <label htmlFor="country">Country:</label>
-                    <input
+                    <select
                         type="text"
                         id="country"
                         name="country"
                         value={formData.country}
                         onChange={handleChange}
                         required
-                    />
+                    >
+                        <option value="New Zealand"> New Zealand</option>
+                        <option value="Australia"> Australia</option>
+                    </select>
                 </div>
                 <div className="form-group">
                     <label htmlFor="street">House Number & Street:</label>
