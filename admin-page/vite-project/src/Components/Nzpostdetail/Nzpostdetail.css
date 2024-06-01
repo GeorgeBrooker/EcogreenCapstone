@@ -1,0 +1,49 @@
+.parcel-info-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.parcel-info-header {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.parcel-info-field {
+    margin-bottom: 15px;
+}
+
+.parcel-info-field p {
+    font-size: 16px;
+    margin: 0 0 5px 0;
+    color: #666;
+}
+
+.parcel-info-field input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Makes sure the padding does not affect the width */
+}
+
+.parcel-info-btn {
+    width: 100%;
+    background-color: #24831a;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.parcel-info-btn:hover {
+    background-color: #7feb72;
+    color:#333
+}
