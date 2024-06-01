@@ -12,14 +12,17 @@ public class CognitoService
     private readonly string _clientSecret;
     private readonly IAmazonCognitoIdentityProvider _cognitoClient;
     private readonly CognitoUserPool _userPool;
+    
+    private readonly IConfiguration _config;
 
     public CognitoService(IAmazonCognitoIdentityProvider cognito, IConfiguration configuration)
     {
+        _config = configuration;
         _clientSecret = configuration["Cognito:ClientSecret"]!;
         _cognitoClient = cognito;
         _userPool = new CognitoUserPool(
-            configuration["Cognito:UserPoolId"],
-            configuration["Cognito:ClientId"],
+            configuration["Cognito:Customer:UserPoolId"],
+            clientID:configuration["Cognito:Customer:ClientId"],
             _cognitoClient,
             _clientSecret
         );
