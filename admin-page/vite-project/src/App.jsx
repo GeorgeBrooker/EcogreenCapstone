@@ -28,7 +28,7 @@ export const getSessionTokens = async () => {
     return tokens;
 }
 
-export const fetchWithAuth = async (url, options) => {
+export const fetchWithAuth = async (url, options = {}) => {
     const tokens = await getSessionTokens();
     if (isTokenExpired(tokens.accessToken)) {
         await refresh();

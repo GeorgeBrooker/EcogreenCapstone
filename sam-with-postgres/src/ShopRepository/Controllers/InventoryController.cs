@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2.Model;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
@@ -281,6 +282,133 @@ public class InventoryController(IShopRepo repo, StripeService stripeService, IC
     }
     
 //
+// CUSTOMER ADDRESSES
+//
+
+    // GET
+    [HttpGet("GetCustomerAddresses/{customerId:guid}")]
+    public async Task<ActionResult<IEnumerable<Address>>> GetCustomerAddresses(Guid customerId)
+    {
+        return Ok(await repo.GetCustomerAddresses(customerId));
+    }
+
+    [HttpGet("GetCustomerAddress/{customerId:guid}/{addressName}")]
+    public async Task<ActionResult<Address>> GetCustomerAddress(Guid customerId, string addressName)
+    {
+        return Ok(await repo.GetCustomerAddress(customerId, addressName));
+    }
+
+    // POST
+    [HttpPost("AddCustomerAddress")]
+    public async Task<ActionResult<bool>> AddCustomerAddress([FromBody] Address address)
+    {
+        var addressExists = await repo.GetCustomerAddress(address.CustomerId, address.AddressName);
+        if (addressExists != null) return BadRequest("Address already exists.");
+        return Ok(await repo.AddCustomerAddress(address));
+    }
+
+    // PUT
+    [HttpPut("UpdateCustomerAddress")]
+    public async Task<ActionResult<bool>> UpdateCustomerAddress([FromBody] AddressInput nAddress)
+    {
+        var address = await repo.GetCustomerAddress(nAddress.CustomerId, nAddress.AddressName);
+        if (address == null) return BadRequest("Address does not exist.");
+
+        // Map the input to the existing address
+        address.CustomerId = nAddress.CustomerId;
+        address.AddressName = nAddress.AddressName;
+        address.StreetNumber = nAddress.StreetNumber;
+        address.Street = nAddress.Street;
+        address.City = nAddress.City;
+        address.PostCode = nAddress.PostCode;
+        address.Country = nAddress.Country;
+        address.PhoneNumber = nAddress.PhoneNumber;
+        address.Email = nAddress.Email;
+
+        return Ok(await repo.UpdateCustomerAddress(address));
+    }
+
+    // DELETE
+    [HttpDelete("DeleteCustomerAddress/{customerId:guid}/{addressName}")]
+    public async Task<ActionResult<bool>> DeleteCustomerAddress(Guid customerId, string addressName)
+    {
+        var address = await repo.GetCustomerAddress(customerId, addressName);
+        if (address == null) return BadRequest("Address does not exist.");
+
+        return Ok(await repo.DeleteCustomerAddress(address));
+    }
+    
+//
+// *CUSTOMER*
+//
+
+    // GET
+    [HttpGet("GetCustomers")]
+    public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers([FromQuery] int limit = 20)
+    {
+        return Ok(await repo.GetAllCustomers(limit));
+    }
+
+    [HttpGet("GetCustomerFromStripe/{stripeId}")]
+    public async Task<ActionResult<Customer>> GetCustomerFromStripe(string stripeId)
+    {
+        return Ok(await repo.GetCustomerFromStripe(stripeId));
+    }
+
+    [HttpGet("GetCustomerFromEmail/{email}")]
+    public async Task<ActionResult<Customer>> GetCustomerFromEmail(string email)
+    {
+        return Ok(await repo.GetCustomerFromEmail(email));
+    }
+
+    [HttpGet("GetCustomerByID/{id:guid}")]
+    public async Task<ActionResult<Customer>> GetCustomer(Guid id)
+    {
+        return Ok(await repo.GetCustomer(id));
+    }
+
+    [HttpGet("GetCustomerOrders/{customerId:guid}")]
+    public async Task<ActionResult<IEnumerable<Order>>> GetCustomerOrders(Guid customerId)
+    {
+        return Ok(await repo.GetCustomerOrders(customerId));
+    }
+
+    // POST 
+    [HttpPost("AddCustomer")]
+    public async Task<ActionResult<CustomerInput>> AddCustomer([FromBody] CustomerInput nCustomer)
+    {
+        if (await repo.GetCustomerFromEmail(nCustomer.Email) != null)
+            return BadRequest("Customer with that email already exists.");
+
+        if (await repo.AddCustomer(nCustomer))
+            return Ok(nCustomer);
+
+        return BadRequest("Sign up failed, please try again.");
+    }
+
+    // PUT 
+
+    // This method should only be called with a complete CustomerInput DTO as input.
+    // Input DTO should be created from a fresh retrieval of the customer information.
+    // You will have to retrieve the customer object to get ID anyway so this shouldn't be expensive.
+    [HttpPut("UpdateCustomer/{id:guid}")]
+    public async Task<ActionResult> UpdateCustomer(Guid id, [FromBody] CustomerInput? customer)
+    {
+        if (id == Guid.Empty || customer == null) return ValidationProblem("Invalid payload");
+
+        var updated = await repo.GetCustomer(id);
+        if (updated == null) return NotFound($"Could not find existing customer with id={id}. Update canceled.");
+
+        updated.Email = customer.Email;
+        updated.FirstName = customer.Fname;
+        updated.LastName = customer.Fname;
+        updated.Password = new PasswordHasher<Customer>().HashPassword(updated, customer.Pass);
+
+        await repo.UpdateCustomer(updated);
+        return Ok();
+    }
+    
+//
 // STOCK REQUESTS
 //
 
@@ -345,6 +473,8 @@ public class InventoryController(IShopRepo repo, StripeService stripeService, IC
         await repo.DeleteStockRequest(retreivedStockRq);
         return Ok();
     }
+    
+    
     
 //
 // STOCK PHOTOS

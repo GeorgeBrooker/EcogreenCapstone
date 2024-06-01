@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import { serverUri } from "../../App.jsx";
+import { serverUri, fetchWithAuth } from "../../App.jsx";
 import {Button} from "@mui/material";
 import {CircularProgress} from "@mui/material";
  
