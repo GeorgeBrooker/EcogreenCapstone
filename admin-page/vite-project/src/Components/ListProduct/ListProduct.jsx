@@ -6,6 +6,7 @@ import ModifyProduct from "../ModifyProduct/ModifyProduct";
 import { serverUri, apiEndpoint, theme, fetchWithAuth } from "../../App.jsx";
 import {Button, ThemeProvider, CircularProgress, Switch, FormControlLabel} from "@mui/material";
 import {Api} from "@mui/icons-material";
+import ConfirmationModal from "../Confirmmodal/Confirmmodal";
 
 const ListProduct = () => {
     const [showArchivedProducts, setShowArchivedProducts] = useState(false); // Show archived products or not
@@ -15,16 +16,11 @@ const ListProduct = () => {
     const [showAddProductModal, setShowAddProductModal] = useState(false); // Show add product modal or not
     const [showModifyProductModal, setShowModifyProductModal] = useState(false); // Show modify product modal or not
     const [selectedProductId, setSelectedProductId] = useState(null); // Selected product id
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+
     // loading spinner states
     const [archiveExecuting, setArchiveExecuting] = useState(false);
     const [productUpdating, setProductUpdating] = useState(false);
-    
-    const testSpin = () => {
-        setTestSpining(true);
-        setTimeout(() => {
-            setTestSpining(false);
-        }, 2000);
-    };
     
     const fetchProductInfo = async () => {
         setProductUpdating(true)
@@ -84,6 +80,8 @@ const ListProduct = () => {
         if (failedUpdates.length === 0) {
             setActiveProducts(activeProducts.filter(product => !selectedProducts.has(product.id)));
             setSelectedProducts(new Set());
+            setShowConfirmModal(false);
+            
         } else {
             alert(`Failed to change archive state of products with Errors:\n\n${failedUpdates.join('\n\n')}`);
         }
@@ -151,7 +149,7 @@ const ListProduct = () => {
                     <Button style={{marginRight: '10px'}} onClick={() => setShowAddProductModal(true)} variant={"contained"}
                             className="add-product-button">Add Product</Button>
 
-                    <Button className="delete-selected-button" onClick={() => archiveHandler()} variant="contained"
+                    <Button className="delete-selected-button" onClick={() => setShowConfirmModal(true)} variant="contained"
                             disabled={archiveExecuting} color={"error"}>
                         {archiveExecuting ?
                             <CircularProgress size={20} color="inherit"/>
@@ -171,6 +169,11 @@ const ListProduct = () => {
                     <ModifyProduct productId={selectedProductId} onClose={() => setShowModifyProductModal(false)}
                                    onSave={handleSaveChanges}/>
                 </Modal>
+                <ConfirmationModal
+                    isOpen={showConfirmModal}
+                    onClose={() => setShowConfirmModal(false)}
+                    onConfirm={() => archiveHandler()}
+                />
                 
                 <div className="listproduct-format listproduct-header">
                     <p className={"col-1"}>Product</p>

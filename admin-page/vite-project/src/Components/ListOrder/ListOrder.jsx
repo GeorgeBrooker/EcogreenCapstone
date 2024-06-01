@@ -3,12 +3,13 @@ import './ListOrder.css';
 import {serverUri, apiEndpoint, getSessionTokens, fetchWithAuth } from "../../App.jsx";
 import Modal from "../Modal/Modal";
 import Nzpostdetail from '../Nzpostdetail/Nzpostdetail'
+import Modal from "../Modal/Modal";
+import Nzpostdetail from '../Nzpostdetail/Nzpostdetail'
 
 const ListOrder = () => {
     const [allCustomers, setCustomers] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
 
     const fetchInfo = async () => {
         const tokens = await getSessionTokens();
@@ -25,6 +26,7 @@ const ListOrder = () => {
     useEffect(() => {
         fetchInfo();
     }, []);
+
     const openModal = (order) => {
         setSelectedOrder(order);
         setIsModalOpen(true);
@@ -33,7 +35,6 @@ const ListOrder = () => {
     const closeModal = () => {
         setIsModalOpen(false);
     };
-
     return (
         <div className="listorder">
             <h1>All Order</h1>
