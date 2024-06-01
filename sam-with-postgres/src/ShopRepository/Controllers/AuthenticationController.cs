@@ -43,7 +43,7 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
         }
     }
 
-    [Authorize(Policy = "CustomerOnly")]
+    [Authorize(AuthenticationSchemes = "CustomerCognitoAuth")]
     [HttpGet("ValidateCustomer")]
     public async Task<IActionResult> CheckLogin()
     {
@@ -65,6 +65,19 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
             Id = customer.Id.ToString()
         };
         return Ok(returnCustomer);
+    }
+    [Authorize(AuthenticationSchemes = "AdminCognitoAuth")]
+    [HttpGet("ValidateAdminCustomer")]
+    public async Task<IActionResult> CheckLoginAdmin()
+    {
+        var userSubClaim = User.Claims.FirstOrDefault(claim => claim.Type == "sub")?.Value;
+        var accessToken = (User.Identity as ClaimsIdentity)?.BootstrapContext?.ToString();
+
+        var cognitoUser = await cognito.GetUser(userSubClaim, accessToken);
+        if (cognitoUser == null) return Unauthorized("Cannot find user in cognito pool");
+        if (!cognitoUser.Attributes.TryGetValue("email", out var email)) return Unauthorized("Malformed user");
+        
+        return Ok(cognitoUser.Attributes);
     }
     
     [HttpPost("ResetPassword")]

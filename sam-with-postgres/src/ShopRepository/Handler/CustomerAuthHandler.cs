@@ -8,17 +8,31 @@ using ShopRepository.Services;
 
 namespace ShopRepository.Handler;
 
-public class AuthHandler(
-    IOptionsMonitor<AuthenticationSchemeOptions> options,
-    ILoggerFactory logger,
-    UrlEncoder encoder,
-    TimeProvider clock,
-    CognitoService cognitoService)
-    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+public class CustomerAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    private readonly CognitoService _cognitoService;
+    private readonly IOptionsMonitor<AuthenticationSchemeOptions> _options;
+    private readonly IConfiguration _config;
+    public CustomerAuthHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        TimeProvider clock,
+        IServiceProvider serviceProvider,
+        CognitoService cognitoService,
+        IConfiguration config
+        ) : base(options, logger, encoder)
+    {
+        _cognitoService = cognitoService;
+        _options = options;
+        _config = config;
+    }
+    
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+        Console.WriteLine("Scheme.Name: " + Scheme.Name);
+        
+        var authHeader = Request.Headers.Authorization.FirstOrDefault();
         string? accessToken = null;
         string? refreshToken = null;
 
@@ -38,15 +52,20 @@ public class AuthHandler(
             }
         }
 
+        if (!CorrectPool(accessToken))
+        {
+            return AuthenticateResult.Fail("User is not in the customer pool");
+        }
+
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
             return AuthenticateResult.Fail("Invalid token");
 
         // Validate the access token
-        var isValid = await cognitoService.ValidateToken(accessToken);
+        var isValid = await _cognitoService.ValidateToken(accessToken);
         if (!isValid)
         {
             // If the token is not valid, try to refresh it
-            var newAccessToken = await cognitoService.RefreshSession(refreshToken);
+            var newAccessToken = await _cognitoService.RefreshSession(refreshToken);
             if (string.IsNullOrEmpty(newAccessToken)) return AuthenticateResult.Fail("Invalid token");
 
             accessToken = newAccessToken;
@@ -68,5 +87,17 @@ public class AuthHandler(
         var tokenClaims = token.Claims.ToList();
 
         return tokenClaims;
+    }
+    
+    private bool CorrectPool(string? token)
+    {
+        if (token == null) return false;
+        
+        var expectedIssuer = "https://cognito-idp." + _config["Cognito:Region"] + ".amazonaws.com/" + _config["Cognito:Customer:UserPoolId"];
+        Console.WriteLine(expectedIssuer);
+        var handler = new JwtSecurityTokenHandler();
+        var jwt = handler.ReadJwtToken(token);
+        
+        return jwt.Issuer == expectedIssuer;
     }
 }

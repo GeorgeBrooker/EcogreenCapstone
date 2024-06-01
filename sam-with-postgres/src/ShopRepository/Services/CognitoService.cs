@@ -1,9 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
+
 
 namespace ShopRepository.Services;
 
@@ -12,21 +14,25 @@ public class CognitoService
     private readonly string _clientSecret;
     private readonly IAmazonCognitoIdentityProvider _cognitoClient;
     private readonly CognitoUserPool _userPool;
+    private readonly IConfiguration _config;
 
     public CognitoService(IAmazonCognitoIdentityProvider cognito, IConfiguration configuration)
     {
+        _config = configuration;
         _clientSecret = configuration["Cognito:ClientSecret"]!;
         _cognitoClient = cognito;
         _userPool = new CognitoUserPool(
-            configuration["Cognito:UserPoolId"],
-            configuration["Cognito:ClientId"],
+            configuration["Cognito:Customer:UserPoolId"],
+            configuration["Cognito:Customer:ClientId"],
             _cognitoClient,
             _clientSecret
         );
     }
-
+    
     public async Task<bool> ValidateToken(string token)
     {
+        Console.WriteLine("Validating token in pool: " + _userPool.PoolID + "\nClient: " + _userPool.ClientID);
+        
         var request = new GetUserRequest { AccessToken = token };
         try
         {

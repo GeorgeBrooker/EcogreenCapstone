@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import './ListCustomers.css';
-import { serverUri } from  "../../App.jsx";
+import { serverUri, apiEndpoint } from  "../../App.jsx";
 
 const ListCustomers = () => {
     const [allCustomers, setCustomers] = useState([]);
 
     const fetchInfo = async () => {
-        const response = await fetch(`${serverUri}/api/shop/GetCustomers`);
+        const response = await fetch(`${serverUri}${apiEndpoint}/GetCustomers`);
         const data = await response.json();
         setCustomers(data);
     };

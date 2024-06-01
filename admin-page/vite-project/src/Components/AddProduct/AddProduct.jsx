@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import upload_area from "../../assets/file.png"
-import {serverUri} from "../../App.jsx";
+import {serverUri, apiEndpoint} from "../../App.jsx";
 import './AddProduct.css'
 const AddProduct = () =>{
     const[uploadCandidates, setUploadCandidates] = useState([]); // State of image uploader
@@ -44,7 +44,7 @@ const AddProduct = () =>{
         };
         // First add stock to local DB, only after succesfull local addition should we try and persist to S3
         // (this is to avoid orphaned images in S3 which are more annoying to clean up than local DB entries)
-        const response = await fetch(serverUri + '/api/shop/AddStock', {
+        const response = await fetch(serverUri + `${apiEndpoint}/AddStock`, {
             method: 'POST',
             headers:{
                 'Content-Type':'application/json',
@@ -75,7 +75,7 @@ const AddProduct = () =>{
         
         await Promise.all(uploadPromises); // Wait for all images to be read and appended to form data
         
-        const imageResponse = await fetch(serverUri + `/api/inventory/UploadPhotos/${stockId}`, {
+        const imageResponse = await fetch(serverUri + `${apiEndpoint}/UploadPhotos/${stockId}`, {
             method: 'POST',
             body: formData
         });
