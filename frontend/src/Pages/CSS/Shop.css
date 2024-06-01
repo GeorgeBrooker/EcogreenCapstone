@@ -1,6 +1,7 @@
 .shop {
-    height: 100vh;
+    height: 100%;
     padding-top: 50px;
+    
 }
 
 
@@ -9,7 +10,8 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     row-gap: 80px;
-    border: 2px solid;
+    /* border: 2px solid; */
+    
 }
 
 @media(max-width:1024px){
