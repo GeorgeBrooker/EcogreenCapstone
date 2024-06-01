@@ -11,6 +11,9 @@
     align-items: center;
     gap: 10px;
 }
+.nav-logo img{
+    width: 65px;
+}
 .nav-logo p{
     font-size: 38px;
     font-weight: 600;
@@ -79,9 +82,6 @@
 @media(max-width:1280px){
     .navbar{
         padding: 12px 50px;
-    }
-    .nav-logo img{
-        width: 40px;
     }
     .nav-logo p{
         font-size: 25px;

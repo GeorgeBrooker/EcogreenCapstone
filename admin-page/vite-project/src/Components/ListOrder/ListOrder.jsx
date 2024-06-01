@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import './ListOrder.css';
-import {serverUri} from "../../App.jsx";
+import {serverUri, apiEndpoint, getSessionTokens, fetchWithAuth } from "../../App.jsx";
 import Modal from "../Modal/Modal";
 import Nzpostdetail from '../Nzpostdetail/Nzpostdetail'
 
@@ -11,7 +11,13 @@ const ListOrder = () => {
 
 
     const fetchInfo = async () => {
-        const response = await fetch(`${serverUri}/api/shop/GetOrders`);
+        const tokens = await getSessionTokens();
+        const response = await fetchWithAuth(`${serverUri}${apiEndpoint}/GetOrders`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
         const data = await response.json();
         setCustomers(data);
     };

@@ -1,6 +1,6 @@
 .contactUs{
     width: 100%;
-    height: 80vh;
+    height: calc(100vh - 288px);
     background: #ffffff;
     padding-top: 50px;
 }
@@ -24,7 +24,6 @@
     margin-bottom: 5px;
     border-radius: 17px;
   }
-  
   .form-group input,
   .form-group textarea {
     width: 100%;
@@ -53,10 +52,12 @@
   }
 
   .details{
+    width: 100%;
+    position: absolute;
     display: flex;
     gap: 20px;
     justify-content: center;
-    margin-top: 60px;
+    bottom: 5%;
     /* border: 1px solid; */
   }
   .address,

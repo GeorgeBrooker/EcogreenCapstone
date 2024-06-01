@@ -3,8 +3,9 @@ import './ListProduct.css';
 import Modal from '../Modal/Modal';
 import AddProduct from "../AddProduct/AddProduct";
 import ModifyProduct from "../ModifyProduct/ModifyProduct";
-import { serverUri, theme } from "../../App.jsx";
+import { serverUri, apiEndpoint, theme, fetchWithAuth } from "../../App.jsx";
 import {Button, ThemeProvider, CircularProgress, Switch, FormControlLabel} from "@mui/material";
+import {Api} from "@mui/icons-material";
 
 const ListProduct = () => {
     const [showArchivedProducts, setShowArchivedProducts] = useState(false); // Show archived products or not
@@ -27,7 +28,7 @@ const ListProduct = () => {
     
     const fetchProductInfo = async () => {
         setProductUpdating(true)
-        const response = await fetch(`${serverUri}/api/shop/GetAllStock`);
+        const response = await fetchWithAuth(`${serverUri}${apiEndpoint}/GetAllStock`, );
         const data = await response.json();
         localStorage.setItem("allProducts", JSON.stringify(data));// Cache product data locally, refetch on modification
         
@@ -60,7 +61,7 @@ const ListProduct = () => {
         const failedUpdates = [];
         for (let id of selectedProducts) {
             try {
-                const response = await fetch(`${serverUri}/api/shop/SetStockArchiveState/${id}`, {
+                const response = await fetchWithAuth(`${serverUri}${apiEndpoint}/SetStockArchiveState/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ const ListProduct = () => {
 
     const handleSaveChanges = async (id, updatedData) => {
         const transformedData = transformProductDetails(updatedData); 
-        const response = await fetch(`${serverUri}/api/shop/UpdateStock/${id}`, {
+        const response = await fetchWithAuth(`${serverUri}${apiEndpoint}/UpdateStock/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ const ListProduct = () => {
             <div className="list-product">
                 
                 <Modal isOpen={showAddProductModal} onClose={() => setShowAddProductModal(false)}>
-                    <AddProduct/>
+                    <AddProduct onClose={() => setShowAddProductModal(false)}/>
                 </Modal>
                 
                 <Modal isOpen={showModifyProductModal} onClose={() => setShowModifyProductModal(false)}>

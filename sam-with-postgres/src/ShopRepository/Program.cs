@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Amazon;
 using Amazon.CognitoIdentityProvider;
@@ -7,7 +8,9 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using Amazon.SimpleEmailV2;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
 using ShopRepository.Data;
 using ShopRepository.Handler;
 using ShopRepository.Helper;
@@ -29,6 +32,7 @@ if (secretValue != null)
 {
     var secretJson = JsonSerializer.Deserialize<Dictionary<string, string>>(secretValue);
     foreach (var kvp in secretJson!) builder.Configuration[kvp.Key] = kvp.Value;
+    foreach(var kvp in secretJson) Console.WriteLine($"{kvp.Key}: {kvp.Value}");
 }
 
 // Check for local environment and set up DynamoDB and Configuration accordingly
@@ -63,20 +67,9 @@ builder.Services.AddHttpClient("NZPostClient", client =>
 builder.Services.AddSingleton<NZPostService>();
 
 // Add Authentication and Authorization policies
-builder.Services.AddAuthentication("CustomCognitoAuth")
-    .AddScheme<AuthenticationSchemeOptions, AuthHandler>("CustomCognitoAuth", null);
-
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("CustomerOnly", policy =>
-        policy.RequireAssertion(context =>
-            {
-                var groups = context.User.Claims.Where(c => c.Type == "cognito:groups").Select(c => c.Value).ToList();
-                Console.WriteLine("\n\nMade it to the policy!\n\n");
-                Console.WriteLine(groups.Contains("Customers"));
-
-                return groups.Contains("Customers") || groups.Contains("Administrators");
-            }
-        ));
+builder.Services.AddAuthentication("CustomerCognitoAuth")
+    .AddScheme<AuthenticationSchemeOptions, CustomerAuthHandler>("CustomerCognitoAuth", null)
+    .AddScheme<AuthenticationSchemeOptions, AdminAuthHandler>("AdminCognitoAuth", null);
 
 // Add cors policies 
 var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(",") ?? throw new Exception("AllowedOrigins not set in config");
@@ -116,13 +109,17 @@ builder.Services
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>()
     .AddScoped<CognitoService>()
-    .AddScoped<AuthHandler>()
+    .AddScoped<CustomerAuthHandler>()
+    .AddScoped<AdminAuthHandler>() // There are two auth services. I think this could be fixed with a policy change
     .AddScoped<StockUploadHelper>()
     .AddScoped<StripeService>()
+    .AddScoped<Sesemail>()
     .AddDefaultAWSOptions(builder.Configuration.GetAWSOptions())
     .AddAWSService<IAmazonCognitoIdentityProvider>()
     .AddAWSService<IAmazonS3>()
+    .AddAWSService<IAmazonSimpleEmailServiceV2>()
     .AddAWSLambdaHosting(LambdaEventSource.HttpApi); // Add AWS Lambda hosting support
+    
 
 
 // Build app and register the middleware

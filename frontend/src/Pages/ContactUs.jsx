@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './CSS/ContactUs.css';
-// import ContactFooter from'../Components/ContactFooter/ContactFooter'
- import location from '../Components/Assets/location.png'
- import whatsapp from '../Components/Assets/whatsapp.png'
- import email from '../Components/Assets/email.png'
+import { ShopContext } from '../Context/ShopContext';
 
 function ContactUs() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
+    const {serverUri} = useContext(ShopContext);
+    const [formData, setFormData] = useState({
+      name: '',
+      email: '',
+      message: '',
+    });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,10 +18,28 @@ function ContactUs() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e)  => {
     e.preventDefault();
-    // send the data to a server
-    alert('Thank you for contacting us!');
+    
+    const response = await fetch(serverUri + '/api/shop/ContactUs', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+    });
+    if (!response.ok) {
+      alert('An error occurred while submitting the form' + response.statusText);
+    }
+    else{
+      alert('Thank you for contacting us!');
+    }
+    setFormData({
+      name: '',
+      email: '',
+      message: '',
+    });
+    
   };
 
   return (
@@ -60,23 +76,8 @@ function ContactUs() {
             onChange={handleChange}
           />
         </div>
-        <button type="submit">Send</button>
+        <button type="submit" onClick={handleSubmit}>Send</button>
       </form>
-    </div>
-    <div className='details'>
-      <div className="mobile">
-        <img src={whatsapp} alt="" />
-        <p>Mobile/WhatsApp: +64 22 648 2838</p>
-      </div>
-      <div className="address">
-        <img src={location} alt="" />
-        <a href='https://www.google.com/maps/place/21A+Margate+Road,+Blockhouse+Bay,+Auckland+0600/@-36.9120189,174.704206,16z/data=!3m1!4b1!4m6!3m5!1s0x6d0d46a4b63f5d83:0xd9a7901a2c7fd65b!8m2!3d-36.9120189!4d174.704206!16s%2Fg%2F11c21xcyl6?entry=ttu' target='_blank' rel='noreferrer'>21A, Margate Road, Blockhouse Bay, Auckland 0600, New Zealand</a>
-      </div>
-      
-      <div className="email">
-        <img src={email} alt="" />
-        <p>uttam@kashish.co.nz</p>
-      </div>
     </div>
     </div>
     

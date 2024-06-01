@@ -43,7 +43,7 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
         }
     }
 
-    [Authorize(Policy = "CustomerOnly")]
+    [Authorize(AuthenticationSchemes = "CustomerCognitoAuth")]
     [HttpGet("ValidateCustomer")]
     public async Task<IActionResult> CheckLogin()
     {
@@ -65,6 +65,20 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
             Id = customer.Id.ToString()
         };
         return Ok(returnCustomer);
+    }
+    
+    [HttpPost("Logout")]
+    public async Task<IActionResult> Logout([FromBody] string accessToken)
+    {
+        try
+        {
+            await cognito.GlobalSignOutAsync(accessToken);
+            return Ok("Logged out successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest($"Failed to log out. {e.Message}");
+        }
     }
     
     [HttpPost("ResetPassword")]

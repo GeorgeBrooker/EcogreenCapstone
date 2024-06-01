@@ -1,7 +1,7 @@
 import './Sidebar.css'
 import React, {useState} from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink
- 
+import add_product_icon from '../../assets/cart_icon1.png'
 import list_product_icon from '../../assets/select.png'
 import list_customers_icon from '../../assets/login.png'
 import list_order_icon from '../../assets/package.png'
