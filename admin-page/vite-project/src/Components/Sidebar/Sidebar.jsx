@@ -9,12 +9,6 @@ import list_order_icon from '../../assets/package.png'
 export const Sidebar = () => {
     return(
     <div className="sidebar">
-        <NavLink to='/addproduct' activeClassName="active" style={{ textDecoration: "none" }}>
-            <div className="sidebar-item">
-                <img src={add_product_icon} alt="Add Product"/>
-                <p>Add Product</p>
-            </div>
-        </NavLink>
         <NavLink to='/listproduct' activeClassName="active" style={{ textDecoration: "none" }}>
             <div className="sidebar-item">
                 <img src={list_product_icon} alt="Product List"/>

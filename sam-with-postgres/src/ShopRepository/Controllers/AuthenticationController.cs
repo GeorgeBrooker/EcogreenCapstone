@@ -66,18 +66,19 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
         };
         return Ok(returnCustomer);
     }
-    [Authorize(AuthenticationSchemes = "AdminCognitoAuth")]
-    [HttpGet("ValidateAdminCustomer")]
-    public async Task<IActionResult> CheckLoginAdmin()
+    
+    [HttpPost("Logout")]
+    public async Task<IActionResult> Logout([FromBody] string accessToken)
     {
-        var userSubClaim = User.Claims.FirstOrDefault(claim => claim.Type == "sub")?.Value;
-        var accessToken = (User.Identity as ClaimsIdentity)?.BootstrapContext?.ToString();
-
-        var cognitoUser = await cognito.GetUser(userSubClaim, accessToken);
-        if (cognitoUser == null) return Unauthorized("Cannot find user in cognito pool");
-        if (!cognitoUser.Attributes.TryGetValue("email", out var email)) return Unauthorized("Malformed user");
-        
-        return Ok(cognitoUser.Attributes);
+        try
+        {
+            await cognito.GlobalSignOutAsync(accessToken);
+            return Ok("Logged out successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest($"Failed to log out. {e.Message}");
+        }
     }
     
     [HttpPost("ResetPassword")]

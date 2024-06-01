@@ -4,7 +4,9 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import upload_area from "../../assets/file.png"
 import {serverUri, apiEndpoint, fetchWithAuth} from "../../App.jsx";
 import './AddProduct.css'
-const AddProduct = () =>{
+import {Button, CircularProgress} from "@mui/material";
+const AddProduct = ({onClose}) =>{
+    const [isLoading, setIsLoading] = useState(false);
     const[uploadCandidates, setUploadCandidates] = useState([]); // State of image uploader
     const[showCarousel, setShowCarousel] = useState(false); // State of carousel
     const[activeSlide, setActiveSlide] = useState(0); //Get and set current slide of the carousel
@@ -31,7 +33,8 @@ const AddProduct = () =>{
     const changeHandler=(e)=>{
         setproductDetails({...productDetails,[e.target.name]:e.target.value})
     }
-    const Add_Product = async() =>{
+    const add_Product = async() =>{
+        setIsLoading(true);
         // TODO add form validation
         console.log(productDetails);
         let stockInput = {
@@ -96,9 +99,10 @@ const AddProduct = () =>{
                 console.log("Failed to clean up after stock addition failure with response: " + deleteResponse.statusText);
             }
         }
+        alert("Product added successfully");
+        setIsLoading(false);
+        onClose();
     }
-        
-        
     
   return(
     <div className="add-product">
@@ -145,8 +149,10 @@ const AddProduct = () =>{
                 </Carousel>
             )}
         </div>
-        
-        <button onClick={()=>{Add_Product()}}className="addproduct-btn">Add</button>
+
+        <Button variant="contained" disabled={isLoading} onClick={add_Product} className="addproduct-btn" style={{fontSize: "15px", fontWeight: "bold"}}>
+            {isLoading ? <CircularProgress size={24} /> : 'Save Changes'}
+        </Button>
 
          
 

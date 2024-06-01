@@ -8,6 +8,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using Amazon.SimpleEmailV2;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using ShopRepository.Data;
@@ -108,14 +109,15 @@ builder.Services
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>()
     .AddScoped<CognitoService>()
-    .AddScoped<AdminCognitoService>() // There are two cognito services, one for customers and one for admins, I tried very hard to only use one but alas.
     .AddScoped<CustomerAuthHandler>()
-    .AddScoped<AdminAuthHandler>() // There are two auth services for the same reason. I think this could be fixed with a policy change
+    .AddScoped<AdminAuthHandler>() // There are two auth services. I think this could be fixed with a policy change
     .AddScoped<StockUploadHelper>()
     .AddScoped<StripeService>()
+    .AddScoped<Sesemail>()
     .AddDefaultAWSOptions(builder.Configuration.GetAWSOptions())
     .AddAWSService<IAmazonCognitoIdentityProvider>()
     .AddAWSService<IAmazonS3>()
+    .AddAWSService<IAmazonSimpleEmailServiceV2>()
     .AddAWSLambdaHosting(LambdaEventSource.HttpApi); // Add AWS Lambda hosting support
     
 

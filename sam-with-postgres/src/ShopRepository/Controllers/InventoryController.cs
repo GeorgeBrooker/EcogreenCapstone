@@ -317,12 +317,11 @@ public class InventoryController(IShopRepo repo, StripeService stripeService, IC
         // Map the input to the existing address
         address.CustomerId = nAddress.CustomerId;
         address.AddressName = nAddress.AddressName;
-        address.StreetNumber = nAddress.StreetNumber;
-        address.Street = nAddress.Street;
+        address.Line1 = nAddress.StreetNumber + " " + nAddress.Street;
+        address.Line2 = nAddress.State;
         address.City = nAddress.City;
         address.PostCode = nAddress.PostCode;
         address.Country = nAddress.Country;
-        address.PhoneNumber = nAddress.PhoneNumber;
         address.Email = nAddress.Email;
 
         return Ok(await repo.UpdateCustomerAddress(address));

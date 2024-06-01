@@ -164,7 +164,7 @@ const ListProduct = () => {
             <div className="list-product">
                 
                 <Modal isOpen={showAddProductModal} onClose={() => setShowAddProductModal(false)}>
-                    <AddProduct/>
+                    <AddProduct onClose={() => setShowAddProductModal(false)}/>
                 </Modal>
                 
                 <Modal isOpen={showModifyProductModal} onClose={() => setShowModifyProductModal(false)}>

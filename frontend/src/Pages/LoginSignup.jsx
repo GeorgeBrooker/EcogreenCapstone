@@ -1,11 +1,85 @@
 import React, {useContext, useState} from "react"
 import { ShopContext } from '../Context/ShopContext'
+import { UserContext } from '../Context/UserContext'
 import './CSS/LoginSignup.css'
+
 // import Footer from "../Components/Footer/Footer"
 
 const LoginSignup = () => {
     const {serverUri} = useContext(ShopContext);
-    const {checkLogin} = useContext(ShopContext);
+    const {isLoggedIn, setIsLoggedIn, checkLogin} = useContext(UserContext);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [isResetPassword, setIsResetPassword] = useState(false);
+    const [email, setEmail] = useState("");
+    const [resetForm, setResetForm] = useState({
+        verifyCode: "",
+        newPassword: "",
+        confirmNewPassword: "",
+    });
+    const handleOpenForgotPassword = () => {
+        setIsForgotPassword(true);
+        setIsResetPassword(false);
+    };
+    const handleCancelReset = () => {
+        setResetForm({
+            verifyCode: "",
+            newPassword: "",
+            confirmNewPassword: "",
+        });
+        setIsResetPassword(false);
+        handleCloseForgotPassword();
+    }
+
+    const handleCloseForgotPassword = () => {
+        setIsForgotPassword(false);
+        setEmail("");
+    }; 
+
+    const handleSubmitEmail = async () => {
+        const response = await fetch(serverUri + "/api/auth/ResetPassword", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ Email : email }),
+        });
+
+        if (response.ok) {
+            setIsResetPassword(true);
+        }
+        else {
+            const error = await response.text();
+            alert("Failed to send password reset email.\n" + error);
+            handleCloseForgotPassword();
+        }
+        
+    };
+
+    const handleSubmitReset = async () => {
+        // Validate input
+        if (resetForm.newPassword !== resetForm.confirmNewPassword) {
+            alert("New passwords do not match.")
+            return;
+        }
+
+        // Update password
+        const updateResponse = await fetch(serverUri + "/api/auth/ConfirmResetPassword", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ Email: email, Pass : resetForm.newPassword, Code: resetForm.verifyCode }),
+        });
+        if (!updateResponse.ok) {
+            var error = await updateResponse.text();
+            alert("Failed to update password:\n" + error);
+            handleCancelReset();
+            return;
+        }
+        alert("Password updated successfully!");
+        handleCancelReset();
+    };
+
     
     const [state, setState] = useState("Login");
     const [formData, setFormData] = useState({
@@ -106,6 +180,7 @@ const LoginSignup = () => {
             localStorage.removeItem('auth-token');
             localStorage.removeItem('refresh-token');
             localStorage.removeItem('id-token');
+            setIsLoggedIn(false);
             alert("Login failed");
             return
         }
@@ -117,17 +192,10 @@ const LoginSignup = () => {
         sessionStorage.setItem('Lname', userSession.lname);
         sessionStorage.setItem('Id', userSession.id);
 
-        console.log(
-            `login successful, user information stored in session storage
-            \nEmail=${sessionStorage.getItem("Email")}
-            \nFname=${sessionStorage.getItem("Fname")}
-            \nLname=${sessionStorage.getItem("Lname")}
-            \nId=${sessionStorage.getItem("Id")}`
-        );
-
         // Handle successful login
         alert("Login successful!");
         window.location.replace('/home')
+        setIsLoggedIn(true);
     }
     const signup = async () => {
         if (!isFormValid()) return; // Validate form fields and terms agreement before proceeding
@@ -211,6 +279,48 @@ const LoginSignup = () => {
                     </div>
                 </div>
             )}
+            {isForgotPassword && (
+                <div className="forgot-password-dimmer">
+                    <div className="forgot-password">
+                        {!isResetPassword ? (
+                            <div className="verification-box-inner">
+                                <h1>Reset your password</h1>
+                                <p>Please enter your email to receive a 6 digit password reset code.</p>
+                                <input className="emailreset" placeholder={"example@email.com"} type="text" value={email} onChange={(e) => setEmail(e.target.value)}/>
+                                <button className="handleVerification" onClick={handleSubmitEmail}>Confirm</button>
+                                <button className="cancelVerification" onClick={handleCloseForgotPassword}>Cancel
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="password-reset-box">
+                                <h1>Success!</h1>
+                                <div className={"password-reset-input-box"}>
+                                    <p>You have been sent an email containing a 6 digit reset code.<br/><br/></p>
+                                    <label>Verification Code:</label>
+                                    <input type="text" value={resetForm.verifyCode}
+                                           onChange={(e) => setResetForm({...resetForm, verifyCode: e.target.value})}/>
+                                    <label>New Password:</label>
+                                    <input style={{textAlign: "center"}} type="password" value={resetForm.newPassword}
+                                           onChange={(e) => setResetForm({...resetForm, newPassword: e.target.value})}/>
+                                    <label>Confirm New Password:</label>
+                                    <input style={{textAlign: "center"}} type="password"
+                                           value={resetForm.confirmNewPassword}
+                                           onChange={(e) => setResetForm({
+                                               ...resetForm,
+                                               confirmNewPassword: e.target.value
+                                           })}/>
+                                </div>
+                                <div className={"resetButtonBox"}>
+                                    <button onClick={handleCancelReset}>Cancel</button>
+                                    <button onClick={handleSubmitReset}>Submit</button>
+                                </div>
+                            </div>
+                        )}
+                        <button onClick={handleCloseForgotPassword}>Cancel</button>
+                    </div>
+                </div>
+
+            )}
             <div className="loginsignup-container">
                 <h1>{state}</h1>
                 <div className="loginsignup-fields">
@@ -219,24 +329,34 @@ const LoginSignup = () => {
                             <input name="firstName" value={formData.firstName} onChange={changeHandler} type="text"
                                    placeholder="First name"/>
                             <input name="lastName" value={formData.lastName} onChange={changeHandler} type="text"
-                                placeholder="Last name" />
+                                   placeholder="Last name"/>
                         </>
                     }
-                    <input name="email" value={formData.email} onChange={changeHandler} type="email" placeholder="Email" />
-                    <input name="password" value={formData.password} onChange={changeHandler} type="password" placeholder="Password" />
+                    <input name="email" value={formData.email} onChange={changeHandler} type="email"
+                           placeholder="Email"/>
+                    <input name="password" value={formData.password} onChange={changeHandler} type="password"
+                           placeholder="Password"/>
                 </div>
-                <button onClick={() => { state === "Login" ? login() : signup() }}>Continue</button>
+                <button onClick={() => {
+                    state === "Login" ? login() : signup()
+                }}>Continue
+                </button>
                 {state === "Sign Up" ?
                     <>
                         <div className="loginsignup-agree">
                             <input type="checkbox" checked={agreedToTerms} onChange={termsChangeHandler}/>
                             <p>By continuing, I agree to the terms & privacy policy.</p>
                         </div>
-                        <p className="loginsignup-login">Already have an account? <span onClick={() => {setState("Login")}}>Login here</span></p>
-                    </> 
+                        <p className="loginsignup-login">Already have an account? <span onClick={() => {
+                            setState("Login")
+                        }}>Login here</span></p>
+                    </>
                     :
-                    <p className="loginsignup-login">Need an account? <span onClick={() => {setState("Sign Up")}}>Sign up here</span></p>
+                    <p className="loginsignup-login">Need an account? <span onClick={() => {
+                        setState("Sign Up")
+                    }}>Sign up here</span></p>
                 }
+                <a href="#" onClick={handleOpenForgotPassword}>Forgot password?</a>
             </div>
             {/* <Footer /> */}
         </div>

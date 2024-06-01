@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +8,8 @@ using ShopRepository.Helper;
 using ShopRepository.Models;
 using Stripe;
 using Stripe.Checkout;
+using Address = ShopRepository.Models.Address;
+using Customer = ShopRepository.Models.Customer;
 
 namespace ShopRepository.Services;
 
@@ -39,8 +42,18 @@ public class StripeService
             {
                 LineItems = lineItems,
                 Mode = "payment",
-                SuccessUrl = domain + "?success=true", //Redirect to domain with success=true query param TODO create these pages
-                CancelUrl = domain + "?canceled=true" //Redirect to domain with canceled=true query param
+                SuccessUrl = domain + "/ordersuccess",
+                CancelUrl = domain + "/orderfail",
+                ShippingAddressCollection = new SessionShippingAddressCollectionOptions
+                {
+                    AllowedCountries = ["NZ"]
+                },
+                ShippingOptions = [
+                    new SessionShippingOptionOptions
+                    {
+                        ShippingRate = "shr_1PMw56Evcprk3hy6ISdzhZTM",
+                    }
+                ]
             };
             
             var sessionService = new SessionService();
@@ -98,10 +111,21 @@ public class StripeService
         {
             var checkoutSession = stripeEvent.Data.Object as Session ?? throw new Exception("Checkout Session not found in stripe event data.");
             var order = await _repo.GetOrderFromStripe(checkoutSession.Id) ?? throw new Exception("Order not found in database for stripe session.");
-            
+            var customer = await _repo.GetCustomer(order.CustomerId) ?? throw new Exception("Customer not found in database for order.");
+            var address = new Address
+            {
+                AddressName = customer.FirstName + "'s Address" + " " + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+                Line1 = checkoutSession.ShippingDetails.Address.Line1,
+                Line2 = checkoutSession.ShippingDetails.Address.Line2,
+                City = checkoutSession.ShippingDetails.Address.City,
+                Country = checkoutSession.ShippingDetails.Address.Country,
+                PostCode = checkoutSession.ShippingDetails.Address.PostalCode,
+                Email = customer.Email,
+            };
             order.OrderStatus = "Confirmed";
             order.CustomerAddress = null;// TODO get customer address from stripe session
             order.StripeCheckoutSession = checkoutSession.Id;
+            order.CustomerAddress = JsonSerializer.Serialize(address);
             
             var updated = await _repo.UpdateOrder(order);
             if (!updated) throw new Exception($"Failed to update order in database after successful payment {order.Id}");

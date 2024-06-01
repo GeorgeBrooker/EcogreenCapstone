@@ -10,7 +10,7 @@ namespace ShopRepository.Controllers;
 
 [Route("api/shop")]
 [Produces("application/json")]
-public class ShopController(IShopRepo repo, StripeService stripeService, IConfiguration config, ILogger<ShopController> logger) : ControllerBase
+public class ShopController(IShopRepo repo, StripeService stripeService, Sesemail sesemail, IConfiguration config, ILogger<ShopController> logger) : ControllerBase
 {
     // TODO Move the majority of this logic outside the shop controller and into the inventory controller.
     // TestUp
@@ -148,12 +148,11 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
         // Map the input to the existing address
         address.CustomerId = nAddress.CustomerId;
         address.AddressName = nAddress.AddressName;
-        address.StreetNumber = nAddress.StreetNumber;
-        address.Street = nAddress.Street;
+        address.Line1 = nAddress.StreetNumber + " " + nAddress.Street;
+        address.Line2 = nAddress.State;
         address.City = nAddress.City;
         address.PostCode = nAddress.PostCode;
         address.Country = nAddress.Country;
-        address.PhoneNumber = nAddress.PhoneNumber;
         address.Email = nAddress.Email;
 
         return Ok(await repo.UpdateCustomerAddress(address));
@@ -168,7 +167,18 @@ public class ShopController(IShopRepo repo, StripeService stripeService, IConfig
 
         return Ok(await repo.DeleteCustomerAddress(address));
     }
+    //
+    // AWS SES
+    //
     
+    [HttpPost("ContactUs")]
+    public async Task<IActionResult> SendEmail([FromBody] Sesemail.EmailInput emailInput)
+    {
+        var emailService = sesemail;
+        var result = await emailService.SendEmail(emailInput);
+        return result ? Ok("Email sent successfully") : BadRequest("Failed to send email");
+    }
+
 //
 // Order processing
 //

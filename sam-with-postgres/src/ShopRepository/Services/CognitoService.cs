@@ -50,6 +50,11 @@ public class CognitoService
             return false;
         }
     }
+    public async Task GlobalSignOutAsync(string accessToken)
+    {
+        var request = new GlobalSignOutRequest { AccessToken = accessToken };
+        await _cognitoClient.GlobalSignOutAsync(request);
+    }
     public async Task<CognitoUser?> GetUser(string? id, string? accessToken)
     {
         CognitoUser? user = null;

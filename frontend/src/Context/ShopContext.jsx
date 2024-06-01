@@ -1,9 +1,10 @@
 import React, { createContext, useState } from "react";
+import { checkLogin } from './UserContext';
 export const ShopContext = createContext(null);
 //const serverUri = process.env.NODE_ENV === 'production' 
 //    ? "https://nn8hvsrhhk.execute-api.ap-southeast-2.amazonaws.com" 
 //    : "http://localhost:3000";
-const serverUri ="http://127.0.0.1:3000";
+export const serverUri ="http://127.0.0.1:3000";
 const cleanProductName = (productName) => {
     const supportedCharsRegex = /[^a-zA-Z0-9!,_.*'()]/g; // Match any character that is not in the supported set
     const cleanedName = productName.replace(supportedCharsRegex, '-');
@@ -52,38 +53,11 @@ const getDefaultCart = ()=>{
     return cart;
 }
 
-const checkLogin = async ()=>{
-    const token = localStorage.getItem('auth-token');
-    if (!token) {
-        console.log('No token found');
-        return false;
-    }
-
-    const response = await fetch(serverUri + '/api/auth/ValidateCustomer', {
-        method: "GET",
-        headers: {
-            'Authorization': 'Bearer ' + token,
-        },
-    });
-    if (response.ok) {
-        const userSession = await response.json();
-        sessionStorage.setItem('Email', userSession.Email);
-        sessionStorage.setItem('Fname', userSession.Fname);
-        sessionStorage.setItem('Lname', userSession.Lname);
-        sessionStorage.setItem('Id', userSession.Id);
-        
-        console.log('User session restored', userSession);
-        return true
-    } else {
-        console.error('Failed to restore user session');
-        return false
-    }
-}
-
 // TODO update this to work with new login system
 const logout = ()=>{
     localStorage.removeItem('auth-token');
     sessionStorage.clear();
+    checkLogin();
     // TODO SET STATE TO LOGGED OUT
 }
 const ShopContextProvider = (props)=> {

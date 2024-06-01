@@ -2,7 +2,7 @@
     border: 1px solid;
 } */
 .hero{
-    height: 80vh;
+    height: 100vh;
     background: #d4fbcb;
     display: flex;
 }

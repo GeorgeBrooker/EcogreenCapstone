@@ -45,7 +45,7 @@ const CartItems =()=>{
                 }
                 return null;
             })}
-            <div className="address-form"><AddressForm/></div>
+            <div className="address-form" hidden={true}><AddressForm/></div>
             <div className="cartitems-down">
                 <div className="cartitems-total">
                     <h1>Cart Totals</h1>
@@ -66,7 +66,7 @@ const CartItems =()=>{
                         </div>
                     </div>
                     
-                    <div className="dropdowns">
+                    <div className="dropdowns" hidden={true}>
                         <div className="payment-div">
                         <label htmlFor="paymentType">Payment Type:</label>
                         <select
