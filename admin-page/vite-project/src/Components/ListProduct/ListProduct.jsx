@@ -53,6 +53,7 @@ const ListProduct = () => {
     
     const archiveHandler = async () => {
         setArchiveExecuting(true); // show spinner
+        setShowConfirmModal(false); // hide modal
         
         const failedUpdates = [];
         for (let id of selectedProducts) {

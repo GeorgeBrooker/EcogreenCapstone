@@ -3,8 +3,6 @@ import './ListOrder.css';
 import {serverUri, apiEndpoint, getSessionTokens, fetchWithAuth } from "../../App.jsx";
 import Modal from "../Modal/Modal";
 import Nzpostdetail from '../Nzpostdetail/Nzpostdetail'
-import Modal from "../Modal/Modal";
-import Nzpostdetail from '../Nzpostdetail/Nzpostdetail'
 
 const ListOrder = () => {
     const [allCustomers, setCustomers] = useState([]);

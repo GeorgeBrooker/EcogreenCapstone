@@ -11,8 +11,8 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
     return (
         <div className="modal-backdrop1">
             <div className="modal-content1">
-                <h2>Confirm Deletion</h2>
-                <p>Are you sure you want to delete the selected products?</p>
+                <h2>Confirm Changes</h2>
+                <p>Are you sure you want to modify the selected products?</p>
                 <button onClick={onConfirm} className="confirm-button1">Yes</button>
                 <button onClick={onClose} className="cancel-button1">No</button>
             </div>
