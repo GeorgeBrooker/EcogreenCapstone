@@ -2,6 +2,7 @@ import React, {useState, useEffect, useContext} from 'react';
 import UserDetails from '../Components/Usedetail/Usedetail';
 import { ShopContext } from '../Context/ShopContext';
 // import Footer from '../Components/Footer/Footer';
+import './CSS/Detail.css'
 
 function Detail() {
   const {serverUri} = useContext(ShopContext);
@@ -47,11 +48,12 @@ function Detail() {
   if (error) return <div>Error: {error}</div>;
 
   return (
+    <div className="detail">
     <div className="App">
       <UserDetails user={user} purchases={purchases} />
       
     </div>
-     
+    </div>
   )
 }
 

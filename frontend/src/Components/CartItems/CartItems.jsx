@@ -57,7 +57,7 @@ const CartItems =()=>{
                         <hr />
                         <div className="cartitems-total-item">
                             <p>Shipping Fee</p>
-                            <p>Free</p>
+                            <p>Calculated in Payment Page</p>
                         </div>
                         <hr />
                         <div className="cartitems-total-item">
@@ -87,8 +87,9 @@ const CartItems =()=>{
                             onChange={(e) => setDeliveryType(e.target.value)}
                         >
                             <option value="" disabled>Select delivery type</option>
-                            <option value="standard">NZ Post</option>
-                            {/* <option value="express">Express Delivery</option> */}
+                            <option value="standard">Standard</option>
+                            <option value="express">Express</option>
+                            <option value="express">Overnight</option>
                         </select>
                         </div>
                     </div>
