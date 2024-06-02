@@ -9,6 +9,7 @@ using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Amazon.SimpleEmailV2;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Net.Http.Headers;
 using ShopRepository.Data;
 using ShopRepository.Handler;
 using ShopRepository.Helper;
@@ -42,6 +43,7 @@ else
 // Check for local environment and set up DynamoDB and Configuration accordingly
 AmazonDynamoDBClient client;
 var local = Environment.GetEnvironmentVariable("AWS_SAM_LOCAL") == "true";
+Console.WriteLine("Local: " + local);
 if (local)
 {
     Console.WriteLine("\nRUNNING WITH LOCAL DYNAMODB IN TEST MODE!\n");
@@ -90,7 +92,10 @@ builder.Services.AddCors(options =>
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithExposedHeaders("Access-Control-Allow-Origin");
+            .WithHeaders(HeaderNames.Authorization)
+            .WithExposedHeaders(HeaderNames.AccessControlAllowOrigin)
+            .WithExposedHeaders(HeaderNames.AccessControlAllowCredentials)
+            .WithExposedHeaders(HeaderNames.WWWAuthenticate);
     });
     options.AddPolicy("AllowProdRequests", policyBuilder =>
     {
@@ -98,7 +103,11 @@ builder.Services.AddCors(options =>
             .WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithExposedHeaders("Access-Control-Allow-Origin");
+            .AllowCredentials()
+            .WithHeaders(HeaderNames.Authorization)
+            .WithExposedHeaders(HeaderNames.AccessControlAllowOrigin)
+            .WithExposedHeaders(HeaderNames.AccessControlAllowCredentials)
+            .WithExposedHeaders(HeaderNames.WWWAuthenticate);
     });
 });
 

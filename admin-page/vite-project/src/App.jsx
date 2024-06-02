@@ -4,7 +4,7 @@ import Admin from './Pages/Admin/Admin'
 import { createTheme } from "@mui/material/styles";
 import { cognitoUser, login, refresh, isTokenExpired } from "./auth.js";
 export const serverUri = process.env.NODE_ENV === 'production'
-    ? "https://nn8hvsrhhk.execute-api.ap-southeast-2.amazonaws.com"
+    ? "https://ir6fxdttrg.execute-api.ap-southeast-2.amazonaws.com"
     : "http://localhost:3000";
 export const apiEndpoint = "/api/inventory"
 

@@ -13,6 +13,12 @@ public class Stock
     [DynamoDBProperty] public string Description { get; set; } = "";
     [DynamoDBProperty] public decimal Price { get; set; } = 50;
     [DynamoDBProperty] public int DiscountPercentage { get; set; }
+    // Shipping
+    [DynamoDBProperty] public double CMheight { get; set; } = 30;
+    [DynamoDBProperty] public double CMwidth { get; set; } = 10;
+    [DynamoDBProperty] public double CMlength { get; set; } = 10;
+    [DynamoDBProperty] public double KGweight { get; set; } = 0.5;
+    [DynamoDBProperty] public decimal ShippingCost { get; set; } = 5;
     
     [DynamoDBProperty] public bool Active { get; set; } = true;
     

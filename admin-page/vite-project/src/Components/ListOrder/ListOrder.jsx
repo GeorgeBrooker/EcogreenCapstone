@@ -10,7 +10,6 @@ const ListOrder = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchInfo = async () => {
-        const tokens = await getSessionTokens();
         const response = await fetchWithAuth(`${serverUri}${apiEndpoint}/GetOrders`, {
             method: 'GET',
             headers: {

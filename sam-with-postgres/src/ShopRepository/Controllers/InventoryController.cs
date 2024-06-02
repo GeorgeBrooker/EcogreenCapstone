@@ -20,7 +20,6 @@ public class InventoryController(IShopRepo repo, StripeService stripeService, IC
 // STOCK
 //
     // GET
-    [Authorize(AuthenticationSchemes = "AdminCognitoAuth")]
     [HttpGet("GetAllStock")]
     public async Task<ActionResult<IEnumerable<Stock>>> GetAllStock([FromQuery] int limit = 1000)
     {
@@ -209,9 +208,8 @@ public class InventoryController(IShopRepo repo, StripeService stripeService, IC
     //
 
     // GET
-    [Authorize(AuthenticationSchemes = "AdminCognitoAuth")]
     [HttpGet("GetOrders")]
-    public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders([FromQuery] int limit = 20)
+    public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders([FromQuery] int limit = 100)
     {
         return Ok(await repo.GetAllOrders(limit));
     }
