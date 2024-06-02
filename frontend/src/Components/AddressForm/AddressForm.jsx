@@ -13,18 +13,47 @@ const AddressForm = () => {
         company: ""
     });
 
+    const [addressSuggestions, setAddressSuggestions] = useState([]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
             [name]: value
         });
+
+        if (name === "street") {
+            fetchAddressSuggestions(value);
+        }
     };
+
+    const fetchAddressSuggestions = async (query) => {
+        if (query.length > 2) { // 当输入长度大于2时触发搜索
+            try {
+                const response = await fetch(`/api/address/search-addresses?query=${query}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Fetched data:", data); // 添加日志记录返回的内容
+                    setAddressSuggestions(data.addresses); // 假设 data.addresses 是地址建议的数组
+                } else {
+                    console.error("Error fetching address suggestions:", response.statusText);
+                    const errorText = await response.text();
+                    console.error("Error response text:", errorText);
+                }
+            } catch (error) {
+                console.error("Error fetching address suggestions:", error);
+            }
+        }
+    };
+    
+    
+    
+    
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // send data to the server
         console.log("Form submitted:", formData);
+        // Further submission logic...
     };
 
     return (
@@ -89,17 +118,6 @@ const AddressForm = () => {
                         required
                     />
                 </div>
-                {/* <div className="form-group">
-                    <label htmlFor="addressId">Address ID:</label>
-                    <input
-                        type="text"
-                        id="addressId"
-                        name="addressId"
-                        value={formData.addressId}
-                        onChange={handleChange}
-                        required
-                    />
-                </div> */}
                 <div className="form-group">
                     <label htmlFor="building">Building (optional):</label>
                     <input
@@ -120,6 +138,11 @@ const AddressForm = () => {
                         onChange={handleChange}
                     />
                 </div>
+                {addressSuggestions.map((suggestion, index) => (
+                    <div key={index}>
+                        {suggestion.full_address} {/* 假设 suggestion 对象有一个 full_address 属性 */}
+                    </div>
+                ))}
                 <button type="submit">Submit Address</button>
             </form>
         </div>
@@ -127,3 +150,4 @@ const AddressForm = () => {
 };
 
 export default AddressForm;
+

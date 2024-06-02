@@ -1,4 +1,3 @@
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using Amazon;
 using Amazon.CognitoIdentityProvider;
@@ -10,7 +9,6 @@ using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Amazon.SimpleEmailV2;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Options;
 using ShopRepository.Data;
 using ShopRepository.Handler;
 using ShopRepository.Helper;
@@ -28,12 +26,18 @@ builder.Logging
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.APSoutheast2.SystemName;
 var secretClient = new AmazonSecretsManagerClient(RegionEndpoint.APSoutheast2);
 var secretValue = secretClient.GetSecretValueAsync(new GetSecretValueRequest { SecretId = "KashishWebAppConfigSecrets" }).Result.SecretString;
+
 if (secretValue != null)
 {
     var secretJson = JsonSerializer.Deserialize<Dictionary<string, string>>(secretValue);
     foreach (var kvp in secretJson!) builder.Configuration[kvp.Key] = kvp.Value;
     foreach(var kvp in secretJson) Console.WriteLine($"{kvp.Key}: {kvp.Value}");
 }
+else
+{
+    Console.WriteLine("Secret value is null");
+}
+
 
 // Check for local environment and set up DynamoDB and Configuration accordingly
 AmazonDynamoDBClient client;
@@ -104,8 +108,10 @@ builder.Services
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
 // Add Services
+builder.Services.AddHttpClient<NZPostService>();
 builder.Services
     .AddSingleton<IAmazonDynamoDB>(client)
+    .AddSingleton<NZPostService>() // Register NZPostService as Singleton
     .AddScoped<IDynamoDBContext, DynamoDBContext>()
     .AddScoped<IShopRepo, ShopRepo>()
     .AddScoped<CognitoService>()
@@ -119,7 +125,6 @@ builder.Services
     .AddAWSService<IAmazonS3>()
     .AddAWSService<IAmazonSimpleEmailServiceV2>()
     .AddAWSLambdaHosting(LambdaEventSource.HttpApi); // Add AWS Lambda hosting support
-    
 
 
 // Build app and register the middleware

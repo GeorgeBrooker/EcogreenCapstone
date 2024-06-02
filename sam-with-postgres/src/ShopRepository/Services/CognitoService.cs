@@ -1,11 +1,9 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
-
 
 namespace ShopRepository.Services;
 
