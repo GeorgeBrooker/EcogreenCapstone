@@ -7,6 +7,14 @@
 
 **Deployment instructions are contained within each component's respective directory (usually in a readme)**
 
+To deploy the backend locally you will need to install the AWS CLI, the AWS SAM CLI, DockerDesktop and the StripeCLI
+After instal run docker-compose up -d in .\sam-with-postgress\ to pull and build the database.
+Then run sam build; sam-local start-api --docker-network host to run a copy of the api locally. If you want to use stripe webhook you will also need to run the StripeCLI although this is not required.
+I reccomend lookin at the install instructions in the sam-with-postgress folder for more details.
+
+To run the frontend pages go to ./frontend/ and run 'npm install; npm start' and the go do /admin-page/vite-project and run 'npm install; npm run dev'
+You will need to install Node.Js
+
 ### Project management:
 Project management was done primarily through GitHub issues, we also communicated through Messenger and Zoom.
 
