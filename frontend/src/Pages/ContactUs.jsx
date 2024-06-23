@@ -1,6 +1,8 @@
 import React, { useState, useContext } from 'react';
 import './CSS/ContactUs.css';
 import { ShopContext } from '../Context/ShopContext';
+import { Button, CircularProgress } from "@mui/material";
+import { styled } from '@mui/material/styles';
 
 function ContactUs() {
     const {serverUri} = useContext(ShopContext);
@@ -9,6 +11,8 @@ function ContactUs() {
       email: '',
       message: '',
     });
+
+    const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,6 +24,8 @@ function ContactUs() {
 
   const handleSubmit = async (e)  => {
     e.preventDefault();
+
+    setIsLoading(true); // Start loading
     
     const response = await fetch(serverUri + '/api/shop/ContactUs', {
         method: 'POST',
@@ -28,6 +34,9 @@ function ContactUs() {
         },
         body: JSON.stringify(formData),
     });
+
+    setIsLoading(false); // Stop loading
+
     if (!response.ok) {
       alert('An error occurred while submitting the form' + response.statusText);
     }
@@ -41,6 +50,21 @@ function ContactUs() {
     });
     
   };
+
+  const SendButton = styled(Button)({
+    borderRadius: '75px',
+    fontSize: '15px',
+    fontWeight: 'bold',
+    padding: '10px 20px',
+    backgroundColor: '#24831a',
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#475247',
+    },
+    '&:disabled': {
+      backgroundColor: '#cccccc',
+    },
+  });
 
   return (
     <div className="contactUs">
@@ -76,7 +100,9 @@ function ContactUs() {
             onChange={handleChange}
           />
         </div>
-        <button type="submit" onClick={handleSubmit}>Send</button>
+        <SendButton type="submit" onClick={handleSubmit} disabled={isLoading}>
+          {isLoading ? <CircularProgress size={24} /> : 'Send'}
+        </SendButton>
       </form>
     </div>
     </div>

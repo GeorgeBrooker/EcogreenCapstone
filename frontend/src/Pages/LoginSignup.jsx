@@ -2,10 +2,12 @@ import React, {useContext, useState} from "react"
 import { ShopContext } from '../Context/ShopContext'
 import { UserContext } from '../Context/UserContext'
 import './CSS/LoginSignup.css'
-
+import { Button, CircularProgress } from "@mui/material";
+import { styled } from '@mui/material/styles';
 // import Footer from "../Components/Footer/Footer"
 
 const LoginSignup = () => {
+    const [isLoading, setIsLoading] = useState(false);
     const {serverUri} = useContext(ShopContext);
     const {isLoggedIn, setIsLoggedIn, checkLogin} = useContext(UserContext);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -120,6 +122,9 @@ const LoginSignup = () => {
     };
 
     const login = async () => {
+
+        setIsLoading(true); // Start loading
+
         let token = localStorage.getItem('id-token');
         let access_token = localStorage.getItem('auth-token');
         let refresh_token = localStorage.getItem('refresh-token');
@@ -131,6 +136,7 @@ const LoginSignup = () => {
             "Pass": formData.password
         };
         
+        setIsLoading(false); // Stop loading
         // Get token if no token is stored
         if(access_token && refresh_token && token) {
             return validateLoginTokens();
@@ -200,6 +206,8 @@ const LoginSignup = () => {
     const signup = async () => {
         if (!isFormValid()) return; // Validate form fields and terms agreement before proceeding
 
+        setIsLoading(true); // Start loading
+
         console.log("Signup Function Executed", formData);
         let customerInput = {
             "Fname": formData.firstName,
@@ -215,6 +223,9 @@ const LoginSignup = () => {
             },
             body: JSON.stringify(customerInput),
         });
+
+        setIsLoading(false); // Stop loading
+
         if (response.ok) {
             // Signup successful, clear any existing auth token and log the user in.
             console.log("Signup successful");
@@ -263,6 +274,23 @@ const LoginSignup = () => {
         console.log("Verification cancelled");
         setShowVerification(false);
     }
+
+
+    const ContinueButton = styled(Button)({
+        borderRadius: '20px', // Add border radius here
+        fontSize: '15px',
+        fontWeight: 'bold',
+        padding: '10px 20px',
+        backgroundColor: '#1976d2',
+        color: '#fff',
+        '&:hover': {
+            backgroundColor: '#5c5c5c',
+        },
+        '&:disabled': {
+            backgroundColor: '#cccccc',
+        },
+    });
+
 
     return (
         <div className="loginsignup">
@@ -337,10 +365,12 @@ const LoginSignup = () => {
                     <input name="password" value={formData.password} onChange={changeHandler} type="password"
                            placeholder="Password"/>
                 </div>
-                <button onClick={() => {
+                <ContinueButton onClick={() => {
                     state === "Login" ? login() : signup()
-                }}>Continue
-                </button>
+                    }}
+                    disabled={isLoading}> 
+                    {isLoading ? <CircularProgress size={24} /> : 'Continue'} 
+                </ContinueButton>
                 {state === "Sign Up" ?
                     <>
                         <div className="loginsignup-agree">

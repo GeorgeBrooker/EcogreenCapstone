@@ -10,7 +10,7 @@ const OrderFail = () => {
         <div className="container">
             <div className="infobox">
                 <img src={orderfail} alt="order fail" />
-                <p>Order Fail!</p>
+                <p>Order Failed!</p>
                 <Link to='/cart'> <button>Re-Checkout</button> </Link>
                 <Link to='/home'> <button>Back to Home</button> </Link>
                 

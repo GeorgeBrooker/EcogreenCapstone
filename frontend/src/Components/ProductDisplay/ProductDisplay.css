@@ -54,8 +54,9 @@
 }
 .buttons-box button{
   margin-top: 55px;
-  padding: 20px 40px;
+  padding: 10px 20px;
   width: 200px;
+  height: 50px;
   font-size: 16px;
   font-weight: 600;
   color: white;
@@ -63,7 +64,7 @@
   margin-bottom: 40px;
   border: none;
   outline: none;
-  cursor: pointer ;
+  cursor: pointer;
 }
 
 .productdisplay-img-item {

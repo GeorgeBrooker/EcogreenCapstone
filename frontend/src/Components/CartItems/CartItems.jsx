@@ -5,12 +5,30 @@ import { ShopContext } from "../../Context/ShopContext";
 // import add_icon from '../Assets/add_icon.png';
 import QuantityStepper from "../QuantityStepper/QuantityStepper";
 import AddressForm from "../AddressForm/AddressForm";
+import { Button, CircularProgress } from "@mui/material";
+import { styled } from '@mui/material/styles';
 
 //TODO move this kind of logic into the main Cart component this is just for testing
 const CartItems =()=>{
     const {getTotalCartAmount, all_product, cartItems, removeFromCart,addToCart, proceedToCheckout} = useContext(ShopContext)
     const [paymentType, setPaymentType] = useState("");
     const [deliveryType, setDeliveryType] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+
+    const ProceedButton = styled(Button)({
+        borderRadius: '75px',
+        fontSize: '15px',
+        fontWeight: 'bold',
+        padding: '10px 20px',
+        backgroundColor: '#24831a',
+        color: '#fff',
+        '&:hover': {
+            backgroundColor: '#475247',
+        },
+        '&:disabled': {
+            backgroundColor: '#cccccc',
+        },
+    });
 
     return(
         <div className="cartitems">
@@ -95,7 +113,9 @@ const CartItems =()=>{
                     </div>
                         
                         <div className="proceed-div">
-                            <button className="proceed-button" onClick={proceedToCheckout}>Proceed to Checkout</button>
+                            <ProceedButton className="proceed-button" onClick={proceedToCheckout}>
+                            {isLoading ? <CircularProgress size={24} /> : 'Proceed to Checkout'} 
+                            </ProceedButton>
                         </div>
                     
                 </div>
