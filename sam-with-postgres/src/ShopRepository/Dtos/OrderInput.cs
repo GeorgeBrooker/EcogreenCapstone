@@ -15,4 +15,6 @@ public class OrderInput
     public string? DeliveryLabel { get; set; }
     public string? Tracking { get; set; }
     public string? PackageRef { get; set; }
+    public string? CustomerName { get; set; }
+    public string? TotalCost { get; set; }
 }

@@ -1,20 +1,24 @@
 import React from "react"
 import './Popup.css'
-const Popup = ({ isOpen, close, purchase }) => {
+import { serverUri } from '../../Context/ShopContext.jsx';
+const Popup = async ({ isOpen, close, purchase }) => {
     if (!isOpen) return null;
-  
-    return (
-      <div className="popup">
-        <div className="popup-inner">
-          <button onClick={close}>Close</button>
-          <h2>Purchase Detail</h2>
-          <p>Date: {purchase.date}</p>
-          <p>Item: {purchase.itemName}</p>
-          <p>Amount: ${purchase.amount}</p>
-        </div>
-      </div>
-    );
-  };
 
-  export default Popup
+    console.log("lineitems" + lineItems);
+    return (
+        <div className="popup">
+            {lineItems.map((item, index) => (
+                <div key={index} className="popup-inner">
+                    <h2>Purchase Detail</h2>
+                    <p>Date: {purchase.date}</p>
+                    <p>Item: {purchase.itemName}</p>
+                    <p>Amount: ${purchase.amount}</p>
+                </div>
+            ))}
+            <button onClick={close}>Close</button>
+        </div>
+    );
+};
+
+export default Popup
 

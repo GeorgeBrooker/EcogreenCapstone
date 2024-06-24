@@ -11,14 +11,11 @@ public class Order
     // Payment info
     [DynamoDBProperty] public string? StripeCheckoutSession { get; set; } = null;// Stripe checkout session ID, will be null until the order is for a different payment service.
 
-    [DynamoDBProperty]
-    public required Guid CustomerId { get; set; } // 1-m relationship on customer GUID TODO make this a range key, Or could we even hash on this?
-
-    [DynamoDBProperty]
-    public string OrderStatus { get; set; } =
+    [DynamoDBProperty] public required Guid CustomerId { get; set; } // 1-m relationship on customer GUID TODO make this a range key, Or could we even hash on this?
+    [DynamoDBProperty] public string? CustomerName { get; set; } = null; // Denormalized customer name for easy access.
+    [DynamoDBProperty] public string OrderStatus { get; set; } =
         "Pending"; // Order status can be one of the following: "Pending", "Processing", "Confirmed", "Shipped", "Delivered", "Cancelled" TODO make this an enum
-
-
+    [DynamoDBProperty] public string? OrderCost { get; set; } = null; // Total cost of the order when it was created (stock price may change).
     // Delivery info
     [DynamoDBProperty] public string? DeliveryLabelUid { get; set; }
     [DynamoDBProperty] public string? TrackingNumber { get; set; }

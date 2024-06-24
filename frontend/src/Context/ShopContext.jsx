@@ -152,6 +152,7 @@ const ShopContextProvider = (props)=> {
         const orderInput = {
             PaymentId: "AfakePaymentId", // Pretty sure I can remove this value now, or replace it with some other logic at least.
             CustomerId: sessionStorage.getItem('Id'),
+            CustomerName: sessionStorage.getItem('Fname') + ' ' + sessionStorage.getItem('Lname'),
             CustomerAddress: "AFakeAdress", // Get this value from the 3rd party hosted checkout page.
             OrderStatus: "Pending",
             PaymentType: "Stripe" // TODO add support for other payment types on checkout page.

@@ -65,8 +65,16 @@ public class CustomerAuthHandler : AuthenticationHandler<AuthenticationSchemeOpt
         if (!isValid)
         {
             // If the token is not valid, try to refresh it
-            var newAccessToken = await _cognitoService.RefreshSession(refreshToken);
-            if (string.IsNullOrEmpty(newAccessToken)) return AuthenticateResult.Fail("Invalid token");
+            string newAccessToken; 
+            try
+            {
+                newAccessToken = await _cognitoService.RefreshSession(refreshToken);
+            }
+            catch (Exception e)
+            {
+                return AuthenticateResult.Fail("Invalid refresh token");
+            }
+            if (string.IsNullOrEmpty(newAccessToken)) return AuthenticateResult.Fail("Invalid refresh token");
 
             accessToken = newAccessToken;
         }

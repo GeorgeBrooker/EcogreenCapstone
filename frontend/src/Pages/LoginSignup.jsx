@@ -9,7 +9,7 @@ import { styled } from '@mui/material/styles';
 const LoginSignup = () => {
     const [isLoading, setIsLoading] = useState(false);
     const {serverUri} = useContext(ShopContext);
-    const {isLoggedIn, setIsLoggedIn, checkLogin} = useContext(UserContext);
+    const {isLoggedIn, setIsLoggedIn, checkLogin, logout} = useContext(UserContext);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [isResetPassword, setIsResetPassword] = useState(false);
     const [email, setEmail] = useState("");
@@ -122,7 +122,7 @@ const LoginSignup = () => {
     };
 
     const login = async () => {
-
+        if (!isFormValid()) return; // Validate form fields before proceeding
         setIsLoading(true); // Start loading
 
         let token = localStorage.getItem('id-token');
@@ -136,12 +136,11 @@ const LoginSignup = () => {
             "Pass": formData.password
         };
         
-        setIsLoading(false); // Stop loading
         // Get token if no token is stored
         if(access_token && refresh_token && token) {
             return validateLoginTokens();
         }
-        
+        setIsLoading(true);
         const response = await fetch(serverUri + '/api/auth/CustomerLogin', {
             method: "POST",
             headers: {
@@ -157,7 +156,7 @@ const LoginSignup = () => {
             localStorage.setItem('refresh-token', data.refreshToken);
 
             console.log("Got login tokens:\n", data.token, "\n\n", data.accessToken, "\n\n", data.refreshToken);
-            validateLoginTokens();
+            await validateLoginTokens();
         }
         else if (response.status === 400) {
             alert(await response.text());
@@ -172,9 +171,11 @@ const LoginSignup = () => {
         else {
             alert("Login failed for unknown reason with email: ", formData.email,);
         }
+        setIsLoading(false);
     };
 
     const validateLoginTokens = async () => {
+        setIsLoading(true);
         const response = await fetch(serverUri + '/api/auth/ValidateCustomer', {
             method: "GET",
             headers: {
@@ -188,6 +189,7 @@ const LoginSignup = () => {
             localStorage.removeItem('id-token');
             setIsLoggedIn(false);
             alert("Login failed");
+            setIsLoading(false);
             return
         }
 
@@ -200,7 +202,8 @@ const LoginSignup = () => {
 
         // Handle successful login
         alert("Login successful!");
-        window.location.replace('/home')
+        window.location.replace('/home');
+        setIsLoading(false);
         setIsLoggedIn(true);
     }
     const signup = async () => {
@@ -223,8 +226,6 @@ const LoginSignup = () => {
             },
             body: JSON.stringify(customerInput),
         });
-
-        setIsLoading(false); // Stop loading
 
         if (response.ok) {
             // Signup successful, clear any existing auth token and log the user in.

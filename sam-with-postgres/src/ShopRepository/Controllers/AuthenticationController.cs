@@ -68,8 +68,9 @@ public class AuthenticationController(IShopRepo repo, IConfiguration config, Cog
     }
     
     [HttpPost("Logout")]
-    public async Task<IActionResult> Logout([FromBody] string accessToken)
+    public async Task<IActionResult> Logout([FromBody] Dictionary<string, string> accessTokenDictionary)
     {
+        var accessToken = accessTokenDictionary["accessToken"];
         try
         {
             await cognito.GlobalSignOutAsync(accessToken);

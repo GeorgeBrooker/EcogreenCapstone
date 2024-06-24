@@ -23,17 +23,32 @@ const ListProduct = () => {
     const [productUpdating, setProductUpdating] = useState(false);
     
     const fetchProductInfo = async () => {
-        setProductUpdating(true)
+        let prodInfo = sessionStorage.getItem("allProducts");
+        let activeProducts;
+        let archivedProducts;
+        
+        // Check for local cache of product data, if it exists update product info in the background.
+        if (prodInfo !== null) {         
+            activeProducts = JSON.parse(prodInfo).filter(product => product.active);
+            archivedProducts = JSON.parse(prodInfo).filter(product => !product.active);
+            setActiveProducts(activeProducts);
+            setArchivedProducts(archivedProducts);
+        }
+        else {
+            setProductUpdating(true);
+        }
+        
         const response = await fetchWithAuth(`${serverUri}${apiEndpoint}/GetAllStock`, );
         const data = await response.json();
-        localStorage.setItem("allProducts", JSON.stringify(data));// Cache product data locally, refetch on modification
+        sessionStorage.setItem("allProducts", JSON.stringify(data));// Cache product data locally, refetch on modification
         
         // Separate active and archived products for display purposes
-        const activeProducts = data.filter(product => product.active);
-        const archivedProducts = data.filter(product => !product.active);
+        activeProducts = data.filter(product => product.active);
+        archivedProducts = data.filter(product => !product.active);
         
         setActiveProducts(activeProducts);
         setArchivedProducts(archivedProducts);
+        console.log("Updated product data");
         setProductUpdating(false);
     };
 

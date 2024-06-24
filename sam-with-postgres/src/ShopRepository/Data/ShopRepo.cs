@@ -116,6 +116,8 @@ public class ShopRepo(IDynamoDBContext dbContext, ILogger<ShopRepo> logger) : IS
                 Id = Guid.NewGuid(),
                 StripeCheckoutSession = nOrder.StripeCheckoutSession,
                 CustomerId = nOrder.CustomerId,
+                CustomerName = nOrder.CustomerName,
+                OrderCost = nOrder.TotalCost,
                 DeliveryLabelUid = nOrder.DeliveryLabel,
                 TrackingNumber = nOrder.Tracking,
                 PackageReference = nOrder.PackageRef,

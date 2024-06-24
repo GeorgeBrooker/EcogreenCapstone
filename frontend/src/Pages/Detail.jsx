@@ -4,6 +4,22 @@ import { ShopContext } from '../Context/ShopContext';
 // import Footer from '../Components/Footer/Footer';
 import './CSS/Detail.css'
 
+const loadUserFromCache = () => {
+  const u_email = sessionStorage.getItem('Email');
+  const u_fname = sessionStorage.getItem('Fname');
+  const u_lname = sessionStorage.getItem('Lname');
+  const u_id = sessionStorage.getItem('Id');
+  if (u_email === null || u_fname === null || u_lname === null || u_id === null) {
+    return null;
+  }
+  
+  return {
+    email: u_email,
+    fname: u_fname,
+    lname: u_lname,
+    id: u_id
+  };
+}
 function Detail() {
   const {serverUri} = useContext(ShopContext);
   const [user, setUser] = useState(null);
@@ -12,7 +28,16 @@ function Detail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = sessionStorage.getItem('Id');
+    let cacheUser = loadUserFromCache();
+    if (cacheUser !== null) {
+      setUser({
+        name: cacheUser.fname + " " + cacheUser.lname,
+        email: cacheUser.email
+      });
+      setLoading(false);
+    }
+    
+    const userId = cacheUser.id;
     const userUrl = serverUri + `/api/shop/GetCustomerByID/${userId}`;
     const purchasesUrl = serverUri + `/api/shop/GetCustomerOrders/${userId}`;
 
@@ -24,19 +49,22 @@ function Detail() {
         if (!purchasesResponse.ok) throw new Error('Error fetching purchases');
 
         const userData = await userResponse.json();
-        const purchasesData = await purchasesResponse.json();
-
+        let purchasesData = await purchasesResponse.json();
+        purchasesData = purchasesData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
         setUser({
           name: userData.firstName + " " + userData.lastName,
           email: userData.email,
         });
 
         setPurchases(purchasesData.map(purchase => ({
+          date: purchase.createdAt,
           trackingNumber: purchase.trackingNumber,
           id: purchase.id,
-          packageReference: purchase.packageReference,
-          date: purchase.createdAt
-        })));  
+          status: purchase.status,
+          totalCost: purchase.orderCost
+        })));
+        
         setLoading(false);
       }).catch(error => {
         setError(error.message);

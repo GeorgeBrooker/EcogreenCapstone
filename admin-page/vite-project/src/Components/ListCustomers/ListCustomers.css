@@ -13,7 +13,6 @@
 
 .listcustomers-format-main {
     display: grid;
-    grid-template-columns: 3fr 3fr 1fr 3fr;  /* Adjusted for 4 columns */
     gap: 10px;
     width: 100%;
     padding: 20px 0;
@@ -25,7 +24,6 @@
 
 .listcustomers-item {
     display: grid;
-    grid-template-columns: 3fr 3fr 1fr 3fr;  /* Adjusted for 4 columns */
     gap: 10px;
     align-items: center;
     width: 100%;
@@ -40,8 +38,122 @@
 
 @media (max-width: 800px) {
     .listcustomers-format-main, .listcustomers-item {
-        grid-template-columns: 1fr 2fr 2fr 2fr;  /* Adjusted for smaller screens */
         font-size: 12px;  
     }
 }
 
+.title {
+    width: 100%;
+    float: left;
+    display: block;
+    margin-left: 0;
+    font-family: Roboto, sans-serif;
+    font-weight: 700;
+}
+.page-headers{
+    display: block;
+}
+.no-customers-message {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+    font-size: 18px;
+}
+.list-customer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: calc(100% - 85px);
+    margin-top: 15px;
+    border: 20px;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    box-shadow: gray 0px 1px 1px;
+}
+.listcustomer-header {
+    box-shadow: gray 0px 1px 1px;
+    z-index: 2;
+}
+.list-customer .listcustomer-item:hover {
+    background-color: #dcdcdc;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.listcustomer-format{
+    display: grid;
+    grid-template-columns: [col-start] 0.3fr [col-1] 1fr [col-2] 1fr [col-3] 1fr [col-4] 1fr [col-end];
+    gap: 10px;
+    width: 100%;
+    padding: 5px 0 5px 0;
+    background-color: #e4e5ea;
+    font-weight: 600;
+    color: #454545;
+    border-bottom: 1px solid #ddd;
+}
+.listcustomer-allcustomers .listcustomer-format {
+    background-color: #e9ecef;
+}
+.listcustomer-format > p {
+    overflow: scroll;
+}
+.listcustomer-format > img{
+    overflow: hidden;
+}
+.col-1{
+    margin-left: 10px;
+    width: min-content;
+    grid-column: 1;
+}
+.col-2{
+    grid-column: 2;
+}
+.col-3{
+    grid-column: 3;
+}
+.col-4{
+    grid-column: 4;
+}
+
+.listcustomer-customer-icon, .listcustomer-remove-icon {
+    justify-self: left;
+    width: 100px;
+    object-fit: cover;
+}
+
+.listcustomer-customert-icon {
+    height: 80px;
+}
+
+.listcustomer-remove-icon {
+    cursor: pointer;
+}
+
+.listcustomer-allcustomers {
+    overflow-y: auto;
+    width: 100%;
+}
+.delete-selected-button {
+    display: flex;
+}
+.add-customer-button{
+    display: flex;
+    float: right;
+}
+.show-archived-customers-switch {
+    margin-right: auto;
+}
+.listcustomer-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    width: auto;
+}
+
+
+ 

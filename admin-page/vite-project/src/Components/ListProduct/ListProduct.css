@@ -58,7 +58,6 @@
 }
 .col-1{
     margin-left: 10px;
-    width: 100px;
     grid-column: 1;
 }
 .col-2{
@@ -78,7 +77,9 @@
     justify-self: right;
     margin-right: 10px;
 }
-
+.listproduct-format .col-1 {
+    width: 100px;
+}
 .listproduct-product-icon, .listproduct-remove-icon {
     justify-self: left; 
     width: 100px;  

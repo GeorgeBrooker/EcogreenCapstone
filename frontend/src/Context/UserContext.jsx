@@ -4,7 +4,7 @@ import { serverUri } from '../Context/ShopContext'
 export const UserContext = createContext(null);
 export const logout = async () => {
     const token = localStorage.getItem('auth-token');
-    fetch(serverUri + '/api/auth/Logout', {
+    await fetch(serverUri + '/api/auth/Logout', {
         method: "POST",
         headers: {
             'Authorization': 'Bearer ' + btoa(localStorage.getItem('auth-token') + ':' + localStorage.getItem('refresh-token')),

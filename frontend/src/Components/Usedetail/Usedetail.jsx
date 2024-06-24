@@ -1,5 +1,4 @@
-import React, { useState, useContext } from 'react';
-import Popup from '../Popup/Popup';  
+import React, { useState, useContext } from 'react'; 
 import './Usedetail.css'; 
 import use_logo from '../Assets/login.png'
 import { Link } from 'react-router-dom';
@@ -76,6 +75,8 @@ const Usedetail = ({ user, purchases }) => {
       setPasswordError('New passwords do not match.');
       return;
     }
+
+  
     
     // Update password
     const updateResponse = await fetch(serverUri + "/api/auth/ConfirmResetPassword", {
@@ -93,9 +94,13 @@ const Usedetail = ({ user, purchases }) => {
     handleClosePasswordReset();
   };
 
-
-
-
+  const convertTime = (time) => {
+    const date = new Date(time);
+    const options = { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    const formattedDate = new Intl.DateTimeFormat('default', options).format(date);
+    const [month, day, year, ...rest] = formattedDate.split(' ');
+    return `${day} ${month} ${rest.join(' ')} ${year.slice(0, -1)}`;
+  };
 
   return (
     <div className='parent-container'> 
@@ -114,17 +119,21 @@ const Usedetail = ({ user, purchases }) => {
         <table>
           <thead>
             <tr>
-              <th>trackingNumber</th>
-              <th>packageReference</th>
-              <th>id</th>
+              <th>Date</th>
+              <th>Order ID</th>
+              <th>Order Status</th>
+              <th>Tracking Number</th>
+              <th>Cost (NZD)</th>
             </tr>
           </thead>
           <tbody>
             {purchases.map((purchase, index) => (
-              <tr key={index} onClick={() => handleOpenPopup(purchase)}>
+              <tr key={index}>
+                <td>{convertTime(purchase.date)}</td>
+                <td>{purchase.id}</td>
+                <td>{purchase.status}</td>
                 <td>{purchase.trackingNumber}</td>
-                <td>{purchase.packageReference}</td>
-                <td>${purchase.id}</td>
+                <td>${purchase.totalCost}</td>
               </tr>
             ))}
           </tbody>
@@ -132,8 +141,6 @@ const Usedetail = ({ user, purchases }) => {
       ) : isDropdownOpen ? (
         <div>No purchase records found.</div>
       ) : null}
-      <Popup isOpen={isOpen} close={handleClosePopup} purchase={selectedPurchase} />
-
       <br />
       <button className="change-password" onClick={handleOpenPasswordReset}>Change Password</button>
         {isPasswordResetOpen && (

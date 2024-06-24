@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Cryptography;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopRepository.Data;
 using ShopRepository.Dtos;
@@ -52,6 +53,11 @@ public class ShopController(IShopRepo repo, StripeService stripeService, Sesemai
     public async Task<ActionResult<IEnumerable<Order>>> GetCustomerOrders(Guid customerId)
     {
         return Ok(await repo.GetCustomerOrders(customerId));
+    }
+    [HttpGet("GetOrderStock/{orderId:guid}")]
+    public async Task<ActionResult<IEnumerable<StockRequest>>> GetOrderStock(Guid orderId)
+    {
+        return Ok(await repo.GetOrderStock(orderId));
     }
 
     // POST 
@@ -190,7 +196,16 @@ public class ShopController(IShopRepo repo, StripeService stripeService, Sesemai
         var redirectUrl = config["Payment:RedirectUrl"] ?? throw new InvalidOperationException("Config has no payment redirect URL");
         var order = checkoutSession.Order;
         var stockRequests = checkoutSession.StockRequests;
-        
+        foreach (var lineItem in stockRequests)
+        {
+            var stock = await repo.GetStock(lineItem.ProductId);
+            if (stock == null) return BadRequest($"Product {lineItem.ProductId} not found in stock");
+            
+            lineItem.Subtotal = stock.Price * lineItem.Quantity;
+            lineItem.ProductName = stock.Name;
+            order.TotalCost += lineItem.Subtotal;
+        }
+
         // Add order and stock requests to the local database
         var orderId = await repo.AddOrder(order);
         if (orderId == null) return BadRequest("Failed to add order to the DB");
@@ -201,7 +216,9 @@ public class ShopController(IShopRepo repo, StripeService stripeService, Sesemai
             {
                 OrderId = (Guid)orderId,
                 ProductId = requestInput.ProductId,
-                Quantity = requestInput.Quantity
+                Quantity = requestInput.Quantity,
+                Subtotal = requestInput.Subtotal,
+                ProductName = requestInput.ProductName
             };
             var stockRequestResult = await repo.AddStockRequest(stockRequest);
             if (!stockRequestResult) return BadRequest($"Failed to add stock request to DB for product {requestInput.ProductId}");
