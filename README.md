@@ -44,14 +44,6 @@ Authentication is done through AWS Cognito and the website is hosted on AWS S3. 
 - I would not like to thank AWS for their terrible documentation and virtually useless API specification.
 - I would like to thank Stripe for their excellent documentation and the fact that they have a great API.
 
-
-
-
-
-
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/t8qno6SJ)
-
-
 ## Contributors
 - George: 
   - Primary Backend developer 
